@@ -1,0 +1,39 @@
+rules:
+- id: log-variable-fmtstring
+  patterns:
+    - pattern: log("...", $A)
+    - pattern-not: log("...", "...")
+  message: Variable passed as format string to logging
+  languages: [lua]
+  severity: ERROR
+- id: module-log-variable-fmtstring
+  patterns:
+    - pattern: module:log("...", $A)
+    - pattern-not: module:log("...", "...")
+  message: Variable passed as format string to logging
+  languages: [lua]
+  severity: ERROR
+- id: module-getopt-string-default
+  patterns:
+    - pattern: module:get_option_string("...", $A)
+    - pattern-not: module:get_option_string("...", "...")
+    - pattern-not: module:get_option_string("...", host)
+    - pattern-not: module:get_option_string("...", module.host)
+  message: Non-string default from :get_option_string
+  severity: ERROR
+  languages: [lua]
+- id: stanza-empty-text-constructor
+  patterns:
+    - pattern: $A:text()
+  message: Use :get_text() to read text, or pass a value here to add text
+  severity: WARNING
+  languages: [lua]
+- id: require-unprefixed-module
+  patterns:
+    - pattern: require("$X")
+    - metavariable-regex:
+        metavariable: $X
+        regex: '^(core|net|util)\.'
+  message: Prefix required module path with 'prosody.'
+  severity: ERROR
+  languages: [lua]

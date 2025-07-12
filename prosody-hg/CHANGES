@@ -1,0 +1,247 @@
+TRUNK
+=====
+
+13.0.0
+======
+
+**2025-03-13**
+
+## New
+
+## Modules
+
+- mod_account_activity
+- mod_cloud_notify
+- mod_flags
+- mod_http_altconnect
+- mod_s2s_auth_dane_in
+- mod_server_info
+
+### Administration
+
+- Add 'watch log' command to follow live debug logs at runtime (even if disabled)
+- mod_announce: Add shell commands to send messages to all users, online users, or limited by roles
+- New mod_account_activity plugin records last login/logout time of a user account
+- New 'prosodyctl check features' recommends configuration improvements
+
+### Networking
+
+- Honour 'weight' parameter during SRV record selection
+- Support for RFC 8305 "Happy Eyeballs" to improve IPv4/IPv6 connectivity
+- Support for TCP Fast Open in server_epoll (pending LuaSocket support)
+- Support for deferred accept in server_epoll (pending LuaSocket support)
+
+### MUC
+
+- Component admins are no longer room owners by default. This can be reverted
+  to the old behaviour with `component_admins_as_room_owners = true`, but this
+  has known incompatibilities with some clients. Instead, use the shell or
+  ad-hoc commands to gain ownership of rooms when necessary.
+- Permissions updates:
+  - Room creation restricted to local users (of the parent host) by default
+    - restrict_room_creation = true restricts to admins, false disables all restrictions
+  - Persistent rooms can only be created by local users (parent host) by default
+    - muc_room_allow_persistent = false restricts to admins
+  - Public rooms can only be created by local users (parent host) by default
+    - muc_room_allow_public = false restricts to admins
+- Commands to show occupants and affiliations in the Shell
+- Save 'reason' text supplied with affiliation change
+- Owners can set MUC avatars (functionality previously in community module mod_vcard_muc)
+
+### Security and authentication
+
+- Advertise supported SASL Channel-Binding types (XEP-0440)
+- Implement RFC 9266 'tls-exporter' channel binding with TLS 1.3
+- Implement 'tls-server-end-point' channel binding
+- New role and permissions framework and API
+- Ability to disable and enable user accounts
+- Full DANE support for s2s
+- A "grace period" is now supported for deletion requests via in-band registration
+- No longer check certificate Common Names per RFC 9525
+
+### Storage
+
+- New 'keyval+' combined keyval/map store type
+- Performance improvements in internal archive stores
+- Ability to use SQLite3 storage using LuaSQLite3 instead of LuaDBI
+- SQLCipher support
+
+### Module API
+
+- Config interface API can require that string values be picked from a provided set
+- Acceptable interval can be specified for number options
+- Method for parsing time periods / intervals from config
+- Method for retrieving integer settings from config
+- It is now easy for modules to expose a Prosody shell command, by adding a shell-command item
+- Modules can now implement a module.ready method which will be called after server initialization
+- module:depends() now accepts a second parameter 'soft' to enable soft dependencies
+
+### Configuration
+
+- The configuration file now supports referring and appending to options previously set
+- Direct usage of the Lua API in the config file is deprecated, but can now be accessed via Lua.* instead
+- Convenience functions for reading values from files, with variant meant for credentials or secrets
+
+## Changes
+
+- Support sub-second precision timestamps
+- mod_blocklist: New option 'migrate_legacy_blocking' to disable migration from mod_privacy
+- Moved all modules into the Lua namespace `prosody.`
+- Forwarded header from RFC 7239 supported, disabled by default
+- mod_http_file_share now uses roles framework, affecting access from e.g. components
+- Intervals of mod_cron managed periodic jobs made configurable
+- When mod_smacks is enabled, s2s connections not responding to ack requests are closed.
+- Arguments to `prosodyctl shell` that start with ':' are now turned into method calls
+- Support for Type=notify and notify-reload systemd service type added
+- Support for the roster *group* access_model in mod_pep
+- Support for systemd socket activation in server_epoll
+- mod_invites_adhoc gained a command for creating password resets
+- mod_cloud_notify imported from community modules for push notification support
+- mod_http_altconnect imported from community modules, simplifying web clients
+
+## Removed
+
+- Lua 5.1 support
+- XEP-0090 support removed from mod_time
+- util.rfc6724
+
+0.12.0
+======
+
+**2022-03-14**
+
+## New
+
+### Modules
+
+-   mod_mimicking: Prevent address spoofing
+-   mod_s2s_bidi: Bi-directional server-to-server (XEP-0288)
+-   mod_external_services: generic XEP-0215 support
+-   mod_turn_external: easy setup XEP-0215 for STUN+TURN
+-   mod_http_file_share: File sharing via HTTP (XEP-0363)
+-   mod_http_openmetrics for exposing metrics to stats collectors
+-   mod_smacks: Stream management and resumption (XEP-0198)
+-   mod_auth_ldap: LDAP authentication
+-   mod_cron: One module to rule all the periodic tasks
+-   mod_admin_shell: New home of the Console admin interface
+-   mod_admin_socket: Enable secure connections to the Console
+-   mod_tombstones: Prevent registration of deleted accounts
+-   mod_invites: Create and manage invites
+-   mod_invites_register: Create accounts using invites
+-   mod_invites_adhoc: Create invites via AdHoc command
+-   mod_bookmarks: Synchronise open rooms between clients
+
+### Security and authentication
+
+-   SNI support (including automatic certificate selection)
+-   ALPN support in mod_net_multiplex
+-   DANE support in low-level network layer
+-   Direct TLS support (c2s and s2s)
+-   SCRAM-SHA-256
+-   Direct TLS (including https) certificates updated on reload
+-   Pluggable authorization providers (mod_authz_)
+-   Easy use of Mozilla TLS recommendations presets
+-   Unencrypted HTTP port (5280) restricted to loopback by default
+-   require_encryption options default to 'true' if unspecified
+-   Authentication module defaults to 'internal_hashed' if unspecified
+
+### HTTP
+
+-   CORS handling now provided by mod_http
+-   Built-in HTTP server now handles HEAD requests
+-   Uploads can be handled incrementally
+
+### API
+
+-   Module statuses (API change)
+-   util.error for encapsulating errors
+-   Promise based API for sending queries
+-   API for adding periodic tasks
+-   More APIs supporting ES6 Promises
+-   Async can be used during shutdown
+
+### Other
+
+-   Plugin installer
+-   MUC presence broadcast controls
+-   MUC: support for XEP-0421 occupant identifiers
+-   `prosodyctl check connectivity` via observe.jabber.network
+-   STUN/TURN server tests in `prosodyctl check`
+-   libunbound for DNS queries
+-   The POSIX poll() API used by server_epoll on \*nix other than Linux
+
+## Changes
+
+-   Improved rules for mobile optimizations
+-   Improved rules for what messages should be archived
+-   mod_limits: Exempted JIDs
+-   mod_server_contact_info now loaded on components if enabled
+-   Statistics now based on OpenMetrics
+-   Statistics scheduling can be done by plugin
+-   Offline messages aren't sent to MAM clients
+-   Archive quotas (means?)
+-   Rewritten migrator with archive support
+-   Improved automatic certificate locating and selecting
+-   Logging to syslog no longer missing startup messages
+-   Graceful shutdown sequence that closes ports first and waits for
+    connections to close
+
+## Removed
+
+-   `daemonize` option deprecated
+-   SASL DIGEST-MD5 removed
+-   mod_auth_cyrus (older LDAP support)
+-   Network backend server_select deprecated (not actually removed yet)
+
+0.11.0
+======
+
+**2018-11-18**
+
+New features
+------------
+
+-   Rewritten more extensible MUC module
+    -   Store inactive rooms to disk
+    -   Store rooms to disk on shutdown
+    -   Voice requests
+    -   Tombstones in place of destroyed rooms
+-   PubSub features
+    -   Persistence
+    -   Affiliations
+    -   Access models
+    -   "publish-options"
+-   PEP now uses our pubsub code and now shares the above features
+-   Asynchronous operations
+-   Busted for tests
+-   mod\_muc\_mam (XEP-0313 in groupchats)
+-   mod\_vcard\_legacy (XEP-0398)
+-   mod\_vcard4 (XEP-0292)
+-   mod\_csi, mod\_csi\_simple (XEP-0352)
+-   New experimental network backend "epoll"
+
+0.10.0
+======
+
+**2017-10-02**
+
+New features
+------------
+
+-   Rewritten SQL storage module with Archive support
+-   SCRAM-SHA-1-PLUS
+-   `prosodyctl check`
+-   Statistics
+-   Improved TLS configuration
+-   Lua 5.2 support
+-   mod\_blocklist (XEP-0191)
+-   mod\_carbons (XEP-0280)
+-   Pluggable connection timeout handling
+-   mod\_websocket (RFC 7395)
+-   mod\_mam (XEP-0313)
+
+Removed
+-------
+
+-   mod\_privacy (XEP-0016)
+-   mod\_compression (XEP-0138)
