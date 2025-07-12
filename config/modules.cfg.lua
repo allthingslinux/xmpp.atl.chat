@@ -4,63 +4,40 @@
 -- Module loading, organization by source and requirements
 
 -- ============================================================================
--- CORE MODULES (REQUIRED - CANNOT BE DISABLED)
+-- CORE MODULES (SHIPPED WITH PROSODY)
 -- ============================================================================
 
--- Core modules that are essential and cannot be disabled
--- These provide fundamental XMPP functionality
-local core_required_modules = {
-    -- Essential authentication and security (always needed)
-    "roster", "saslauth", "tls", "dialback", "disco",
+-- All modules shipped with Prosody - includes required, autoloaded, and distributed modules
+-- Simplified organization: all Prosody-shipped modules in one category
+local core_modules = {
+    -- Essential modules (required - cannot be disabled)
+    "roster", "saslauth", "tls", "dialback", "disco", "c2s", "s2s",
+    "private", "vcard", "version", "uptime", "time", "ping",
     
-    -- Core connection handling (required for operation)
-    "c2s", "s2s",
+    -- Autoloaded modules (loaded by default but can be disabled)
+    "presence", "message", "iq", "offline", "s2s_auth_certs",
     
-    -- Basic XMPP functionality (required)
-    "private", "vcard", "version", "uptime", "time", "ping"
-}
-
--- ============================================================================
--- AUTOLOADED MODULES (LOADED BY DEFAULT BUT CAN BE DISABLED)
--- ============================================================================
-
--- Modules that Prosody autoloads but can be disabled if needed
--- Based on Prosody's autoload_modules list
-local autoloaded_modules = {
-    -- Core XMPP stanza handling (autoloaded but can be disabled)
-    "presence", "message", "iq", "offline",
-    
-    -- S2S certificate authentication (autoloaded but can be disabled)
-    "s2s_auth_certs"
-}
-
--- ============================================================================
--- DISTRIBUTED MODULES (SHIPPED WITH PROSODY)
--- ============================================================================
-
--- Distributed modules (shipped with Prosody but not autoloaded)
-local distributed_modules = {
-    -- Modern XMPP features (distributed with Prosody)
+    -- Modern XMPP features (shipped with Prosody)
     "carbons", "mam", "smacks", "csi", "csi_simple", "bookmarks",
     "blocklist", "lastactivity", "pep",
     
-    -- Security and administration (distributed)
+    -- Security and administration
     "limits", "admin_adhoc", "admin_shell", "invites", "invites_adhoc", "invites_register",
     "tombstones", "server_contact_info", "watchregistrations",
     
-    -- HTTP services (distributed)
+    -- HTTP services
     "http", "http_errors", "http_files", "http_file_share", "bosh", "websocket", "http_openmetrics",
     
-    -- Multi-user chat (distributed)
+    -- Multi-user chat
     "muc", "muc_mam", "muc_unique",
     
     -- File transfer and media
     "proxy65", "turn_external",
     
-    -- User profiles and vCard (distributed)
+    -- User profiles and vCard
     "vcard4", "vcard_legacy",
     
-    -- Miscellaneous distributed modules
+    -- Miscellaneous modules
     "motd", "welcome", "announce", "register_ibr", "register_limits",
     "user_account_management", "mimicking", "cloud_notify"
 }
@@ -107,21 +84,9 @@ local community_alpha_modules = {
 local function build_module_list()
     local modules = {}
     
-    -- Always include core required modules (cannot be disabled)
-    for _, module in ipairs(core_required_modules) do
-        table.insert(modules, module)
-    end
-    
-    -- Include autoloaded modules (can be disabled with PROSODY_DISABLE_AUTOLOADED)
-    if os.getenv("PROSODY_DISABLE_AUTOLOADED") ~= "true" then
-        for _, module in ipairs(autoloaded_modules) do
-            table.insert(modules, module)
-        end
-    end
-    
-    -- Distributed modules (shipped with Prosody, enabled by default)
-    if os.getenv("PROSODY_ENABLE_DISTRIBUTED") ~= "false" then
-        for _, module in ipairs(distributed_modules) do
+    -- Core modules (all Prosody-shipped modules, enabled by default)
+    if os.getenv("PROSODY_ENABLE_CORE") ~= "false" then
+        for _, module in ipairs(core_modules) do
             table.insert(modules, module)
         end
     end
@@ -159,25 +124,18 @@ modules_enabled = build_module_list()
 -- Log module stability information on startup
 local function log_module_stability()
     local stability_info = {
-        core_required = #core_required_modules,
-        autoloaded = #autoloaded_modules,
-        distributed = #distributed_modules,
+        core = #core_modules,
         community_stable = #community_stable_modules,
         community_beta = #community_beta_modules,
         community_alpha = #community_alpha_modules
     }
     
-    module:log("info", "Module profile: Core=%d, Autoloaded=%d, Distributed=%d, Community(Stable=%d, Beta=%d, Alpha=%d)", 
-              stability_info.core_required, stability_info.autoloaded, stability_info.distributed,
-              stability_info.community_stable, stability_info.community_beta, stability_info.community_alpha)
+    module:log("info", "Module profile: Core=%d, Community(Stable=%d, Beta=%d, Alpha=%d)", 
+              stability_info.core, stability_info.community_stable, 
+              stability_info.community_beta, stability_info.community_alpha)
     
     -- Log total enabled modules
     module:log("info", "Total enabled modules: %d", #modules_enabled)
-    
-    -- Log if autoloaded modules are disabled
-    if os.getenv("PROSODY_DISABLE_AUTOLOADED") == "true" then
-        module:log("warn", "Autoloaded modules disabled - this may break basic XMPP functionality!")
-    end
 end
 
 -- Call on startup
@@ -189,8 +147,8 @@ log_module_stability()
 
 -- Include modular configuration files based on enabled module categories
 
--- Always include distributed modules configuration (shipped with Prosody)
-Include "/etc/prosody/modules.d/distributed/*.cfg.lua"
+-- Always include core modules configuration (shipped with Prosody)
+Include "/etc/prosody/modules.d/core/*.cfg.lua"
 
 -- Include community stable modules configuration (security-focused)
 if os.getenv("PROSODY_ENABLE_SECURITY") ~= "false" then

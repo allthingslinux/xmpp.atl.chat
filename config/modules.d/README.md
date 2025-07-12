@@ -7,8 +7,8 @@ This directory contains configuration files organized by **source and distributi
 ```text
 modules.d/
 ├── README.md                    # This file
-├── distributed/                 # ✅ Distributed modules (shipped with Prosody)
-│   └── distributed.cfg.lua     # Distributed modules configuration
+├── core/                        # ✅ Core modules (shipped with Prosody)
+│   └── core.cfg.lua            # Core modules configuration
 └── community/                   # 🏗️ Community modules (third-party)
     ├── stable/                 # 🟢 Stable community modules
     │   ├── anti-spam.cfg.lua   # Anti-spam and abuse prevention
@@ -33,12 +33,12 @@ modules.d/
 - **Configuration**: Configured in main `prosody.cfg.lua` file
 - **Examples**: `presence`, `message`, `iq`, `offline`, `c2s`, `s2s`
 
-### ✅ **Distributed Modules**
+### ✅ **Core Modules**
 
 - **Status**: Enabled by default - Shipped with Prosody
-- **Source**: Official Prosody distribution (not autoloaded)
+- **Source**: Official Prosody distribution (includes required, autoloaded, and distributed)
 - **Risk**: Low - Officially maintained and tested
-- **Examples**: `mam`, `smacks`, `carbons`, `bosh`, `websocket`, `muc`
+- **Examples**: `mam`, `smacks`, `carbons`, `bosh`, `websocket`, `muc`, `presence`, `message`
 
 ### 🟢 **Community Stable Modules**
 
@@ -66,8 +66,8 @@ modules.d/
 Control which module categories are loaded:
 
 ```bash
-# Distributed modules (enabled by default)
-PROSODY_ENABLE_DISTRIBUTED=true  # Distributed Prosody modules
+# Core modules (enabled by default)
+PROSODY_ENABLE_CORE=true         # All Prosody-shipped modules
 
 # Community modules
 PROSODY_ENABLE_SECURITY=true     # Community security modules (stable)
@@ -79,11 +79,10 @@ PROSODY_ENABLE_ALPHA=false       # Community alpha/experimental modules
 
 The main `prosody.cfg.lua` file loads configurations conditionally:
 
-1. **Core modules** - Autoloaded by Prosody (configured in main file)
-2. **Distributed modules** - Enabled by default (`PROSODY_ENABLE_DISTRIBUTED != false`)
-3. **Community stable** - Enabled by default (`PROSODY_ENABLE_SECURITY != false`)
-4. **Community beta** - Opt-in (`PROSODY_ENABLE_BETA == true`)
-5. **Community alpha** - Opt-in (`PROSODY_ENABLE_ALPHA == true`)
+1. **Core modules** - Enabled by default (`PROSODY_ENABLE_CORE != false`)
+2. **Community stable** - Enabled by default (`PROSODY_ENABLE_SECURITY != false`)
+3. **Community beta** - Opt-in (`PROSODY_ENABLE_BETA == true`)
+4. **Community alpha** - Opt-in (`PROSODY_ENABLE_ALPHA == true`)
 
 ## Module Inventory
 
@@ -113,7 +112,7 @@ Essential modules (always needed):
 - `time` - Time synchronization
 - `ping` - Connection keep-alive
 
-### Distributed Modules (Shipped with Prosody)
+### Core Modules (Shipped with Prosody)
 
 - `mam` - Message Archive Management (XEP-0313)
 - `smacks` - Stream Management (XEP-0198)
@@ -166,7 +165,7 @@ Essential modules (always needed):
 
 ### Production Deployments
 
-- ✅ Use distributed modules for core functionality
+- ✅ Use core modules for main functionality
 - ✅ Consider community stable modules for security
 - ⚠️ Test community beta modules thoroughly
 - ❌ Avoid community alpha modules in production
@@ -180,7 +179,7 @@ Essential modules (always needed):
 
 ### Security Considerations
 
-- ✅ Prefer distributed modules over community alternatives
+- ✅ Prefer core modules over community alternatives
 - ✅ Regularly update community modules
 - ✅ Monitor prosody-modules for security advisories
 - ✅ Disable unused modules to reduce attack surface
@@ -189,8 +188,7 @@ Essential modules (always needed):
 
 This organization is based on Prosody's internal module structure:
 
-- **Core modules**: Based on `autoload_modules` in Prosody's modulemanager
-- **Distributed modules**: Shipped with Prosody but not autoloaded
+- **Core modules**: All modules shipped with Prosody (required, autoloaded, and distributed)
 - **Community modules**: <https://modules.prosody.im/>
 
 For the most up-to-date information, always refer to:

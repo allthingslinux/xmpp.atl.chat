@@ -52,9 +52,7 @@ end
 -- STORAGE CONFIGURATION
 -- ============================================================================
 
--- Archive configuration for message storage
-archive_expires_after = os.getenv("PROSODY_ARCHIVE_EXPIRE") or "1y"
-max_archive_query_results = tonumber(os.getenv("PROSODY_ARCHIVE_MAX_RESULTS")) or 50
+-- Archive configuration is handled in core.cfg.lua
 
 -- Storage paths
 data_path = "/var/lib/prosody/data"

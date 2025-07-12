@@ -34,11 +34,9 @@ VirtualHost (main_domain)
     -- MESSAGE ARCHIVE MANAGEMENT
     -- ========================================================================
     
-    -- Message Archive Management settings
+    -- Message Archive Management settings are handled in core.cfg.lua
     if os.getenv("PROSODY_ENABLE_MODERN") ~= "false" then
         default_archive_policy = os.getenv("PROSODY_ARCHIVE_POLICY") or "roster"
-        archive_expires_after = os.getenv("PROSODY_ARCHIVE_EXPIRE") or "1y"
-        max_archive_query_results = tonumber(os.getenv("PROSODY_ARCHIVE_MAX_RESULTS")) or 50
     end
     
     -- ========================================================================

@@ -40,12 +40,12 @@ config/
 
 ### Module Organization
 
-Module categorization based on **source and distribution** rather than stability:
+Module categorization based on **source** for simplified management:
 
 ```text
 modules.d/
-├── distributed/           # Shipped with Prosody
-│   └── distributed.cfg.lua # MAM, carbons, smacks, websocket, etc.
+├── core/                  # All modules shipped with Prosody
+│   └── core.cfg.lua      # MAM, carbons, smacks, websocket, presence, etc.
 └── community/             # Third-party modules
     ├── stable/            # Well-tested (firewall, spam_reporting)
     │   ├── anti-spam.cfg.lua
@@ -186,8 +186,7 @@ PROSODY_DOMAIN=yourdomain.com
 PROSODY_ADMINS=admin@yourdomain.com
 
 # Module Control
-PROSODY_DISABLE_AUTOLOADED=false  # Disable autoloaded modules (not recommended)
-PROSODY_ENABLE_DISTRIBUTED=true   # Distributed Prosody modules
+PROSODY_ENABLE_CORE=true          # All Prosody-shipped modules
 PROSODY_ENABLE_SECURITY=true      # Security & anti-spam
 PROSODY_ENABLE_BETA=false         # Beta community modules
 PROSODY_ENABLE_ALPHA=false        # Alpha experimental modules
@@ -225,7 +224,7 @@ xmpp.atl.chat/
 │   ├── components.cfg.lua       # XMPP components
 │   ├── README.md                # Configuration documentation
 │   ├── modules.d/               # Module configurations
-│   │   ├── official/            # Official Prosody modules
+│   │   ├── core/                # Core Prosody modules
 │   │   └── community/           # Community modules by stability
 │   └── firewall/                # Firewall rules
 ├── scripts/

@@ -46,5 +46,4 @@ blocklist_file = "/etc/prosody/blocklist.txt"
 -- USER TOMBSTONES
 -- ============================================================================
 
--- Tombstone expiry (for deleted users)
-user_tombstone_expire = 60*86400 -- 2 months 
+-- Tombstone expiry is configured in global.cfg.lua 

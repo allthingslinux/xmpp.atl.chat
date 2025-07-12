@@ -1,13 +1,12 @@
 -- ============================================================================
--- DISTRIBUTED PROSODY MODULES CONFIGURATION
+-- CORE PROSODY MODULES CONFIGURATION
 -- ============================================================================
--- Status: ✅ Distributed (Shipped with Prosody)
+-- Status: ✅ Core (Shipped with Prosody)
 -- Stability: 🟢 Stable (Production Ready)
 -- Risk: Low - Officially maintained and tested
 -- 
--- Note: Core modules (presence, message, iq, etc.) are autoloaded by Prosody.
--- This file contains configuration for distributed modules that are shipped
--- with Prosody but not autoloaded.
+-- This file contains configuration for all modules shipped with Prosody,
+-- including required, autoloaded, and distributed modules.
 
 -- ============================================================================
 -- MESSAGE ARCHIVE MANAGEMENT (MAM) - XEP-0313
@@ -26,8 +25,7 @@ max_archive_query_results = tonumber(os.getenv("PROSODY_ARCHIVE_MAX_RESULTS")) o
 -- STREAM MANAGEMENT (SMACKS) - XEP-0198
 -- ============================================================================
 
--- Stream management hibernation time (24 hours for mobile devices)
-smacks_hibernation_time = tonumber(os.getenv("PROSODY_SMACKS_HIBERNATION")) or 86400
+-- Stream management hibernation time is configured in global.cfg.lua
 
 -- Maximum unacked stanzas
 smacks_max_unacked_stanzas = tonumber(os.getenv("PROSODY_SMACKS_MAX_UNACKED")) or 256
@@ -43,8 +41,7 @@ csi_queue_size = tonumber(os.getenv("PROSODY_CSI_QUEUE_SIZE")) or 256
 -- PERSONAL EVENTING PROTOCOL (PEP) - XEP-0163
 -- ============================================================================
 
--- PEP maximum items per node
-pep_max_items = tonumber(os.getenv("PROSODY_PEP_MAX_ITEMS")) or 10000
+-- PEP maximum items per node is configured in global.cfg.lua
 
 -- ============================================================================
 -- BOOKMARKS SYNCHRONIZATION - XEP-0048/0402
@@ -85,23 +82,13 @@ bosh_max_requests = tonumber(os.getenv("PROSODY_BOSH_MAX_REQUESTS")) or 2
 websocket_frame_buffer_limit = tonumber(os.getenv("PROSODY_WS_FRAME_BUFFER")) or 65536
 websocket_frame_fragment_limit = tonumber(os.getenv("PROSODY_WS_FRAGMENT_LIMIT")) or 8
 
--- HTTP File Share configuration (XEP-0447)
-http_file_share_size_limit = tonumber(os.getenv("PROSODY_FILE_SHARE_SIZE_LIMIT")) or 104857600 -- 100MB
-http_file_share_expires_after = tonumber(os.getenv("PROSODY_FILE_SHARE_EXPIRE")) or 2592000 -- 30 days
-http_file_share_global_quota = tonumber(os.getenv("PROSODY_FILE_SHARE_QUOTA")) or 10737418240 -- 10GB
+-- HTTP File Share configuration (XEP-0447) is handled in components.cfg.lua
 
 -- ============================================================================
 -- MULTI-USER CHAT (MUC) - XEP-0045
 -- ============================================================================
 
--- MUC message archive expiry
-muc_log_expires_after = os.getenv("PROSODY_MUC_LOG_EXPIRE") or "1y"
-
--- Maximum history messages
-max_history_messages = tonumber(os.getenv("PROSODY_MUC_HISTORY")) or 50
-
--- Default room settings
-muc_room_default_public = os.getenv("PROSODY_MUC_DEFAULT_PUBLIC") == "true"
+-- MUC settings are configured in components.cfg.lua
 
 -- ============================================================================
 -- TURN EXTERNAL SERVICES - XEP-0215
@@ -124,24 +111,7 @@ lastactivity_track_presence = true
 -- SERVER CONTACT INFORMATION - XEP-0157
 -- ============================================================================
 
--- Contact information (already configured in main config, but can be overridden)
-contact_info = {
-    admin = { 
-        "xmpp:admin@" .. (os.getenv("PROSODY_DOMAIN") or "localhost"), 
-        "mailto:admin@" .. (os.getenv("PROSODY_DOMAIN") or "localhost") 
-    };
-    support = { 
-        "xmpp:support@" .. (os.getenv("PROSODY_DOMAIN") or "localhost"), 
-        "mailto:support@" .. (os.getenv("PROSODY_DOMAIN") or "localhost") 
-    };
-    abuse = { 
-        "xmpp:abuse@" .. (os.getenv("PROSODY_DOMAIN") or "localhost"), 
-        "mailto:abuse@" .. (os.getenv("PROSODY_DOMAIN") or "localhost") 
-    };
-    security = { 
-        "mailto:security@" .. (os.getenv("PROSODY_DOMAIN") or "localhost") 
-    };
-}
+-- Contact information is configured in global.cfg.lua
 
 -- ============================================================================
 -- REGISTRATION MANAGEMENT
@@ -161,8 +131,7 @@ motd_text = os.getenv("PROSODY_MOTD") or "Welcome to our XMPP server!"
 -- Welcome message for new users
 welcome_message = os.getenv("PROSODY_WELCOME_MESSAGE") or "Welcome! Please read our terms of service."
 
--- Tombstone expiry (for deleted users)
-user_tombstone_expire = 60*86400 -- 2 months
+-- Tombstone expiry is configured in global.cfg.lua
 
 -- Username mimicking protection threshold
 mimicking_threshold = tonumber(os.getenv("PROSODY_MIMICKING_THRESHOLD")) or 0.8
