@@ -1,61 +1,28 @@
 -- Layer 03: Stanza - Validation Configuration
--- XML schema validation, stanza structure validation, and security validation
--- RFC 6120: XMPP Core, RFC 6121: XMPP IM, XEP-0001: XMPP Extension Protocols
--- Comprehensive stanza validation and security checking
+-- Stanza validation, schema checking, and protocol compliance
+-- XML validation, security validation, and performance monitoring
 
 local validation_config = {
 	-- Core Validation Modules
-	-- Essential stanza validation
+	-- Essential validation and compliance checking
 	core_validation = {
-		"stanza_debug", -- Stanza debugging and inspection
-		"xml_parser", -- XML parsing and validation
-		"namespace_guard", -- Namespace validation
-		"well_known_uris", -- Well-known URI validation
-	},
-
-	-- XML and Structure Validation
-	-- XML schema and structure validation
-	xml_validation = {
-		"xmlrpc", -- XML-RPC validation
-		"json_encode", -- JSON encoding validation
-		"utf8_validate", -- UTF-8 validation
-		"xml_escape", -- XML escaping validation
+		"disco", -- Service discovery validation
+		"caps", -- Entity capabilities validation
+		"time", -- XEP-0202: Entity Time
+		"version", -- XEP-0092: Software Version
 	},
 
 	-- Security Validation
-	-- Security-focused validation
+	-- Security-focused validation modules
 	security_validation = {
-		"s2s_auth_compat", -- S2S authentication compatibility
-		"tls_policy", -- TLS policy enforcement
-		"cert_verify", -- Certificate verification
-		"secure_auth_only", -- Require secure authentication
+		"tls_policy", -- TLS policy enforcement (community)
+		"limits", -- Rate limiting and abuse prevention
 	},
 
-	-- Protocol Compliance Validation
-	-- XMPP protocol compliance checking
-	protocol_validation = {
-		"conformance_restricted", -- Restricted conformance checking
-		"strict_https", -- Strict HTTPS enforcement
-		"require_encryption", -- Require encryption validation
-		"validate_domain_part", -- Domain part validation
-	},
-
-	-- Content Validation
-	-- Message and content validation
-	content_validation = {
-		"validate_modules", -- Module validation
-		"syntax_check", -- Syntax checking
-		"encoding_validation", -- Character encoding validation
-		"size_limits", -- Size limit validation
-	},
-
-	-- Advanced Validation Features
-	-- Sophisticated validation capabilities
-	advanced_validation = {
-		"debug_traceback", -- Debug tracebacks for validation errors
-		"error_reporting", -- Enhanced error reporting
-		"validation_cache", -- Validation result caching
-		"performance_monitor", -- Validation performance monitoring
+	-- Protocol Compliance
+	-- Standards compliance and validation
+	protocol_compliance = {
+		"compliance_2023", -- XEP-0479: XMPP Compliance Suites 2023 (community)
 	},
 }
 
@@ -71,11 +38,6 @@ local function apply_validation_config()
 		table.insert(core_modules, module)
 	end
 
-	-- XML validation (always enabled)
-	for _, module in ipairs(validation_config.xml_validation) do
-		table.insert(core_modules, module)
-	end
-
 	-- Security validation (always enabled)
 	for _, module in ipairs(validation_config.security_validation) do
 		table.insert(core_modules, module)
@@ -83,19 +45,7 @@ local function apply_validation_config()
 
 	-- Protocol validation (production and staging)
 	if env_type ~= "development" then
-		for _, module in ipairs(validation_config.protocol_validation) do
-			table.insert(core_modules, module)
-		end
-	end
-
-	-- Content validation (always enabled)
-	for _, module in ipairs(validation_config.content_validation) do
-		table.insert(core_modules, module)
-	end
-
-	-- Advanced validation (development and staging for debugging)
-	if env_type ~= "production" then
-		for _, module in ipairs(validation_config.advanced_validation) do
+		for _, module in ipairs(validation_config.protocol_compliance) do
 			table.insert(core_modules, module)
 		end
 	end

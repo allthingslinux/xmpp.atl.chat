@@ -217,7 +217,7 @@ local community_alpha_modules = {
 	"measure_message_e2e",
 	"json_logs",
 	"audit",
-	"compliance_policy",
+	-- Note: compliance_policy is not a real module, compliance is handled by compliance_2023
 }
 
 -- ============================================================================

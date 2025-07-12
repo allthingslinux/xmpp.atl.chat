@@ -20,13 +20,14 @@ local encryption_config = {
 	-- Encryption Discovery and Capabilities
 	-- Help clients discover encryption capabilities
 	discovery = {
-		"encryption_policy", -- Encryption policy advertisement (if available)
+		"disco", -- Service discovery for encryption features
+		"caps", -- Entity capabilities for encryption
 	},
 
-	-- Security Labels (XEP-0258)
-	-- Security classification for messages
-	security_labels = {
-		"seclabels", -- Security Labels support (real community module)
+	-- Encryption Policy Enforcement
+	-- Server-side encryption policies and enforcement
+	policy = {
+		"e2e_policy", -- End-to-end encryption policy enforcement (community)
 	},
 }
 
@@ -49,7 +50,7 @@ local function apply_encryption_config()
 
 	-- Add security labels (optional, for high-security environments)
 	if env_type == "production" then
-		for _, module in ipairs(encryption_config.security_labels) do
+		for _, module in ipairs(encryption_config.policy) do
 			table.insert(core_modules, module)
 		end
 	end
