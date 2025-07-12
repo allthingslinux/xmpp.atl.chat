@@ -1,110 +1,85 @@
 -- Layer 04: Protocol - Extensions Configuration
--- Modern XMPP Extension Protocols (XEPs) - Well-established and commonly used extensions
--- Focuses on stable, widely-adopted XEPs that enhance XMPP functionality
--- Organized by functional categories for better maintainability
+-- Modern XMPP extensions and advanced protocol features
+-- XEP implementations for enhanced functionality and interoperability
 
 local extensions_config = {
-	-- Message Extensions
-	-- Enhanced messaging capabilities
-	message_extensions = {
-		"carbons", -- XEP-0280: Message Carbons
-		"mam", -- XEP-0313: Message Archive Management
-		"receipts", -- XEP-0184: Message Delivery Receipts
-		"chatstates", -- XEP-0085: Chat State Notifications
-		"attention", -- XEP-0224: Attention
-		"delay", -- XEP-0203: Delayed Delivery
-		"replace", -- XEP-0308: Last Message Correction
-		"reactions", -- XEP-0444: Message Reactions
+	-- Core Protocol Extensions
+	-- Essential modern XMPP features
+	core_extensions = {
+		"disco", -- XEP-0030: Service Discovery (core)
+		"caps", -- XEP-0115: Entity Capabilities (core)
+		"ping", -- XEP-0199: XMPP Ping (core)
+		"time", -- XEP-0202: Entity Time (core)
+		"version", -- XEP-0092: Software Version (core)
+		"lastactivity", -- XEP-0012: Last Activity (core)
 	},
 
-	-- Presence Extensions
-	-- Enhanced presence and availability features
-	presence_extensions = {
-		"last", -- XEP-0012: Last Activity
-		"idle", -- XEP-0319: Last User Interaction in Presence
-		"mood", -- XEP-0107: User Mood
-		"activity", -- XEP-0108: User Activity
-		"tune", -- XEP-0118: User Tune
-		"geoloc", -- XEP-0080: User Location
-		"nick", -- XEP-0172: User Nickname
+	-- Message Archive Management
+	-- XEP-0313: Message Archive Management and related features
+	message_archiving = {
+		"mam", -- XEP-0313: Message Archive Management (core)
+		"carbons", -- XEP-0280: Message Carbons (core)
+		"smacks", -- XEP-0198: Stream Management (core)
 	},
 
 	-- Multi-User Chat Extensions
-	-- Group chat and conference features
+	-- Enhanced MUC functionality
 	muc_extensions = {
-		"muc", -- XEP-0045: Multi-User Chat
-		"muc_mam", -- XEP-0313: Message Archive Management for MUC
-		"muc_unique", -- XEP-0307: Unique Room Names for Multi-User Chat
-		"muc_limits", -- XEP-0045: MUC room limits and restrictions
-		"occupant_id", -- XEP-0421: Anonymous unique occupant identifiers for MUCs
-		"muc_hats", -- XEP-0317: Hats
+		"muc", -- XEP-0045: Multi-User Chat (core)
+		"muc_mam", -- XEP-0313: Message Archive Management for MUC (core)
+		"muc_unique", -- XEP-0307: Unique Room Names for MUC (core)
 	},
 
-	-- File Transfer and Media
-	-- File sharing and media transfer capabilities
-	file_transfer = {
-		"http_upload", -- XEP-0363: HTTP File Upload
-		"http_upload_external", -- External HTTP upload services
-		"ibb", -- XEP-0047: In-Band Bytestreams
-		"s5b", -- XEP-0065: SOCKS5 Bytestreams
-		"jingle", -- XEP-0166: Jingle
-		"jingle_ft", -- XEP-0234: Jingle File Transfer
-		"thumbnails", -- XEP-0264: Jingle Content Thumbnails
+	-- Personal Eventing Protocol
+	-- XEP-0163: Personal Eventing Protocol and related features
+	pep_extensions = {
+		"pep", -- XEP-0163: Personal Eventing Protocol (core)
+		"pubsub", -- XEP-0060: Publish-Subscribe (core)
+		"bookmarks", -- XEP-0402: PEP Native Bookmarks (core)
+		"vcard4", -- XEP-0292: vCard4 Over XMPP (core)
+		"vcard_legacy", -- XEP-0398: User Avatar to vCard-Based Avatars Conversion (core)
 	},
 
-	-- Publish-Subscribe
-	-- Event notification and data syndication
-	pubsub_extensions = {
-		"pubsub", -- XEP-0060: Publish-Subscribe
-		"pep", -- XEP-0163: Personal Eventing Protocol
-		"pubsub_subscription", -- Enhanced subscription management
-		"pubsub_owner", -- Node ownership and management
-		"pubsub_publish_options", -- XEP-0060: Publish options
-		"pubsub_delete_items", -- Item deletion capabilities
+	-- File Transfer and Sharing
+	-- Modern file sharing capabilities
+	file_sharing = {
+		"http_file_share", -- XEP-0363: HTTP File Upload (core)
+		"proxy65", -- XEP-0065: SOCKS5 Bytestreams (core)
 	},
 
-	-- Real-Time Communication
-	-- Voice, video, and real-time features
-	rtc_extensions = {
-		"jingle_ice", -- XEP-0176: Jingle ICE-UDP Transport Method
-		"jingle_rtp", -- XEP-0167: Jingle RTP Sessions
-		"jingle_dtls", -- XEP-0320: Use of DTLS-SRTP in Jingle Sessions
-		"external_services", -- XEP-0215: External Service Discovery
-		"turncredentials", -- TURN credentials for WebRTC
-		"stun", -- STUN server support
+	-- Push Notifications
+	-- XEP-0357: Push Notifications
+	push_notifications = {
+		"cloud_notify", -- XEP-0357: Push Notifications (core)
 	},
 
-	-- Mobile and Push Notifications
-	-- Mobile client optimizations and push notifications
-	mobile_extensions = {
-		"push", -- XEP-0357: Push Notifications
-		"csi", -- XEP-0352: Client State Indication
-		"smacks", -- XEP-0198: Stream Management
-		"throttle_presence", -- Presence throttling for mobile
-		"filter_chatstates", -- Chat state filtering for mobile
-		"mobile_optimization", -- General mobile optimizations
+	-- External Services
+	-- XEP-0215: External Service Discovery
+	external_services = {
+		"external_services", -- XEP-0215: External Service Discovery (core)
+		"turn_external", -- XEP-0215: TURN credentials (core)
 	},
 
-	-- Security and Privacy Extensions
-	-- Enhanced security and privacy features
-	security_extensions = {
-		"blocking", -- XEP-0191: Blocking Command
-		"privacy", -- XEP-0016: Privacy Lists (legacy support)
-		"spam_reporting", -- XEP-0377: Spam Reporting
-		"sasl2", -- XEP-0388: Extensible SASL Profile
-		"fast", -- XEP-0484: Fast Authentication Streamlining Tokens
-		"bind2", -- XEP-0386: Bind 2.0
+	-- Advanced Authentication
+	-- Modern authentication extensions
+	advanced_auth = {
+		-- Note: SASL 2.0 is experimental and should be enabled carefully
+		-- "sasl2", -- XEP-0388: Extensible SASL Profile (experimental community)
 	},
 
-	-- Service Discovery Extensions
-	-- Enhanced service discovery and capabilities
-	disco_extensions = {
-		"adhoc", -- XEP-0050: Ad-Hoc Commands
-		"commands", -- Command execution framework
-		"dataforms", -- XEP-0004: Data Forms
-		"feature_neg", -- XEP-0020: Feature Negotiation
-		"disco_info", -- Enhanced service discovery info
-		"disco_items", -- Enhanced service discovery items
+	-- Communication Features
+	-- Enhanced communication capabilities
+	communication_features = {
+		"blocklist", -- XEP-0191: Simple Communications Blocking (core)
+		"spam_reporting", -- XEP-0377: Spam Reporting (community)
+	},
+
+	-- Server Information and Discovery
+	-- Server metadata and service discovery
+	server_info = {
+		"server_contact_info", -- XEP-0157: Contact Addresses for XMPP Services (core)
+		"server_info", -- XEP-0128: Service Discovery Extensions (core)
+		"http_altconnect", -- XEP-0156: Discovering Alternative XMPP Connection Methods (core)
 	},
 }
 
@@ -115,13 +90,13 @@ local function apply_extensions_config()
 	-- Core modules (always enabled)
 	local core_modules = {}
 
-	-- Message extensions (always enabled)
-	for _, module in ipairs(extensions_config.message_extensions) do
+	-- Core extensions (always enabled)
+	for _, module in ipairs(extensions_config.core_extensions) do
 		table.insert(core_modules, module)
 	end
 
-	-- Presence extensions (always enabled)
-	for _, module in ipairs(extensions_config.presence_extensions) do
+	-- Message archiving (always enabled)
+	for _, module in ipairs(extensions_config.message_archiving) do
 		table.insert(core_modules, module)
 	end
 
@@ -130,37 +105,38 @@ local function apply_extensions_config()
 		table.insert(core_modules, module)
 	end
 
-	-- File transfer (always enabled)
-	for _, module in ipairs(extensions_config.file_transfer) do
+	-- PEP extensions (always enabled)
+	for _, module in ipairs(extensions_config.pep_extensions) do
 		table.insert(core_modules, module)
 	end
 
-	-- PubSub extensions (production and staging)
-	if env_type ~= "development" then
-		for _, module in ipairs(extensions_config.pubsub_extensions) do
-			table.insert(core_modules, module)
-		end
-	end
-
-	-- RTC extensions (production and staging)
-	if env_type ~= "development" then
-		for _, module in ipairs(extensions_config.rtc_extensions) do
-			table.insert(core_modules, module)
-		end
-	end
-
-	-- Mobile extensions (always enabled)
-	for _, module in ipairs(extensions_config.mobile_extensions) do
+	-- File sharing (always enabled)
+	for _, module in ipairs(extensions_config.file_sharing) do
 		table.insert(core_modules, module)
 	end
 
-	-- Security extensions (always enabled)
-	for _, module in ipairs(extensions_config.security_extensions) do
+	-- Push notifications (always enabled)
+	for _, module in ipairs(extensions_config.push_notifications) do
 		table.insert(core_modules, module)
 	end
 
-	-- Discovery extensions (always enabled)
-	for _, module in ipairs(extensions_config.disco_extensions) do
+	-- External services (always enabled)
+	for _, module in ipairs(extensions_config.external_services) do
+		table.insert(core_modules, module)
+	end
+
+	-- Advanced auth (always enabled)
+	for _, module in ipairs(extensions_config.advanced_auth) do
+		table.insert(core_modules, module)
+	end
+
+	-- Communication features (always enabled)
+	for _, module in ipairs(extensions_config.communication_features) do
+		table.insert(core_modules, module)
+	end
+
+	-- Server info (always enabled)
+	for _, module in ipairs(extensions_config.server_info) do
 		table.insert(core_modules, module)
 	end
 

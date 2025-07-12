@@ -17,25 +17,26 @@ local experimental_config = {
 	-- Experimental Authentication Features
 	-- Next-generation authentication mechanisms
 	experimental_auth = {
-		"sasl2", -- XEP-0388: Extensible SASL Profile (community)
-		"sasl2_bind2", -- XEP-0386: Bind 2 (community)
-		"sasl2_fast", -- XEP-0484: Fast Authentication Streamlining Tokens (community)
-		"sasl2_sm", -- XEP-0198 integration with SASL2 (community)
+		-- Note: SASL 2.0 modules are experimental and may be unstable
+		-- Uncomment only for testing purposes
+		-- "sasl2", -- XEP-0388: Extensible SASL Profile (community)
+		-- "sasl2_bind2", -- XEP-0386: Bind 2 (community)
+		-- "sasl2_fast", -- XEP-0484: Fast Authentication Streamlining Tokens (community)
+		-- "sasl2_sm", -- XEP-0198 integration with SASL2 (community)
 	},
 
-	-- Experimental Mobile Features
-	-- Advanced mobile and battery optimization
-	experimental_mobile = {
-		"csi_battery_saver", -- Advanced CSI implementation (community)
-		"push_summary", -- Push notification summaries (community)
-		"isr", -- XEP-0397: Instant Stream Resumption (community)
+	-- Experimental Push Features
+	-- Advanced push notification capabilities
+	experimental_push = {
+		-- "push2", -- Push 2.0 - New Cloud-Notify (community)
+		-- "cloud_notify_encrypted", -- Encrypted push notifications (community)
 	},
 
-	-- Experimental Protocol Extensions
-	-- Draft and experimental protocol features
-	experimental_protocols = {
-		"compliance_2023", -- XEP-0479: XMPP Compliance Suites 2023 (community)
-		"inject_ecaps2", -- XEP-0390: Entity Capabilities 2.0 (community)
+	-- Experimental MUC Features
+	-- Advanced multi-user chat capabilities
+	experimental_muc = {
+		-- "muc_hats", -- XEP-0317: Hats (community)
+		-- "muc_occupant_id", -- XEP-0421: Occupant identifiers (community)
 	},
 }
 

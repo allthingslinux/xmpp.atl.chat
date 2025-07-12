@@ -149,9 +149,9 @@ local community_beta_modules = {
 	"watch_spam_reports", -- Notify admins about incoming XEP-0377 spam reports
 
 	-- Modern SASL and authentication
-	"sasl2", -- XEP-0388: Extensible SASL Profile
-	"sasl2_bind2", -- Bind 2 integration with SASL2
-	"sasl2_fast", -- Fast Authentication Streamlining Tokens
+	-- "sasl2", -- XEP-0388: Extensible SASL Profile (experimental)
+	-- "sasl2_bind2", -- Bind 2 integration with SASL2 (experimental)
+	-- "sasl2_fast", -- Fast Authentication Streamlining Tokens (experimental)
 
 	-- Push notifications
 	"cloud_notify_extensions", -- Tigase custom push extensions for iOS
