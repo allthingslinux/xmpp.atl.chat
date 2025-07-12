@@ -7,6 +7,7 @@ This is a comprehensive, production-ready Prosody XMPP server deployment based o
 ## 🏆 Key Features
 
 ### Security-First Architecture
+
 - **Mandatory encryption** for all connections (TLS 1.2+)
 - **Anti-spam protection** with DNS blocklist integration
 - **User quarantine system** for suspicious activity
@@ -14,6 +15,7 @@ This is a comprehensive, production-ready Prosody XMPP server deployment based o
 - **Modern cipher suites** and security policies
 
 ### Modern XMPP Features
+
 - **Message Archive Management (MAM)** - Full message history
 - **Carbon Copies** - Multi-device synchronization
 - **Stream Management** - Connection resilience
@@ -22,6 +24,7 @@ This is a comprehensive, production-ready Prosody XMPP server deployment based o
 - **OMEMO Support** - End-to-end encryption
 
 ### Enterprise-Grade Operations
+
 - **Multi-architecture support** (AMD64, ARM64, ARM)
 - **Database flexibility** (SQLite, PostgreSQL, MySQL)
 - **Monitoring integration** (Prometheus, Grafana)
@@ -30,6 +33,7 @@ This is a comprehensive, production-ready Prosody XMPP server deployment based o
 - **Horizontal scaling** support
 
 ### Developer-Friendly
+
 - **Environment-driven configuration** - No rebuilds needed
 - **Modular architecture** - Easy customization
 - **Docker Compose** - One-command deployment
@@ -39,14 +43,16 @@ This is a comprehensive, production-ready Prosody XMPP server deployment based o
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Domain name with DNS access
 - SSL certificates (Let's Encrypt recommended)
 
 ### Basic Deployment
+
 ```bash
 # Clone and configure
-git clone <this-repo>
+git clone https://github.com/allthingslinux/xmpp.atl.chat
 cd final
 cp .env.example .env
 # Edit .env with your domain and settings
@@ -60,6 +66,7 @@ docker-compose logs prosody
 ```
 
 ### Advanced Deployment
+
 ```bash
 # Production with PostgreSQL and monitoring
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
@@ -70,8 +77,8 @@ docker-compose -f docker-compose.yml -f docker-compose.enterprise.yml up -d
 
 ## 📁 Directory Structure
 
-```
-final/
+```text
+xmpp.atl.chat/
 ├── README.md                    # This file
 ├── docker/
 │   ├── Dockerfile              # Multi-stage optimized build
@@ -119,18 +126,21 @@ final/
 ## 🔧 Configuration Profiles
 
 ### Personal Server (1-50 users)
+
 - **Resources**: 64-128MB RAM, 1-2 CPU cores
 - **Database**: SQLite
 - **Features**: Core + Modern XMPP
 - **Deployment**: Docker Compose
 
 ### Community Server (50-500 users)
+
 - **Resources**: 256-512MB RAM, 2-4 CPU cores
 - **Database**: PostgreSQL
 - **Features**: Full feature set + Anti-spam
 - **Deployment**: Docker + Monitoring
 
 ### Enterprise Server (500+ users)
+
 - **Resources**: 512MB-2GB RAM, 4-8 CPU cores
 - **Database**: PostgreSQL Cluster
 - **Features**: All features + Compliance
@@ -139,18 +149,21 @@ final/
 ## 🛡️ Security Features
 
 ### Encryption
+
 - TLS 1.2+ mandatory for all connections
 - Modern cipher suites (ECDHE+AESGCM, ChaCha20)
 - Perfect Forward Secrecy
 - HSTS and security headers
 
 ### Anti-Spam
+
 - DNS blocklist integration (Spamhaus, etc.)
 - Rate limiting and connection throttling
 - User quarantine system
 - Registration controls and CAPTCHA
 
 ### Monitoring
+
 - Failed authentication tracking
 - Suspicious activity detection
 - Real-time alerting
@@ -159,18 +172,21 @@ final/
 ## 📊 Monitoring & Observability
 
 ### Metrics
+
 - Connection counts and rates
 - Message throughput
 - Error rates and latencies
 - Resource utilization
 
 ### Dashboards
+
 - Real-time server status
 - User activity patterns
 - Performance metrics
 - Security events
 
 ### Alerting
+
 - Service downtime
 - High error rates
 - Security incidents
@@ -179,12 +195,14 @@ final/
 ## 🔄 Backup & Recovery
 
 ### Automated Backups
+
 - Daily database backups
 - Configuration backups
 - Certificate backups
 - Retention policies
 
 ### Recovery Procedures
+
 - Point-in-time recovery
 - Disaster recovery
 - Migration procedures
@@ -206,6 +224,7 @@ MIT License - See LICENSE file for details
 ## 🙏 Acknowledgments
 
 This setup incorporates best practices from:
+
 - SaraSmiseth/prosody - Security-first approach
 - prosody/prosody-docker - Official Docker patterns
 - prose-im/prose-pod-server - Enterprise architecture
@@ -218,4 +237,4 @@ This setup incorporates best practices from:
 - Documentation: `docs/`
 - Issues: GitHub Issues
 - Community: XMPP MUC rooms
-- Security: security@domain.com 
+- Security: <security@domain.com>
