@@ -1,397 +1,303 @@
-# Prosody XMPP Server - Layer-Based Configuration
+# XMPP Server Configuration
 
-This directory contains a comprehensive, layer-based configuration system for Prosody XMPP server. The configuration is organized by XMPP protocol stack layers, making it intuitive for XMPP experts and excellent for troubleshooting.
+This repository contains a comprehensive XMPP server configuration using **Prosody** with a modern **layer-based architecture**. The configuration is designed for production use with enterprise-grade features, security, and mobile optimization.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
-The configuration follows a **unified "everything enabled"** approach organized by XMPP protocol stack layers:
+The configuration follows the XMPP protocol stack layers for optimal organization and maintainability:
 
 ```
-XMPP Protocol Stack Layers:
-├── 01-transport    → Network, ports, TLS, compression, connections
-├── 02-stream       → Authentication, encryption, stream management
-├── 03-stanza       → Routing, filtering, validation, processing  
-├── 04-protocol     → Core XMPP, extensions, legacy, experimental
-├── 05-services     → Messaging, presence, groupchat, pubsub
-├── 06-storage      → Backends, archiving, caching, migration
-├── 07-interfaces   → HTTP, WebSocket, BOSH, components
-└── 08-integration  → LDAP, OAuth, webhooks, APIs
+08 - Integration Layer    (LDAP, OAuth, Webhooks, APIs)
+07 - Interfaces Layer     (HTTP, WebSocket, BOSH, Components)  
+06 - Storage Layer        (Backends, Archiving, Caching, Migration)
+05 - Services Layer       (Messaging, Presence, Groupchat, PubSub)
+04 - Protocol Layer       (Core XMPP, Extensions, Legacy, Experimental)
+03 - Stanza Layer         (Routing, Filtering, Validation, Processing)
+02 - Stream Layer         (Authentication, Encryption, Management, Negotiation)
+01 - Transport Layer      (Ports, TLS, Compression, Connections)
 ```
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 config/
-├── prosody.cfg.lua              # Main orchestration file
-├── global.cfg.lua               # Global settings
-├── modules.cfg.lua              # Module management
-├── security.cfg.lua             # Security policies
-├── vhosts.cfg.lua              # Virtual host templates
-├── database.cfg.lua             # Database configuration
-├── components.cfg.lua           # Component definitions
-├── 
-├── stack/                       # Layer-based configuration
-│   ├── 01-transport/           # Transport Layer
-│   │   ├── ports.cfg.lua       # Port bindings (c2s, s2s, HTTP, components)
-│   │   ├── tls.cfg.lua         # TLS/SSL configuration
-│   │   ├── compression.cfg.lua # Stream compression (XEP-0138)
-│   │   └── connections.cfg.lua # Connection management & QoS
-│   │
-│   ├── 02-stream/              # Stream Layer  
-│   │   ├── authentication.cfg.lua # SASL authentication & backends
-│   │   ├── encryption.cfg.lua     # OMEMO, OpenPGP encryption
-│   │   ├── management.cfg.lua     # Stream management (XEP-0198)
-│   │   └── negotiation.cfg.lua    # Service discovery & capabilities
-│   │
-│   ├── 03-stanza/              # Stanza Layer
-│   │   ├── routing.cfg.lua     # Message routing & delivery
-│   │   ├── filtering.cfg.lua   # Firewall & anti-spam
-│   │   ├── validation.cfg.lua  # XML schema & security validation
-│   │   └── processing.cfg.lua  # Advanced message processing
-│   │
-│   ├── 04-protocol/            # Protocol Layer
-│   │   ├── core.cfg.lua        # RFC 6120/6121 core features
-│   │   ├── extensions.cfg.lua  # Modern XEPs (MAM, MUC, etc.)
-│   │   ├── legacy.cfg.lua      # Backwards compatibility
-│   │   └── experimental.cfg.lua # Cutting-edge features
-│   │
-│   ├── 05-services/            # Services Layer
-│   │   ├── messaging.cfg.lua   # Message delivery & archiving
-│   │   ├── presence.cfg.lua    # Presence management
-│   │   ├── groupchat.cfg.lua   # Multi-User Chat (MUC)
-│   │   └── pubsub.cfg.lua      # Publish-Subscribe services
-│   │
-│   ├── 06-storage/             # Storage Layer
-│   │   ├── backends.cfg.lua    # Storage backend configuration
-│   │   ├── archiving.cfg.lua   # Message Archive Management
-│   │   ├── caching.cfg.lua     # Performance caching
-│   │   └── migration.cfg.lua   # Data migration tools
-│   │
-│   ├── 07-interfaces/          # Interfaces Layer
-│   │   ├── http.cfg.lua        # HTTP server & file upload
-│   │   ├── websocket.cfg.lua   # WebSocket support (RFC 7395)
-│   │   ├── bosh.cfg.lua        # BOSH for web clients
-│   │   └── components.cfg.lua  # External component protocol
-│   │
-│   └── 08-integration/         # Integration Layer
-│       ├── ldap.cfg.lua        # LDAP authentication
-│       ├── oauth.cfg.lua       # OAuth 2.0 provider
-│       ├── webhooks.cfg.lua    # HTTP callbacks & events
-│       └── apis.cfg.lua        # REST API endpoints
-│
-├── domains/                     # Domain-specific configuration
-│   └── main.cfg.lua            # Primary domain setup
-│
+├── prosody.cfg.lua              # Main configuration file
+├── stack/                       # Layer-based configurations
+│   ├── 01-transport/           # Network and transport layer
+│   ├── 02-stream/              # Stream management and auth
+│   ├── 03-stanza/              # Stanza processing
+│   ├── 04-protocol/            # XMPP protocol features
+│   ├── 05-services/            # Core XMPP services
+│   ├── 06-storage/             # Data storage backends
+│   ├── 07-interfaces/          # External interfaces
+│   └── 08-integration/         # Third-party integrations
+├── domains/                    # Domain-specific configurations
 ├── environments/               # Environment-specific settings
-│   ├── production.cfg.lua      # Production optimizations
-│   ├── development.cfg.lua     # Development settings
-│   └── docker.cfg.lua          # Docker-specific config
-│
-├── policies/                   # Policy-based configuration
-│   ├── security/               # Security policies
-│   ├── performance/            # Performance tuning
-│   └── compliance/             # Compliance requirements
-│
-└── tools/                      # Configuration management tools
-    └── loader.cfg.lua          # Configuration loader utilities
+├── policies/                   # Security and compliance policies
+├── tools/                      # Configuration utilities
+└── firewall/                   # Firewall rules
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Environment Setup
 
-Set environment variables for your deployment:
+Create your environment file:
 
 ```bash
-# Required
-export PROSODY_DOMAIN="your-domain.com"
-export PROSODY_ENVIRONMENT="production"  # or development, docker
-
-# Optional
-export PROSODY_DATA_PATH="/var/lib/prosody"
-export PROSODY_CONFIG_PATH="/etc/prosody"
-export PROSODY_ADMINS="admin@your-domain.com"
-
-# Database (for production)
-export PROSODY_DB_DRIVER="PostgreSQL"
-export PROSODY_DB_NAME="prosody"
-export PROSODY_DB_USER="prosody"
-export PROSODY_DB_PASSWORD="your-password"
-export PROSODY_DB_HOST="localhost"
+cp examples/env.example .env
 ```
 
-### 2. Certificate Setup
+Edit `.env` with your specific settings:
 
 ```bash
-# Generate TLS certificates
-sudo prosodyctl cert generate your-domain.com
-sudo prosodyctl cert generate conference.your-domain.com
-sudo prosodyctl cert generate upload.your-domain.com
+# Core Configuration
+PROSODY_DOMAIN=your-domain.com
+PROSODY_ENV=production
+PROSODY_DATA_PATH=/var/lib/prosody
+PROSODY_CONFIG_PATH=/etc/prosody
+
+# Security
+PROSODY_ADMIN_JID=admin@your-domain.com
 ```
 
-### 3. Database Setup (Production)
-
-```sql
--- PostgreSQL setup
-CREATE DATABASE prosody;
-CREATE USER prosody WITH PASSWORD 'your-password';
-GRANT ALL PRIVILEGES ON DATABASE prosody TO prosody;
-```
-
-### 4. Start Prosody
+### 2. Docker Deployment
 
 ```bash
-# Test configuration
-sudo prosodyctl check config
+# Build and start the server
+docker-compose up -d
 
-# Start server
-sudo systemctl start prosody
-sudo systemctl enable prosody
+# Check logs
+docker-compose logs -f prosody
 ```
 
-## 🔧 Configuration System
+### 3. Configuration Validation
 
-### Layer Loading Order
+```bash
+# Validate configuration
+./scripts/validate-config.sh
 
-The configuration loads in XMPP protocol stack order:
+# Test connectivity
+./scripts/health-check.sh
+```
 
-1. **Transport Layer** - Network foundations
-2. **Stream Layer** - Authentication & encryption  
-3. **Stanza Layer** - Message processing
-4. **Protocol Layer** - XMPP features
-5. **Services Layer** - User services
-6. **Storage Layer** - Data persistence
-7. **Interfaces Layer** - Client connections
-8. **Integration Layer** - External systems
+## Configuration Layers
 
-### Module Collection
+### Layer 01: Transport
 
-Each layer defines modules in variables like:
+- **Ports**: Standard XMPP ports (5222, 5269, 5280, 5281)
+- **TLS**: Modern TLS 1.2+ with strong ciphers
+- **Compression**: Stream compression for bandwidth optimization
+- **Connections**: Connection limits and timeouts
 
-- `transport_modules` - Transport layer modules
-- `stream_modules` - Stream layer modules
-- `stanza_modules` - Stanza layer modules
-- etc.
+### Layer 02: Stream
 
-The main configuration automatically collects and enables all modules from all layers.
+- **Authentication**: SASL mechanisms, SCRAM-SHA-256
+- **Encryption**: Mandatory encryption for client/server connections
+- **Management**: Stream resumption and acknowledgments
+- **Negotiation**: Feature negotiation and capabilities
 
-### Environment Override
+### Layer 03: Stanza
 
-Environment-specific settings are applied after layer loading:
+- **Routing**: Intelligent message routing
+- **Filtering**: Content filtering and validation
+- **Validation**: XML schema validation
+- **Processing**: Stanza preprocessing and postprocessing
+
+### Layer 04: Protocol
+
+- **Core**: Essential XMPP features (RFC 6120/6121)
+- **Extensions**: Modern XEPs for enhanced functionality
+- **Legacy**: Backward compatibility features
+- **Experimental**: Cutting-edge features for testing
+
+### Layer 05: Services
+
+- **Messaging**: One-to-one messaging with delivery receipts
+- **Presence**: Rich presence with mood and activity
+- **Groupchat**: Multi-user chat with advanced features
+- **PubSub**: Publish-subscribe for real-time notifications
+
+### Layer 06: Storage
+
+- **Backends**: Multiple storage options (SQL, NoSQL)
+- **Archiving**: Message archiving and retrieval (MAM)
+- **Caching**: Performance optimization caching
+- **Migration**: Data migration utilities
+
+### Layer 07: Interfaces
+
+- **HTTP**: Web-based administration and file uploads
+- **WebSocket**: Modern web client connectivity
+- **BOSH**: Legacy web client support
+- **Components**: External component integration
+
+### Layer 08: Integration
+
+- **LDAP**: Enterprise directory integration
+- **OAuth**: Modern authentication delegation
+- **Webhooks**: External service notifications
+- **APIs**: RESTful APIs for automation
+
+## Environment Configuration
+
+### Development Environment
+
+- Debug logging enabled
+- Relaxed security for testing
+- Local certificate generation
+- Hot-reload capabilities
+
+### Production Environment
+
+- Enhanced security policies
+- Performance optimizations
+- Comprehensive monitoring
+- Backup automation
+
+## Security Features
+
+- **Modern TLS**: TLS 1.2+ with perfect forward secrecy
+- **SASL SCRAM**: Secure authentication without plaintext
+- **Rate Limiting**: Protection against abuse and DoS
+- **Firewall Integration**: Advanced packet filtering
+- **Certificate Management**: Automated Let's Encrypt integration
+
+## Mobile Optimization
+
+- **Push Notifications**: Native mobile push support
+- **Stream Management**: Connection resumption for mobile networks
+- **Carbons**: Message synchronization across devices
+- **CSI**: Client state indication for battery optimization
+
+## Compliance Features
+
+- **GDPR**: Data protection and privacy controls
+- **Message Archiving**: Configurable retention policies
+- **Audit Logging**: Comprehensive audit trails
+- **Data Export**: User data portability
+
+## Monitoring and Administration
+
+- **Prometheus Metrics**: Comprehensive server metrics
+- **Health Checks**: Automated health monitoring
+- **Admin Interface**: Web-based administration
+- **Log Management**: Structured logging with rotation
+
+## Customization
+
+### Adding Custom Modules
+
+1. Place modules in the appropriate layer directory
+2. Add module configuration to the layer's config file
+3. Restart Prosody to load new modules
+
+### Environment-Specific Overrides
+
+Create environment-specific files in `environments/`:
 
 ```lua
--- Production environment applies:
--- - Enhanced security (forced encryption)
--- - SQL storage backends
--- - Performance optimizations
--- - Comprehensive logging
--- - Rate limiting
+-- environments/staging.cfg.lua
+log = {
+    {levels = {min = "debug"}, to = "console"};
+    {levels = {min = "info"}, to = "file", filename = "/var/log/prosody/staging.log"};
+}
 ```
 
-## 🛡️ Security Features
+### Policy Customization
 
-### Transport Security
+Modify policies in `policies/` directory:
 
-- **TLS 1.2+** mandatory
-- **Perfect Forward Secrecy** (PFS)
-- **OCSP stapling**
-- **HSTS headers**
-- **Strong cipher suites**
+- `security.cfg.lua` - Security policies
+- `compliance.cfg.lua` - Compliance settings  
+- `performance.cfg.lua` - Performance tuning
 
-### Authentication
-
-- **SASL 2.0** support
-- **SCRAM-SHA-256** default
-- **Multi-factor authentication**
-- **Enterprise LDAP** integration
-- **OAuth 2.0** provider
-
-### Message Security
-
-- **OMEMO encryption** (XEP-0384)
-- **OpenPGP integration**
-- **Message Archive Management** (XEP-0313)
-- **Anti-spam filtering**
-- **Content validation**
-
-## 📊 Monitoring & Compliance
-
-### Built-in Monitoring
-
-- **Prometheus metrics** (`/metrics`)
-- **Health checks** (`/health`)
-- **Performance statistics**
-- **Security event logging**
-
-### Compliance Features
-
-- **XMPP Compliance Suites 2023**
-- **GDPR compliance** tools
-- **Contact information** (XEP-0157)
-- **Server information** disclosure
-- **Audit logging**
-
-## 🔧 Management Tools
-
-### Configuration Loader
-
-The `tools/loader.cfg.lua` provides utilities:
-
-```lua
-local loader = require "tools.loader"
-
--- Validate configuration
-local missing = loader.validate_layers("/etc/prosody")
-
--- Check for conflicts
-local conflicts = loader.check_module_conflicts(all_modules)
-
--- Test configuration
-local results = loader.test_config("/etc/prosody")
-
--- Create backup
-local backup = loader.backup_config("/etc/prosody", "/backups")
-
--- Debug information
-loader.debug_info(all_modules, layer_configs)
-```
-
-### Command Line Tools
-
-```bash
-# Configuration validation
-sudo prosodyctl check config
-
-# Module management
-sudo prosodyctl module list
-sudo prosodyctl module install mod_name
-
-# User management
-sudo prosodyctl adduser user@domain.com
-sudo prosodyctl passwd user@domain.com
-
-# Certificate management
-sudo prosodyctl cert generate domain.com
-sudo prosodyctl cert import domain.com /path/to/cert.pem /path/to/key.pem
-```
-
-## 🚀 Performance Optimization
-
-### Production Settings
-
-- **SQL storage** backends
-- **Connection pooling**
-- **Aggressive garbage collection**
-- **Caching strategies**
-- **Rate limiting**
-
-### Mobile Optimization
-
-- **Stream Management** (XEP-0198)
-- **Client State Indication** (XEP-0352)
-- **Push notifications** (XEP-0357)
-- **Roster versioning** (XEP-0237)
-- **Message Carbons** (XEP-0280)
-
-## 🔌 Supported Features
-
-### Core XMPP (RFC 6120/6121)
-
-✅ **Client-to-Server** (c2s)  
-✅ **Server-to-Server** (s2s)  
-✅ **SASL Authentication**  
-✅ **TLS Encryption**  
-✅ **Resource Binding**  
-✅ **Session Management**  
-
-### Modern Extensions
-
-✅ **Message Archive Management** (XEP-0313)  
-✅ **Message Carbons** (XEP-0280)  
-✅ **Stream Management** (XEP-0198)  
-✅ **Multi-User Chat** (XEP-0045)  
-✅ **Publish-Subscribe** (XEP-0060)  
-✅ **Service Discovery** (XEP-0030)  
-✅ **Entity Capabilities** (XEP-0115)  
-✅ **OMEMO Encryption** (XEP-0384)  
-✅ **HTTP File Upload** (XEP-0363)  
-✅ **Push Notifications** (XEP-0357)  
-
-### Web Technologies
-
-✅ **BOSH** (XEP-0124/0206)  
-✅ **WebSocket** (RFC 7395)  
-✅ **HTTP API** endpoints  
-✅ **Web administration**  
-✅ **File sharing** service  
-
-### Enterprise Features
-
-✅ **LDAP integration**  
-✅ **OAuth 2.0** provider  
-✅ **Webhook** support  
-✅ **Audit logging**  
-✅ **Compliance** reporting  
-✅ **High availability**  
-
-## 🐛 Troubleshooting
-
-### Layer-by-Layer Debugging
-
-1. **Transport Issues**: Check `01-transport/` configs
-   - Port bindings
-   - TLS certificates
-   - Network connectivity
-
-2. **Authentication Problems**: Check `02-stream/` configs
-   - SASL mechanisms
-   - User backends
-   - Password policies
-
-3. **Message Delivery**: Check `03-stanza/` configs
-   - Routing rules
-   - Firewall settings
-   - Validation errors
-
-4. **Feature Problems**: Check `04-protocol/` configs
-   - Module conflicts
-   - XEP compatibility
-   - Legacy support
+## Troubleshooting
 
 ### Common Issues
 
-**Module Conflicts**: Use configuration loader to detect:
+1. **Module Loading Errors**
 
-```lua
-local conflicts = loader.check_module_conflicts(all_modules)
+   ```bash
+   # Check module availability
+   prosodyctl check config
+   ```
+
+2. **Certificate Issues**
+
+   ```bash
+   # Generate certificates
+   ./scripts/generate-dhparam.sh
+   ```
+
+3. **Permission Problems**
+
+   ```bash
+   # Fix ownership
+   chown -R prosody:prosody /var/lib/prosody
+   ```
+
+### Debug Mode
+
+Enable debug logging:
+
+```bash
+export PROSODY_ENV=development
+docker-compose restart prosody
 ```
 
-**Missing Dependencies**: Check layer validation:
+## Performance Tuning
 
-```lua
-local missing = loader.validate_layers("/etc/prosody")
+### High-Load Environments
+
+- Adjust connection limits in transport layer
+- Enable caching in storage layer
+- Configure load balancing in interfaces layer
+- Optimize database connections
+
+### Resource Monitoring
+
+Monitor key metrics:
+
+- Memory usage and garbage collection
+- Connection counts and rates
+- Message throughput
+- Storage performance
+
+## Backup and Recovery
+
+### Automated Backups
+
+```bash
+# Run backup script
+./scripts/backup.sh
 ```
 
-**Performance Issues**: Review production environment settings and enable metrics.
+### Data Recovery
 
-## 📚 Additional Resources
+```bash
+# Restore from backup
+./scripts/restore.sh /path/to/backup
+```
 
-- [Prosody Documentation](https://prosody.im/doc/)
-- [XMPP RFCs](https://xmpp.org/rfcs/)
-- [XEP Extensions](https://xmpp.org/extensions/)
-- [XMPP Compliance Suites](https://xmpp.org/extensions/xep-0423.html)
-- [Prosody Modules](https://modules.prosody.im/)
-
-## 🤝 Contributing
+## Contributing
 
 When modifying the configuration:
 
-1. **Follow the layer organization** - place configs in appropriate layers
-2. **Document XEP references** - include XEP numbers and URLs
-3. **Test thoroughly** - use the configuration loader tools
-4. **Update this README** - document new features or changes
-5. **Validate against compliance** - ensure XMPP standards compliance
+1. Follow the layer-based organization
+2. Include XEP references in module descriptions [[memory:3030509]]
+3. Use consistent module naming [[memory:3030813]]
+4. Test changes in development environment
+5. Update documentation accordingly
+
+## Support
+
+For issues and questions:
+
+- Check the troubleshooting section
+- Review Prosody documentation
+- Consult XEP specifications for protocol details
 
 ---
 
-**🎯 This configuration provides a production-ready, feature-complete XMPP server with modern security, mobile optimization, and enterprise integration capabilities.**
+**Note**: This configuration provides an "everything enabled" approach with intelligent organization. All features are available and can be fine-tuned through environment variables and policy configurations.
