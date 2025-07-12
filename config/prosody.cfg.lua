@@ -16,6 +16,20 @@ server_name = os.getenv("PROSODY_DOMAIN") or "localhost"
 data_path = data_path
 plugin_paths = { "/usr/local/lib/prosody/modules" }
 
+-- Initialize module collection system
+local all_modules = {}
+local layer_configs = {}
+
+-- Function to collect modules from layers
+local function collect_layer_modules(layer_name, layer_modules)
+	if layer_modules then
+		layer_configs[layer_name] = layer_modules
+		for _, module in ipairs(layer_modules) do
+			table.insert(all_modules, module)
+		end
+	end
+end
+
 -- Layer-based configuration loading
 -- Load configuration in XMPP protocol stack order
 
@@ -25,55 +39,63 @@ dofile(config_path .. "/stack/01-transport/ports.cfg.lua")
 dofile(config_path .. "/stack/01-transport/tls.cfg.lua")
 dofile(config_path .. "/stack/01-transport/compression.cfg.lua")
 dofile(config_path .. "/stack/01-transport/connections.cfg.lua")
+collect_layer_modules("transport", transport_modules)
 
 -- Layer 02: Stream Layer
 -- Authentication, encryption, stream management, negotiation
 dofile(config_path .. "/stack/02-stream/authentication.cfg.lua")
--- dofile(config_path .. "/stack/02-stream/encryption.cfg.lua")
+dofile(config_path .. "/stack/02-stream/encryption.cfg.lua")
 dofile(config_path .. "/stack/02-stream/management.cfg.lua")
--- dofile(config_path .. "/stack/02-stream/negotiation.cfg.lua")
+dofile(config_path .. "/stack/02-stream/negotiation.cfg.lua")
+collect_layer_modules("stream", stream_modules)
 
--- Layer 03: Stanza Layer (to be implemented)
+-- Layer 03: Stanza Layer
 -- Routing, filtering, validation, processing
--- dofile(config_path .. "/stack/03-stanza/routing.cfg.lua")
--- dofile(config_path .. "/stack/03-stanza/filtering.cfg.lua")
--- dofile(config_path .. "/stack/03-stanza/validation.cfg.lua")
--- dofile(config_path .. "/stack/03-stanza/processing.cfg.lua")
+dofile(config_path .. "/stack/03-stanza/routing.cfg.lua")
+dofile(config_path .. "/stack/03-stanza/filtering.cfg.lua")
+dofile(config_path .. "/stack/03-stanza/validation.cfg.lua")
+dofile(config_path .. "/stack/03-stanza/processing.cfg.lua")
+collect_layer_modules("stanza", stanza_modules)
 
--- Layer 04: Protocol Layer (to be implemented)
+-- Layer 04: Protocol Layer
 -- Core XMPP features, extensions, legacy support
--- dofile(config_path .. "/stack/04-protocol/core.cfg.lua")
--- dofile(config_path .. "/stack/04-protocol/extensions.cfg.lua")
--- dofile(config_path .. "/stack/04-protocol/legacy.cfg.lua")
--- dofile(config_path .. "/stack/04-protocol/experimental.cfg.lua")
+dofile(config_path .. "/stack/04-protocol/core.cfg.lua")
+dofile(config_path .. "/stack/04-protocol/extensions.cfg.lua")
+dofile(config_path .. "/stack/04-protocol/legacy.cfg.lua")
+dofile(config_path .. "/stack/04-protocol/experimental.cfg.lua")
+collect_layer_modules("protocol", protocol_modules)
 
--- Layer 05: Services Layer (to be implemented)
+-- Layer 05: Services Layer
 -- Messaging, presence, groupchat, pubsub
--- dofile(config_path .. "/stack/05-services/messaging.cfg.lua")
--- dofile(config_path .. "/stack/05-services/presence.cfg.lua")
--- dofile(config_path .. "/stack/05-services/groupchat.cfg.lua")
--- dofile(config_path .. "/stack/05-services/pubsub.cfg.lua")
+dofile(config_path .. "/stack/05-services/messaging.cfg.lua")
+dofile(config_path .. "/stack/05-services/presence.cfg.lua")
+dofile(config_path .. "/stack/05-services/groupchat.cfg.lua")
+dofile(config_path .. "/stack/05-services/pubsub.cfg.lua")
+collect_layer_modules("services", services_modules)
 
--- Layer 06: Storage Layer (to be implemented)
+-- Layer 06: Storage Layer
 -- Backends, archiving, caching, migration
--- dofile(config_path .. "/stack/06-storage/backends.cfg.lua")
--- dofile(config_path .. "/stack/06-storage/archiving.cfg.lua")
--- dofile(config_path .. "/stack/06-storage/caching.cfg.lua")
--- dofile(config_path .. "/stack/06-storage/migration.cfg.lua")
+dofile(config_path .. "/stack/06-storage/backends.cfg.lua")
+dofile(config_path .. "/stack/06-storage/archiving.cfg.lua")
+dofile(config_path .. "/stack/06-storage/caching.cfg.lua")
+dofile(config_path .. "/stack/06-storage/migration.cfg.lua")
+collect_layer_modules("storage", storage_modules)
 
--- Layer 07: Interfaces Layer (to be implemented)
+-- Layer 07: Interfaces Layer
 -- HTTP, WebSocket, BOSH, components
--- dofile(config_path .. "/stack/07-interfaces/http.cfg.lua")
--- dofile(config_path .. "/stack/07-interfaces/websocket.cfg.lua")
--- dofile(config_path .. "/stack/07-interfaces/bosh.cfg.lua")
--- dofile(config_path .. "/stack/07-interfaces/components.cfg.lua")
+dofile(config_path .. "/stack/07-interfaces/http.cfg.lua")
+dofile(config_path .. "/stack/07-interfaces/websocket.cfg.lua")
+dofile(config_path .. "/stack/07-interfaces/bosh.cfg.lua")
+dofile(config_path .. "/stack/07-interfaces/components.cfg.lua")
+collect_layer_modules("interfaces", interfaces_modules)
 
--- Layer 08: Integration Layer (to be implemented)
+-- Layer 08: Integration Layer
 -- LDAP, OAuth, webhooks, APIs
--- dofile(config_path .. "/stack/08-integration/ldap.cfg.lua")
--- dofile(config_path .. "/stack/08-integration/oauth.cfg.lua")
--- dofile(config_path .. "/stack/08-integration/webhooks.cfg.lua")
--- dofile(config_path .. "/stack/08-integration/apis.cfg.lua")
+dofile(config_path .. "/stack/08-integration/ldap.cfg.lua")
+dofile(config_path .. "/stack/08-integration/oauth.cfg.lua")
+dofile(config_path .. "/stack/08-integration/webhooks.cfg.lua")
+dofile(config_path .. "/stack/08-integration/apis.cfg.lua")
+collect_layer_modules("integration", integration_modules)
 
 -- Domain configuration
 -- Load domain-specific settings
@@ -124,123 +146,84 @@ end
 -- Virtual host configuration
 -- Define the main virtual host
 VirtualHost(server_name)
--- Domain-specific settings will be loaded from domain configuration files
+-- Authentication method from stream layer
+authentication = authentication_method or "internal_hashed"
 
--- Default authentication method
-authentication = authentication_storage.default or "internal_hashed"
+-- Storage backend from storage layer
+storage = storage_backend or "internal"
 
--- Default storage backend
-storage = "internal"
-
--- Enable all loaded modules
--- Modules are defined in the layer configuration files
-
--- Component hosts (if needed)
--- These will be defined in the interfaces layer configuration
-
--- Global module enablement
--- Combine all modules from all layers
-local all_modules = {}
-
--- Function to merge module lists
-local function merge_modules(source_modules)
-	if source_modules then
-		for _, module in ipairs(source_modules) do
-			table.insert(all_modules, module)
-		end
-	end
-end
-
--- Merge modules from all layers (will be populated as layers are implemented)
-if modules_enabled then
-	merge_modules(modules_enabled)
-end
-
--- Set the final module list
+-- Module enablement from all layers
 modules_enabled = all_modules
+
+-- SSL/TLS certificate configuration
+ssl = ssl_config
+	or {
+		key = "/etc/prosody/certs/" .. server_name .. ".key",
+		certificate = "/etc/prosody/certs/" .. server_name .. ".crt",
+	}
+
+-- Component hosts from interfaces layer
+-- Load component configurations if they exist
+if muc_component_config then
+	Component(muc_component_config.hostname)
+	component_secret = muc_component_config.secret
+	modules_enabled = muc_component_config.modules
+end
+
+if http_upload_component_config then
+	Component(http_upload_component_config.hostname)
+	component_secret = http_upload_component_config.secret
+	modules_enabled = http_upload_component_config.modules
+end
+
+if pubsub_component_config then
+	Component(pubsub_component_config.hostname)
+	component_secret = pubsub_component_config.secret
+	modules_enabled = pubsub_component_config.modules
+end
+
+-- Global configuration inheritance
+-- Apply configurations from global.cfg.lua if it exists
+local global_config_path = config_path .. "/global.cfg.lua"
+if lfs and lfs.attributes(global_config_path) then
+	dofile(global_config_path)
+end
 
 -- Legacy compatibility
 -- Support for existing configuration patterns
 legacy_ssl_ports = legacy_ssl_ports or {}
-cross_domain_bosh = true
-consider_bosh_secure = true
+cross_domain_bosh = cross_domain_bosh or true
+consider_bosh_secure = consider_bosh_secure or true
 
--- Logging configuration
--- Comprehensive logging setup
-log = {
-	-- Main log file
-	info = data_path .. "/prosody.log",
-	error = data_path .. "/prosody.err",
-
-	-- Console logging for development
-	{ levels = { "error" }, to = "console" },
-}
+-- Logging configuration from global or layer configs
+log = log
+	or {
+		info = data_path .. "/prosody.log",
+		error = data_path .. "/prosody.err",
+		{ levels = { "error" }, to = "console" },
+	}
 
 -- Performance tuning
--- Optimize for the layer-based architecture
-gc = {
+gc = gc or {
 	speed = 500, -- Garbage collection speed
 }
 
 -- Statistics and monitoring
--- Enable comprehensive statistics
-statistics = "internal"
-statistics_interval = 60 -- 1 minute statistics interval
+statistics = statistics or "internal"
+statistics_interval = statistics_interval or 60
 
--- Resource limits
--- Prevent resource exhaustion
+-- Resource limits from layers
 limits = limits or {}
 
--- Default storage configuration
--- Will be overridden by storage layer configuration
-default_storage = "internal"
-storage = {
-	archive2 = "sql", -- Use SQL for message archives
-}
+-- Storage configuration from storage layer
+default_storage = default_storage or "internal"
+storage = storage or {}
 
--- SQL configuration (if using SQL storage)
-sql = {
-	driver = "SQLite3",
-	database = data_path .. "/prosody.sqlite",
-}
-
--- Security defaults
--- Basic security configuration
-security = {
-	-- Require encryption
-	c2s_require_encryption = true,
-	s2s_require_encryption = true,
-
-	-- Certificate verification
-	s2s_secure_auth = false, -- Will be overridden by TLS configuration
-
-	-- HTTPS redirect
-	https_redirect = true,
-}
-
--- Feature advertisement
--- Advertise server capabilities
-disco_items = {
-	{ "upload." .. server_name, "HTTP File Upload" },
-	{ "conference." .. server_name, "Chatrooms" },
-}
-
--- Cross-domain policy
--- For web clients
-cross_domain_bosh = true
-cross_domain_websocket = true
-
--- Welcome message for new users
-welcome_message = "Welcome to " .. server_name .. "! For help, contact the administrators."
-
--- Message of the day
-motd_text = [[Welcome to ]]
-.. server_name
-	.. [[
-
-This server uses a layer-based architecture for optimal XMPP performance.
-For support, please contact the administrators.
-]]
-
--- Shutdown message
-shutdown_message = "The server is being restarted for maintenance. Please reconnect in a few moments."
+-- Debug information (only in development)
+if environment == "development" then
+	-- Log layer loading information
+	module:log("info", "Loaded %d modules across %d layers", #all_modules, 8)
+	for layer_name, modules in pairs(layer_configs) do
+		module:log("debug", "Layer %s: %d modules", layer_name, #modules)
+	end
+end
