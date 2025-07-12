@@ -7,10 +7,8 @@ This directory contains configuration files organized by **official status** for
 ```text
 modules.d/
 ├── README.md                    # This file
-├── core/                        # 🟢 Core modules (always enabled)
-│   └── README.md               # Core modules documentation
 ├── official/                    # ✅ Official modules (distributed with Prosody)
-│   └── core.cfg.lua            # Official modules configuration
+│   └── modules.cfg.lua         # Official modules configuration
 └── community/                   # 🏗️ Community modules (third-party)
     ├── stable/                 # 🟢 Stable community modules
     │   └── security.cfg.lua    # Security modules configuration
@@ -27,6 +25,7 @@ modules.d/
 - **Status**: Always enabled - Essential XMPP functionality
 - **Source**: Built into Prosody core
 - **Risk**: Minimal - Required for basic operation
+- **Configuration**: Configured in main `prosody.cfg.lua` file
 - **Examples**: `roster`, `saslauth`, `tls`, `dialback`, `disco`
 
 ### ✅ **Official Modules**
@@ -75,7 +74,7 @@ PROSODY_ENABLE_ALPHA=false       # Community alpha/experimental modules
 
 The main `prosody.cfg.lua` file loads configurations conditionally:
 
-1. **Core modules** - Always enabled (built into Prosody)
+1. **Core modules** - Always enabled (built into Prosody, configured in main file)
 2. **Official modules** - Enabled by default (`PROSODY_ENABLE_OFFICIAL != false`)
 3. **Community stable** - Enabled by default (`PROSODY_ENABLE_SECURITY != false`)
 4. **Community beta** - Opt-in (`PROSODY_ENABLE_BETA == true`)

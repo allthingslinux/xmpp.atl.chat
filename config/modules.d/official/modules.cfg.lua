@@ -1,9 +1,13 @@
 -- ============================================================================
--- OFFICIAL PROSODY CORE MODULES CONFIGURATION
+-- OFFICIAL PROSODY MODULES CONFIGURATION
 -- ============================================================================
 -- Status: ✅ Official (Distributed with Prosody)
 -- Stability: 🟢 Stable (Production Ready)
--- Risk: Minimal - Core XMPP functionality
+-- Risk: Low - Officially maintained and tested
+-- 
+-- Note: Core modules (roster, saslauth, tls, etc.) are built into Prosody
+-- and configured in the main prosody.cfg.lua file. This file contains
+-- configuration for official modules that are distributed with Prosody.
 
 -- ============================================================================
 -- MESSAGE ARCHIVE MANAGEMENT (MAM) - XEP-0313

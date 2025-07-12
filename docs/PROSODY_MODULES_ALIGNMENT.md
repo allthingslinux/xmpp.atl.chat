@@ -45,13 +45,14 @@ modules.d/
 
 ```
 modules.d/
-├── core/
 ├── official/
 └── community/
     ├── stable/
     ├── beta/
     └── alpha/
 ```
+
+**Note**: Core modules are configured directly in the main `prosody.cfg.lua` file since they are built into Prosody.
 
 ### 3. Module Inventory Updates
 

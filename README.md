@@ -95,9 +95,8 @@ xmpp.atl.chat/
 │   ├── docker-compose.prod.yml # Production deployment
 │   └── docker-compose.enterprise.yml # Enterprise deployment
 ├── config/
-│   ├── prosody.cfg.lua         # Main configuration
+│   ├── prosody.cfg.lua         # Main configuration (includes core modules)
 │   ├── modules.d/              # Official status-based modular configuration
-│   │   ├── core/               # 🟢 Core modules (always enabled)
 │   │   ├── official/           # ✅ Official modules (distributed with Prosody)
 │   │   └── community/          # 🏗️ Community modules (third-party)
 │   │       ├── stable/         # 🟢 Stable community modules
