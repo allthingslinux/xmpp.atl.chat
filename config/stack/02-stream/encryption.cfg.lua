@@ -1,54 +1,32 @@
 -- Layer 02: Stream - Encryption Configuration
--- XEP-0384: OMEMO Encryption, XEP-0373: OpenPGP for XMPP, XEP-0027: Current Jabber OpenPGP Usage
--- Provides end-to-end encryption capabilities for enhanced privacy and security
+-- End-to-end encryption, key management, and cryptographic policies
+-- OMEMO, OpenPGP, and encryption discovery/enforcement
 
 local encryption_config = {
 	-- OMEMO Multi-End Message and Object Encryption (XEP-0384)
 	-- Modern, forward-secure end-to-end encryption
 	omemo = {
 		-- Core OMEMO support
-		"omemo_all_access", -- Allow OMEMO for all users
-		"omemo_policy", -- Policy enforcement for OMEMO
-
-		-- OMEMO extensions and improvements
-		"omemo_fallback", -- Fallback mechanisms for OMEMO
-		"omemo_self_messages", -- Support for self-messages in OMEMO
-
-		-- Device management for OMEMO
-		"omemo_device_list", -- Device list management
-		"omemo_device_verification", -- Device verification support
+		"omemo_all_access", -- Allow OMEMO for all users (real community module)
 	},
 
 	-- OpenPGP Integration (XEP-0373, XEP-0027)
 	-- Traditional OpenPGP encryption support
 	openpgp = {
-		"openpgp", -- XEP-0373: OpenPGP for XMPP
-		"legacy_openpgp", -- XEP-0027: Current Jabber OpenPGP Usage (legacy)
-		"openpgp_crypt", -- OpenPGP encryption/decryption
+		-- Note: Most OpenPGP modules are client-side or not widely available
+		-- Keeping this section minimal with only well-established modules
 	},
 
 	-- Encryption Discovery and Capabilities
 	-- Help clients discover encryption capabilities
 	discovery = {
-		"encryption_policy", -- Encryption policy advertisement
-		"carbons_adhoc", -- Message Carbons with encryption awareness
-		"crypt_policy", -- Cryptographic policy enforcement
+		"encryption_policy", -- Encryption policy advertisement (if available)
 	},
 
-	-- Key Management and Storage
-	-- Secure key storage and management
-	key_management = {
-		"keyval_store", -- Key-value storage for encryption keys
-		"pep_plus", -- Enhanced PEP for key distribution
-		"pubsub_encrypted", -- Encrypted PubSub support
-	},
-
-	-- Encryption Metadata and Logging
-	-- Handle encryption-related metadata
-	metadata = {
-		"encrypt_log", -- Encryption logging and audit
-		"message_security_labels", -- Security labels for messages
-		"encrypted_session_logging", -- Log encrypted session metadata
+	-- Security Labels (XEP-0258)
+	-- Security classification for messages
+	security_labels = {
+		"seclabels", -- Security Labels support (real community module)
 	},
 }
 
@@ -64,26 +42,14 @@ local function apply_encryption_config()
 		table.insert(core_modules, module)
 	end
 
-	-- Add OpenPGP support
-	for _, module in ipairs(encryption_config.openpgp) do
-		table.insert(core_modules, module)
-	end
-
-	-- Add discovery support
+	-- Add discovery support (if modules exist)
 	for _, module in ipairs(encryption_config.discovery) do
 		table.insert(core_modules, module)
 	end
 
-	-- Add key management (production and staging)
-	if env_type ~= "development" then
-		for _, module in ipairs(encryption_config.key_management) do
-			table.insert(core_modules, module)
-		end
-	end
-
-	-- Add metadata handling (production only for performance)
+	-- Add security labels (optional, for high-security environments)
 	if env_type == "production" then
-		for _, module in ipairs(encryption_config.metadata) do
+		for _, module in ipairs(encryption_config.security_labels) do
 			table.insert(core_modules, module)
 		end
 	end
@@ -117,14 +83,14 @@ omemo_policy = {
 openpgp_config = {
 	-- Key server configuration
 	keyserver = {
-		enabled = true,
+		enabled = false, -- Disabled by default (most servers don't support this)
 		url = "hkps://keys.openpgp.org", -- Default keyserver
 		timeout = 30, -- Timeout in seconds
 	},
 
 	-- Legacy support (XEP-0027)
 	legacy_support = {
-		enabled = true, -- Support legacy OpenPGP
+		enabled = false, -- Disabled by default (deprecated)
 		warn_deprecated = true, -- Warn about deprecated usage
 	},
 

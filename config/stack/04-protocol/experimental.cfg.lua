@@ -14,6 +14,7 @@ local experimental_config = {
 		"spoiler_messages", -- XEP-0382: Spoiler Messages
 		"message_fastening", -- XEP-0422: Message Fastening
 		"message_references", -- XEP-0372: References
+		"message_reactions", -- XEP-0444: Message Reactions
 	},
 
 	-- Modern Authentication
@@ -22,9 +23,6 @@ local experimental_config = {
 		"sasl2", -- XEP-0388: Extensible SASL Profile
 		"bind2", -- XEP-0386: Bind 2.0
 		"fast", -- XEP-0484: Fast Authentication Streamlining Tokens
-		"oauth2", -- OAuth 2.0 integration
-		"webauthn", -- WebAuthn support
-		"passwordless_auth", -- Experimental passwordless authentication
 	},
 
 	-- Mobile and IoT Features
@@ -33,8 +31,6 @@ local experimental_config = {
 		"csi_advanced", -- Advanced Client State Indication
 		"push_advanced", -- Advanced Push Notifications
 		"mobile_compliance", -- XEP-0286: Mobile Considerations
-		"iot_discovery", -- IoT device discovery
-		"constrained_clients", -- Support for constrained clients
 		"battery_optimization", -- Battery optimization features
 	},
 
@@ -43,32 +39,6 @@ local experimental_config = {
 	rtc_advanced = {
 		"jingle_webrtc", -- WebRTC integration with Jingle
 		"webrtc_datachannel", -- WebRTC data channels
-		"screen_sharing", -- Screen sharing support
-		"conference_calling", -- Multi-party calling
-		"recording", -- Call/conference recording
-		"transcription", -- Real-time transcription
-	},
-
-	-- AI and Machine Learning
-	-- AI-powered XMPP features
-	ai_features = {
-		"chatbots", -- Chatbot integration
-		"message_translation", -- Real-time message translation
-		"sentiment_analysis", -- Message sentiment analysis
-		"spam_detection_ai", -- AI-powered spam detection
-		"content_moderation_ai", -- AI content moderation
-		"smart_notifications", -- Smart notification filtering
-	},
-
-	-- Blockchain and Decentralization
-	-- Blockchain and decentralized features
-	blockchain_features = {
-		"decentralized_identity", -- Decentralized identity
-		"blockchain_auth", -- Blockchain-based authentication
-		"crypto_payments", -- Cryptocurrency payments
-		"nft_integration", -- NFT integration
-		"distributed_storage", -- Distributed storage
-		"consensus_mechanisms", -- Consensus mechanisms
 	},
 
 	-- Privacy and Security Enhancements
@@ -76,20 +46,13 @@ local experimental_config = {
 	privacy_security = {
 		"forward_secrecy", -- Forward secrecy
 		"message_mixing", -- XEP-0369: Mediated Information eXchange (MIX)
-		"onion_routing", -- Onion routing for XMPP
-		"zero_knowledge_auth", -- Zero-knowledge authentication
-		"homomorphic_encryption", -- Homomorphic encryption
-		"secure_multiparty", -- Secure multiparty computation
 	},
 
 	-- Emerging Standards
 	-- Emerging and draft XEPs
 	emerging_standards = {
 		"xep_draft_implementations", -- Draft XEP implementations
-		"rfc_proposals", -- RFC proposal implementations
 		"community_extensions", -- Community-driven extensions
-		"vendor_extensions", -- Vendor-specific extensions
-		"research_protocols", -- Research protocol implementations
 	},
 }
 
@@ -129,20 +92,6 @@ local function apply_experimental_config()
 	-- RTC advanced (development only)
 	if env_type == "development" then
 		for _, module in ipairs(experimental_config.rtc_advanced) do
-			table.insert(core_modules, module)
-		end
-	end
-
-	-- AI features (development only - requires external services)
-	if env_type == "development" then
-		for _, module in ipairs(experimental_config.ai_features) do
-			table.insert(core_modules, module)
-		end
-	end
-
-	-- Blockchain features (development only - highly experimental)
-	if env_type == "development" then
-		for _, module in ipairs(experimental_config.blockchain_features) do
 			table.insert(core_modules, module)
 		end
 	end
@@ -201,272 +150,145 @@ sasl2_config = {
 	enabled = false, -- Disabled by default (experimental)
 
 	-- SASL 2.0 features
-	sasl2_features = {
-		channel_binding = true, -- Channel binding support
-		sasl_inline = true, -- Inline SASL
-		fast_auth = true, -- Fast authentication
-
-		-- Mechanism selection
-		mechanism_selection = "server", -- server, client, negotiated
-		fallback_to_sasl1 = true, -- Fallback to SASL 1.0
+	features = {
+		inline_features = true, -- Inline stream features
+		bind2_integration = true, -- Bind 2.0 integration
+		fast_integration = true, -- FAST integration
 	},
 
-	-- Security settings
-	security_settings = {
-		require_channel_binding = false, -- Require channel binding
-		validate_certificates = true, -- Validate certificates
-		enforce_mutual_auth = false, -- Enforce mutual authentication
+	-- Authentication mechanisms
+	mechanisms = {
+		"SCRAM-SHA-256-PLUS", -- SCRAM with channel binding
+		"SCRAM-SHA-256",
+		"SCRAM-SHA-1-PLUS",
+		"SCRAM-SHA-1",
 	},
 }
 
--- Bind 2.0 Configuration
--- XEP-0386: Bind 2.0
-bind2_config = {
-	-- Basic Bind 2.0 settings
+-- Message Moderation Configuration
+-- XEP-0425: Message Moderation
+message_moderation_config = {
+	-- Basic moderation settings
 	enabled = false, -- Disabled by default (experimental)
 
-	-- Bind 2.0 features
-	bind2_features = {
-		inline_features = true, -- Inline feature negotiation
-		carbons_enable = true, -- Auto-enable carbons
-		csi_enable = true, -- Auto-enable CSI
+	-- Moderation policies
+	moderation_policies = {
+		allow_moderation = true, -- Allow message moderation
+		require_reason = true, -- Require moderation reason
+		preserve_metadata = true, -- Preserve message metadata
 
-		-- Resource management
-		resource_generation = "server", -- server, client, hybrid
-		resource_conflict_resolution = "replace", -- replace, reject
+		-- Who can moderate
+		moderator_can_moderate = true, -- Moderators can moderate
+		admin_can_moderate = true, -- Admins can moderate
+		author_can_moderate = false, -- Authors cannot moderate their own messages
 	},
 
-	-- Performance settings
-	performance_settings = {
-		reduce_roundtrips = true, -- Reduce authentication roundtrips
-		batch_feature_negotiation = true, -- Batch feature negotiation
-		optimize_mobile = true, -- Mobile optimizations
+	-- Moderation behavior
+	moderation_behavior = {
+		tombstone_message = true, -- Leave tombstone message
+		notify_participants = true, -- Notify all participants
+		log_moderation = true, -- Log moderation actions
+
+		-- Archive handling
+		remove_from_archive = false, -- Don't remove from MAM archive
+		mark_as_moderated = true, -- Mark as moderated in archive
 	},
 }
 
--- Message Mixing (MIX) Configuration
--- XEP-0369: Mediated Information eXchange
-mix_config = {
-	-- Basic MIX settings
+-- Message Styling Configuration
+-- XEP-0393: Message Styling
+message_styling_config = {
+	-- Basic styling settings
 	enabled = false, -- Disabled by default (experimental)
 
-	-- MIX features
-	mix_features = {
-		channel_creation = true, -- Allow channel creation
-		channel_discovery = true, -- Channel discovery
-		message_archiving = true, -- Message archiving
-
-		-- Participation models
-		participation_models = {
-			"participants-may-invite", -- Participants may invite
-			"participants-may-set-subject", -- Participants may set subject
-			"no-private-messages", -- No private messages
-		},
+	-- Styling features
+	styling_features = {
+		emphasis = true, -- *emphasis*
+		strong_emphasis = true, -- **strong emphasis**
+		strikethrough = true, -- ~strikethrough~
+		preformatted = true, -- ```preformatted```
+		inline_code = true, -- `inline code`
 	},
 
-	-- Channel settings
-	channel_settings = {
-		max_channels = 100, -- Maximum channels
-		max_participants = 1000, -- Maximum participants per channel
-		default_permissions = { -- Default permissions
-			send_messages = true,
-			invite_participants = false,
-			set_subject = false,
-		},
+	-- Styling policies
+	styling_policies = {
+		max_nesting_depth = 3, -- Maximum nesting depth
+		max_styling_length = 1000, -- Maximum styled text length
+		allow_mixed_styling = true, -- Allow mixed styling
 	},
 }
 
--- AI Features Configuration
--- Artificial Intelligence integration
-ai_features_config = {
-	-- Basic AI settings
+-- Spoiler Messages Configuration
+-- XEP-0382: Spoiler Messages
+spoiler_messages_config = {
+	-- Basic spoiler settings
 	enabled = false, -- Disabled by default (experimental)
 
-	-- Chatbot integration
-	chatbot_integration = {
-		enable_chatbots = false, -- Enable chatbot support
-		max_bots_per_room = 3, -- Maximum bots per room
-		bot_rate_limiting = true, -- Rate limit bot messages
-
-		-- Bot capabilities
-		natural_language_processing = false, -- NLP capabilities
-		context_awareness = false, -- Context-aware responses
-		learning_capabilities = false, -- Learning from interactions
+	-- Spoiler policies
+	spoiler_policies = {
+		allow_spoilers = true, -- Allow spoiler messages
+		require_hint = false, -- Require spoiler hint
+		max_hint_length = 100, -- Maximum hint length
 	},
 
-	-- Translation services
-	translation_services = {
-		enable_translation = false, -- Enable real-time translation
-		supported_languages = { -- Supported language pairs
-			-- "en-es", "en-fr", "en-de"
-		},
-		translation_provider = "", -- Translation service provider
-
-		-- Translation settings
-		auto_detect_language = false, -- Auto-detect source language
-		preserve_formatting = true, -- Preserve message formatting
-	},
-
-	-- Content moderation
-	content_moderation = {
-		enable_ai_moderation = false, -- AI-powered content moderation
-		toxicity_detection = false, -- Toxicity detection
-		hate_speech_detection = false, -- Hate speech detection
-
-		-- Moderation actions
-		auto_moderate = false, -- Automatic moderation
-		flag_for_review = true, -- Flag content for human review
-		confidence_threshold = 0.8, -- Confidence threshold for action
+	-- Spoiler behavior
+	spoiler_behavior = {
+		preserve_in_archive = true, -- Preserve spoilers in archive
+		show_hint_in_notifications = false, -- Don't show hint in notifications
 	},
 }
 
--- Blockchain Features Configuration
--- Blockchain and cryptocurrency integration
-blockchain_config = {
-	-- Basic blockchain settings
-	enabled = false, -- Disabled by default (highly experimental)
-
-	-- Decentralized identity
-	decentralized_identity = {
-		enable_did = false, -- Decentralized identifiers
-		supported_did_methods = {}, -- Supported DID methods
-		identity_verification = false, -- Identity verification
-
-		-- Key management
-		key_rotation = false, -- Automatic key rotation
-		multi_signature = false, -- Multi-signature support
-	},
-
-	-- Cryptocurrency integration
-	cryptocurrency = {
-		enable_payments = false, -- Enable crypto payments
-		supported_currencies = {}, -- Supported cryptocurrencies
-		payment_channels = false, -- Payment channels
-
-		-- Transaction settings
-		micro_payments = false, -- Micro-payment support
-		escrow_services = false, -- Escrow services
-		smart_contracts = false, -- Smart contract integration
-	},
-
-	-- Distributed storage
-	distributed_storage = {
-		enable_ipfs = false, -- IPFS integration
-		enable_arweave = false, -- Arweave integration
-		content_addressing = false, -- Content-addressed storage
-
-		-- Storage settings
-		redundancy_factor = 3, -- Storage redundancy
-		encryption_at_rest = true, -- Encrypt stored content
-	},
-}
-
--- WebRTC Advanced Configuration
--- Advanced WebRTC and multimedia features
-webrtc_advanced_config = {
-	-- Basic WebRTC settings
+-- Mobile Optimizations Configuration
+-- XEP-0286: Mobile Considerations
+mobile_optimizations_config = {
+	-- Basic mobile settings
 	enabled = false, -- Disabled by default (experimental)
 
-	-- Advanced features
-	advanced_features = {
-		screen_sharing = false, -- Screen sharing support
-		file_sharing_rtc = false, -- File sharing over RTC
-		data_channels = false, -- WebRTC data channels
-
-		-- Conference features
-		multi_party_calls = false, -- Multi-party calling
-		call_recording = false, -- Call recording
-		live_streaming = false, -- Live streaming
+	-- Mobile features
+	mobile_features = {
+		battery_optimization = true, -- Battery optimization
+		bandwidth_optimization = true, -- Bandwidth optimization
+		push_integration = true, -- Push notification integration
+		background_sync = true, -- Background synchronization
 	},
 
-	-- Media processing
-	media_processing = {
-		noise_suppression = false, -- Noise suppression
-		echo_cancellation = false, -- Echo cancellation
-		bandwidth_adaptation = false, -- Bandwidth adaptation
-
-		-- Quality settings
-		adaptive_bitrate = false, -- Adaptive bitrate
-		resolution_scaling = false, -- Resolution scaling
-		frame_rate_control = false, -- Frame rate control
-	},
-
-	-- Security settings
-	security_settings = {
-		end_to_end_encryption = false, -- E2E encryption
-		identity_verification = false, -- Identity verification
-		secure_signaling = true, -- Secure signaling
+	-- Mobile policies
+	mobile_policies = {
+		max_offline_messages = 50, -- Maximum offline messages
+		compress_images = true, -- Compress images
+		defer_non_critical = true, -- Defer non-critical operations
 	},
 }
 
--- Performance Monitoring Configuration
--- Experimental performance monitoring
-performance_monitoring_config = {
-	-- Basic monitoring settings
-	enabled = false, -- Disabled by default
+-- Privacy and Security Enhancements Configuration
+privacy_security_config = {
+	-- Basic privacy settings
+	enabled = false, -- Disabled by default (experimental)
 
-	-- Metrics collection
-	metrics_collection = {
-		real_time_metrics = false, -- Real-time metrics
-		historical_data = false, -- Historical data collection
-		predictive_analytics = false, -- Predictive analytics
-
-		-- Metric types
-		latency_metrics = true, -- Latency measurements
-		throughput_metrics = true, -- Throughput measurements
-		error_rate_metrics = true, -- Error rate tracking
+	-- Privacy features
+	privacy_features = {
+		forward_secrecy = true, -- Forward secrecy
+		perfect_forward_secrecy = false, -- Perfect forward secrecy (experimental)
+		message_mixing = false, -- MIX support (experimental)
 	},
 
-	-- Alerting
-	alerting = {
-		smart_alerting = false, -- AI-powered alerting
-		anomaly_detection = false, -- Anomaly detection
-		predictive_alerts = false, -- Predictive alerts
-
-		-- Alert channels
-		webhook_alerts = false, -- Webhook notifications
-		email_alerts = false, -- Email notifications
-		sms_alerts = false, -- SMS notifications
+	-- Security policies
+	security_policies = {
+		require_encryption = false, -- Require encryption
+		block_unencrypted = false, -- Block unencrypted messages
+		audit_security_events = true, -- Audit security events
 	},
 }
 
--- Security Warnings for Experimental Features
-experimental_security_config = {
-	-- Warning settings
-	warning_settings = {
-		warn_experimental_usage = true, -- Warn about experimental features
-		log_experimental_errors = true, -- Log experimental feature errors
-
-		-- Risk levels
-		risk_levels = {
-			low_risk = "info", -- Low risk features
-			medium_risk = "warn", -- Medium risk features
-			high_risk = "error", -- High risk features
-		},
-	},
-
-	-- Safety measures
-	safety_measures = {
-		automatic_fallback = true, -- Automatic fallback to stable features
-		feature_isolation = true, -- Isolate experimental features
-		sandboxing = false, -- Sandbox experimental code
-
-		-- Monitoring
-		enhanced_monitoring = true, -- Enhanced monitoring for experimental features
-		error_reporting = true, -- Automatic error reporting
-	},
-}
-
--- Export configuration
+-- Return experimental configuration
 return {
-	modules = apply_experimental_config(),
+	experimental_config = experimental_config,
+	apply_experimental_config = apply_experimental_config,
 	message_retraction_config = message_retraction_config,
 	sasl2_config = sasl2_config,
-	bind2_config = bind2_config,
-	mix_config = mix_config,
-	ai_features_config = ai_features_config,
-	blockchain_config = blockchain_config,
-	webrtc_advanced_config = webrtc_advanced_config,
-	performance_monitoring_config = performance_monitoring_config,
-	experimental_security_config = experimental_security_config,
+	message_moderation_config = message_moderation_config,
+	message_styling_config = message_styling_config,
+	spoiler_messages_config = spoiler_messages_config,
+	mobile_optimizations_config = mobile_optimizations_config,
+	privacy_security_config = privacy_security_config,
 }
