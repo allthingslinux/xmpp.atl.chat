@@ -165,7 +165,7 @@ local official_stable_modules = {
     "tombstones", "server_contact_info", "watchregistrations",
     
     -- HTTP services (official)
-    "http", "http_errors", "http_files", "http_file_share", "bosh", "websocket",
+    "http", "http_errors", "http_files", "http_file_share", "bosh", "websocket", "http_openmetrics",
     
     -- Multi-user chat (official)
     "muc", "muc_mam", "muc_unique",
@@ -173,9 +173,12 @@ local official_stable_modules = {
     -- File transfer and media
     "proxy65", "turn_external",
     
+    -- User profiles and vCard (official)
+    "vcard4", "vcard_legacy",
+    
     -- Miscellaneous official modules
     "motd", "welcome", "announce", "offline", "register_ibr", "register_limits",
-    "user_account_management", "vcard_legacy", "mimicking", "cloud_notify"
+    "user_account_management", "mimicking", "cloud_notify"
 }
 
 -- Community modules (third-party - use with caution)
@@ -187,7 +190,7 @@ local community_stable_modules = {
 -- Beta community modules (mostly stable third-party)
 local community_beta_modules = {
     -- Advanced features from prosody-modules
-    "vcard4", "password_reset", "http_altconnect", "pubsub_serverinfo",
+    "password_reset", "http_altconnect", "pubsub_serverinfo",
     "cloud_notify_extensions", "push"
 }
 

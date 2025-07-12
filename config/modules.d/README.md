@@ -47,7 +47,7 @@ modules.d/
 - **Status**: Opt-in - Mostly stable with some edge cases
 - **Source**: prosody-modules project (beta)
 - **Risk**: Medium - Mature but may have minor issues
-- **Examples**: `vcard4`, `password_reset`, `http_altconnect`
+- **Examples**: `password_reset`, `http_altconnect`, `pubsub_serverinfo`
 
 ### 🟠 **Community Alpha Modules**
 
@@ -139,14 +139,16 @@ The main `prosody.cfg.lua` file loads configurations conditionally:
 - `register_ibr` - In-band registration
 - `register_limits` - Registration limits
 - `user_account_management` - Account management
+- `vcard4` - Modern vCard format (XEP-0292)
 - `vcard_legacy` - vCard compatibility
 - `mimicking` - Username mimicking prevention
 - `cloud_notify` - Push notifications (XEP-0357)
+- `http_openmetrics` - Expose metrics in OpenMetrics format
 
 ### Community Modules (Third-Party)
 
 - **Stable**: `firewall`, `spam_reporting`, `block_registrations`
-- **Beta**: `vcard4`, `password_reset`, `http_altconnect`, `pubsub_serverinfo`, `cloud_notify_extensions`, `push`
+- **Beta**: `password_reset`, `http_altconnect`, `pubsub_serverinfo`, `cloud_notify_extensions`, `push`
 - **Alpha**: `measure_cpu`, `measure_memory`, `measure_message_e2e`, `json_logs`, `audit`, `compliance_policy`
 
 ## Best Practices

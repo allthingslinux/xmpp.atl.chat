@@ -171,5 +171,23 @@ mimicking_block_registrations = os.getenv("PROSODY_MIMICKING_BLOCK") == "true"
 -- vCard legacy compatibility
 vcard_compatibility = true
 
+-- ============================================================================
+-- MODERN VCARD SUPPORT - XEP-0292
+-- ============================================================================
+
+-- vCard4 configuration (official module)
+vcard4_compatibility = true -- Enable vCard-temp compatibility
+
 -- Offline message storage
-offline_message_limit = tonumber(os.getenv("PROSODY_OFFLINE_MESSAGE_LIMIT")) or 100 
+offline_message_limit = tonumber(os.getenv("PROSODY_OFFLINE_MESSAGE_LIMIT")) or 100
+
+-- ============================================================================
+-- METRICS AND MONITORING
+-- ============================================================================
+
+-- OpenMetrics (Prometheus) configuration
+openmetrics_allow_cidr = os.getenv("PROSODY_METRICS_ALLOW_CIDR") or "127.0.0.1/8"
+openmetrics_allow_ips = { "127.0.0.1", "::1" }
+
+-- Statistics collection
+statistics_interval = tonumber(os.getenv("PROSODY_STATS_INTERVAL")) or 60 

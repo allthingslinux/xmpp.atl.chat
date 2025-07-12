@@ -20,8 +20,7 @@ cloud_notify_priority_threshold = tonumber(os.getenv("PROSODY_CLOUD_NOTIFY_PRIOR
 -- MODERN VCARD SUPPORT - XEP-0292
 -- ============================================================================
 
--- vCard4 configuration
-vcard_compatibility = true -- Enable vCard-temp compatibility
+-- Note: vCard4 is now an official module and configured in official/modules.cfg.lua
 
 -- ============================================================================
 -- WEB-BASED REGISTRATION - XEP-0401 Extensions
