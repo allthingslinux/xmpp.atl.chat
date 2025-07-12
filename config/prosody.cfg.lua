@@ -40,7 +40,7 @@ local function load_layer_configs()
 	}
 
 	for _, layer in ipairs(layers) do
-		local layer_path = "/etc/prosody/stack/" .. layer .. "/"
+		local layer_path = "config/stack/" .. layer .. "/"
 		local configs = {
 			"ports",
 			"tls",
@@ -96,14 +96,14 @@ local function load_domain_configs()
 	print("Loading domain configurations...")
 
 	local domain_configs = {
-		"/etc/prosody/domains/primary/domain.cfg.lua",
-		"/etc/prosody/domains/primary/users.cfg.lua",
-		"/etc/prosody/domains/primary/features.cfg.lua",
-		"/etc/prosody/domains/conference/domain.cfg.lua",
-		"/etc/prosody/domains/conference/rooms.cfg.lua",
-		"/etc/prosody/domains/upload/domain.cfg.lua",
-		"/etc/prosody/domains/upload/policies.cfg.lua",
-		"/etc/prosody/domains/proxy/domain.cfg.lua",
+		"config/domains/primary/domain.cfg.lua",
+		"config/domains/primary/users.cfg.lua",
+		"config/domains/primary/features.cfg.lua",
+		"config/domains/conference/domain.cfg.lua",
+		"config/domains/conference/rooms.cfg.lua",
+		"config/domains/upload/domain.cfg.lua",
+		"config/domains/upload/policies.cfg.lua",
+		"config/domains/proxy/domain.cfg.lua",
 	}
 
 	for _, config in ipairs(domain_configs) do
@@ -122,7 +122,7 @@ end
 
 local function load_environment_config()
 	local env = get_env_var("PROSODY_ENV", "development")
-	local env_config = "/etc/prosody/environments/" .. env .. ".cfg.lua"
+	local env_config = "config/environments/" .. env .. ".cfg.lua"
 
 	local file = io.open(env_config, "r")
 	if file then
@@ -147,13 +147,13 @@ local function load_policy_configs()
 	local compliance_mode = get_env_var("PROSODY_COMPLIANCE", "")
 
 	local policy_configs = {
-		"/etc/prosody/policies/security/" .. security_level .. ".cfg.lua",
-		"/etc/prosody/policies/performance/" .. performance_tier .. ".cfg.lua",
+		"config/policies/security/" .. security_level .. ".cfg.lua",
+		"config/policies/performance/" .. performance_tier .. ".cfg.lua",
 	}
 
 	-- Add compliance policy if specified
 	if compliance_mode ~= "" then
-		table.insert(policy_configs, "/etc/prosody/policies/compliance/" .. compliance_mode .. ".cfg.lua")
+		table.insert(policy_configs, "config/policies/compliance/" .. compliance_mode .. ".cfg.lua")
 	end
 
 	for _, config in ipairs(policy_configs) do
@@ -183,7 +183,7 @@ load_environment_config()
 load_policy_configs()
 
 -- Load configuration tools
-local tools_config = "/etc/prosody/tools/loader.cfg.lua"
+local tools_config = "config/tools/loader.cfg.lua"
 local file = io.open(tools_config, "r")
 if file then
 	file:close()

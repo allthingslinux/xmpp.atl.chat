@@ -24,11 +24,10 @@ storage = storage_backend or "internal"
 archive_expires_after = archive_retention_period or "1y"
 
 -- SSL/TLS configuration (from transport layer)
-ssl = ssl_config
-	or {
-		key = "/etc/prosody/certs/" .. domain .. ".key",
-		certificate = "/etc/prosody/certs/" .. domain .. ".crt",
-	}
+ssl = ssl_config or {
+	key = "certs/" .. domain .. ".key",
+	certificate = "certs/" .. domain .. ".crt",
+}
 
 -- HTTP file upload limits (from interfaces layer)
 http_file_share_size_limit = http_upload_file_size_limit or 50 * 1024 * 1024 -- 50MB
