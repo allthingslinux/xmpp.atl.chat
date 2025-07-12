@@ -18,6 +18,20 @@ FROM: <*>@<*>
 CHECK: dns_lookup(dnsbl.sorbs.net, $<@from_host>)
 BOUNCE: Your server is listed in spam databases (SORBS)
 
+# Real-time XMPP blocklists (XMPP Safeguarding Manifesto)
+FROM: <*>@<*>
+CHECK: dns_lookup(xmppbl.org, $<@from_host>)
+BOUNCE: Your server is listed in XMPP blocklists (xmppbl.org)
+
+# Additional threat intelligence sources
+FROM: <*>@<*>
+CHECK: dns_lookup(sbl.spamhaus.org, $<@from_host>)
+BOUNCE: Your server is listed in spam databases (Spamhaus SBL)
+
+FROM: <*>@<*>
+CHECK: dns_lookup(pbl.spamhaus.org, $<@from_host>)
+BOUNCE: Your server is listed in spam databases (Spamhaus PBL)
+
 # ============================================================================
 # RATE LIMITING RULES
 # ============================================================================

@@ -34,11 +34,14 @@ isolate_stanza_types = { "message", "presence", "iq" }
 -- BLOCKLIST CONFIGURATION
 -- ============================================================================
 
--- DNS blocklist providers
+-- DNS blocklist providers (XMPP Safeguarding Manifesto compliant)
 blocklist_providers = {
     "zen.spamhaus.org",
+    "sbl.spamhaus.org",
+    "pbl.spamhaus.org",
     "bl.spamcop.net",
-    "dnsbl.sorbs.net"
+    "dnsbl.sorbs.net",
+    "xmppbl.org"
 }
 
 -- Local blocklist file

@@ -26,9 +26,15 @@ s2s_secure_auth = true
 allow_unencrypted_plain_auth = false
 authentication = "internal_hashed"
 
+-- SASL mechanisms with channel binding support (XMPP Safeguarding Manifesto)
+sasl_mechanisms = { 
+    "SCRAM-SHA-256-PLUS", "SCRAM-SHA-1-PLUS", 
+    "SCRAM-SHA-256", "SCRAM-SHA-1" 
+}
+
 -- Modern TLS configuration
 ssl = {
-    -- Use TLS 1.2 and above only
+    -- Use TLS 1.3 and above (fallback to 1.2 for compatibility)
     protocol = "tlsv1_2+";
     -- Modern cipher suites - prioritize ECDHE and ChaCha20
     ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!SHA1:!AESCCM";
@@ -38,6 +44,8 @@ ssl = {
     options = { "no_sslv2", "no_sslv3", "no_tlsv1", "no_tlsv1_1" };
     -- Certificate verification options
     verifyext = { "lsec_continue", "lsec_ignore_purpose" };
+    -- Enable TLS 1.3 specific options
+    dhparam = "/etc/prosody/certs/dhparam.pem";
 }
 
 -- ============================================================================
@@ -56,10 +64,14 @@ limits = {
     c2s = {
         rate = os.getenv("PROSODY_C2S_RATE") or "1mb/s";
         burst = os.getenv("PROSODY_C2S_BURST") or "2mb";
+        -- Stanza size limits (XMPP Safeguarding Manifesto recommendation)
+        stanza_size = tonumber(os.getenv("PROSODY_C2S_STANZA_LIMIT")) or 262144; -- 256KB
     };
     s2sin = {
         rate = os.getenv("PROSODY_S2S_RATE") or "500kb/s";
         burst = os.getenv("PROSODY_S2S_BURST") or "1mb";
+        -- Stanza size limits (XMPP Safeguarding Manifesto recommendation)
+        stanza_size = tonumber(os.getenv("PROSODY_S2S_STANZA_LIMIT")) or 524288; -- 512KB
     };
 }
 

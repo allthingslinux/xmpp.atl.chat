@@ -35,19 +35,19 @@ check_process() {
 check_ports() {
     local ports=(5222 5269)
     local failed=0
-    
+
     # Add HTTP port if enabled
     if [[ "${PROSODY_ENABLE_HTTP:-false}" == "true" ]]; then
         ports+=(5280)
     fi
-    
+
     for port in "${ports[@]}"; do
         if ! netstat -tln 2>/dev/null | grep -q ":${port} "; then
             echo "ERROR: Prosody not listening on port $port"
             failed=1
         fi
     done
-    
+
     return $failed
 }
 
@@ -70,37 +70,37 @@ check_config() {
 check_certificates() {
     local cert_file="${PROSODY_CONFIG_DIR}/certs/${PROSODY_DOMAIN}.crt"
     local key_file="${PROSODY_CONFIG_DIR}/certs/${PROSODY_DOMAIN}.key"
-    
+
     if [[ ! -f "$cert_file" ]] || [[ ! -f "$key_file" ]]; then
         echo "WARNING: SSL certificates not found"
-        return 0  # Not critical for health check
+        return 0 # Not critical for health check
     fi
-    
+
     # Check certificate expiry (warn if expires within 7 days)
     if ! openssl x509 -in "$cert_file" -noout -checkend 604800 >/dev/null 2>&1; then
         echo "WARNING: SSL certificate expires within 7 days"
     fi
-    
+
     return 0
 }
 
 # Check database connectivity
 check_database() {
     case "${PROSODY_STORAGE:-sqlite}" in
-        sqlite)
-            local db_file="${PROSODY_DATA_DIR}/prosody.sqlite"
-            if [[ -f "$db_file" ]] && [[ -r "$db_file" ]]; then
-                return 0
-            else
-                echo "ERROR: SQLite database not accessible"
-                return 1
-            fi
-            ;;
-        sql)
-            # For external databases, check if prosody can connect
-            # This is implicit in the port check and process check
+    sqlite)
+        local db_file="${PROSODY_DATA_DIR}/prosody.sqlite"
+        if [[ -f "$db_file" ]] && [[ -r "$db_file" ]]; then
             return 0
-            ;;
+        else
+            echo "ERROR: SQLite database not accessible"
+            return 1
+        fi
+        ;;
+    sql)
+        # For external databases, check if prosody can connect
+        # This is implicit in the port check and process check
+        return 0
+        ;;
     esac
 }
 
@@ -110,7 +110,7 @@ check_logs() {
         "${PROSODY_LOG_DIR}/prosody.log"
         "${PROSODY_LOG_DIR}/error.log"
     )
-    
+
     for log_file in "${log_files[@]}"; do
         if [[ ! -f "$log_file" ]]; then
             echo "WARNING: Log file not found: $log_file"
@@ -119,24 +119,24 @@ check_logs() {
             return 1
         fi
     done
-    
+
     return 0
 }
 
 # Check for recent errors in logs
 check_log_errors() {
     local error_log="${PROSODY_LOG_DIR}/error.log"
-    
+
     if [[ -f "$error_log" ]]; then
         # Check for errors in the last 5 minutes
         local recent_errors
         recent_errors=$(find "$error_log" -mmin -5 -exec grep -c "ERROR\|FATAL" {} \; 2>/dev/null || echo "0")
-        
+
         if [[ "$recent_errors" -gt 5 ]]; then
             echo "WARNING: High error rate detected in logs"
         fi
     fi
-    
+
     return 0
 }
 
@@ -144,18 +144,18 @@ check_log_errors() {
 check_memory() {
     local prosody_pid
     prosody_pid=$(pgrep -f "prosody" | head -n1)
-    
+
     if [[ -n "$prosody_pid" ]]; then
         local memory_kb
         memory_kb=$(ps -o rss= -p "$prosody_pid" 2>/dev/null || echo "0")
         local memory_mb=$((memory_kb / 1024))
-        
+
         # Warn if using more than 512MB
         if [[ "$memory_mb" -gt 512 ]]; then
             echo "WARNING: High memory usage: ${memory_mb}MB"
         fi
     fi
-    
+
     return 0
 }
 
@@ -163,14 +163,14 @@ check_memory() {
 check_disk_space() {
     local data_usage
     data_usage=$(df "${PROSODY_DATA_DIR}" | awk 'NR==2 {print $5}' | sed 's/%//')
-    
+
     if [[ "$data_usage" -gt 90 ]]; then
         echo "ERROR: Disk usage critical: ${data_usage}%"
         return 1
     elif [[ "$data_usage" -gt 80 ]]; then
         echo "WARNING: Disk usage high: ${data_usage}%"
     fi
-    
+
     return 0
 }
 
@@ -183,7 +183,7 @@ check_xmpp_connectivity() {
             return 1
         fi
     fi
-    
+
     return 0
 }
 
@@ -194,13 +194,13 @@ check_xmpp_connectivity() {
 main() {
     local exit_code=0
     local warnings=0
-    
+
     echo "=== Prosody Health Check ==="
     echo "Timestamp: $(date)"
     echo "Domain: ${PROSODY_DOMAIN}"
     echo "Storage: ${PROSODY_STORAGE:-sqlite}"
     echo ""
-    
+
     # Run all health checks
     local checks=(
         "check_process:Process Check"
@@ -214,13 +214,13 @@ main() {
         "check_disk_space:Disk Space Check"
         "check_xmpp_connectivity:XMPP Connectivity Check"
     )
-    
+
     for check in "${checks[@]}"; do
         local func_name="${check%%:*}"
         local check_name="${check##*:}"
-        
+
         echo -n "[$check_name] "
-        
+
         if $func_name; then
             echo "OK"
         else
@@ -228,9 +228,9 @@ main() {
             exit_code=1
         fi
     done
-    
+
     echo ""
-    
+
     # Summary
     if [[ $exit_code -eq 0 ]]; then
         echo "✓ Health check PASSED"
@@ -240,7 +240,7 @@ main() {
     else
         echo "✗ Health check FAILED"
     fi
-    
+
     return $exit_code
 }
 
@@ -249,4 +249,4 @@ main() {
 # ============================================================================
 
 # Run main function
-main "$@" 
+main "$@"

@@ -9,18 +9,21 @@ This guide will help you deploy a professional Prosody XMPP server in minutes us
 ### System Requirements
 
 **Minimum (Personal Server - 1-50 users):**
+
 - 1 CPU core
 - 128MB RAM
 - 1GB disk space
 - Linux/macOS/Windows with Docker support
 
 **Recommended (Community Server - 50-500 users):**
+
 - 2 CPU cores
 - 512MB RAM
 - 5GB disk space
 - Linux server with Docker support
 
 **Enterprise (500+ users):**
+
 - 4+ CPU cores
 - 1GB+ RAM
 - 20GB+ disk space
@@ -77,6 +80,7 @@ nano .env
 ```
 
 **Essential Configuration:**
+
 ```bash
 # Your domain (REQUIRED)
 PROSODY_DOMAIN=your-domain.com
@@ -275,15 +279,17 @@ curl http://your-domain.com:5280/
 ### XMPP Client Testing
 
 **Recommended Clients:**
+
 - **Desktop:** Gajim, Dino, Conversations
 - **Mobile:** Conversations (Android), Siskin IM (iOS)
 - **Web:** Converse.js, JSXC
 
 **Connection Settings:**
+
 - **Server:** your-domain.com
 - **Port:** 5222
 - **Security:** Require encryption
-- **Username:** user@your-domain.com
+- **Username:** <user@your-domain.com>
 - **Password:** (as set above)
 
 ## Monitoring and Maintenance
@@ -380,4 +386,4 @@ openssl verify -CApath /etc/ssl/certs certs/your-domain.com.crt
 
 ## Security Notice
 
-🔒 **Important:** This setup includes security-first configuration, but additional hardening may be required for production environments. Review the security documentation before deploying to production. 
+🔒 **Important:** This setup includes security-first configuration, but additional hardening may be required for production environments. Review the security documentation before deploying to production.
