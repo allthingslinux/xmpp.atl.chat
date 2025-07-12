@@ -25,14 +25,6 @@ modules.d/
 
 ## Module Categories
 
-### 🟢 **Core Modules**
-
-- **Status**: Autoloaded by Prosody - Essential XMPP functionality
-- **Source**: Built into Prosody core (autoload_modules)
-- **Risk**: Minimal - Required for basic operation
-- **Configuration**: Configured in main `prosody.cfg.lua` file
-- **Examples**: `presence`, `message`, `iq`, `offline`, `c2s`, `s2s`
-
 ### ✅ **Core Modules**
 
 - **Status**: Enabled by default - Shipped with Prosody
@@ -86,74 +78,50 @@ The main `prosody.cfg.lua` file loads configurations conditionally:
 
 ## Module Inventory
 
-### Core Modules (Autoloaded by Prosody)
+All modules shipped with Prosody (configured in `core/core.cfg.lua`):
 
-Based on Prosody's `autoload_modules`:
+**Essential modules** (required - cannot be disabled):
 
-- `presence` - Presence stanza handling (autoloaded)
-- `message` - Message stanza handling (autoloaded)
-- `iq` - IQ stanza handling (autoloaded)
-- `offline` - Offline message storage (autoloaded)
-- `c2s` - Client-to-server connections (autoloaded)
-- `s2s` - Server-to-server connections (autoloaded)
-- `s2s_auth_certs` - S2S certificate authentication (autoloaded)
+- `roster`, `saslauth`, `tls`, `dialback`, `disco`, `c2s`, `s2s`, `private`, `vcard`, `version`, `uptime`, `time`, `ping`
 
-Essential modules (always needed):
+**Autoloaded modules** (loaded by default but can be disabled):
 
-- `roster` - Contact list management
-- `saslauth` - SASL authentication
-- `tls` - Transport Layer Security
-- `dialback` - Server-to-server authentication
-- `disco` - Service discovery
-- `private` - Private XML storage
-- `vcard` - User profile information
-- `version` - Software version queries
-- `uptime` - Server uptime reporting
-- `time` - Time synchronization
-- `ping` - Connection keep-alive
+- `presence`, `message`, `iq`, `offline`, `s2s_auth_certs`
 
-### Core Modules (Shipped with Prosody)
+**Modern XMPP features** (shipped with Prosody):
 
+- `carbons` - Message Carbons (XEP-0280)
 - `mam` - Message Archive Management (XEP-0313)
 - `smacks` - Stream Management (XEP-0198)
-- `carbons` - Message Carbons (XEP-0280)
-- `csi` - Client State Indication (XEP-0352)
-- `csi_simple` - Simple CSI implementation
+- `csi`, `csi_simple` - Client State Indication (XEP-0352)
 - `bookmarks` - Bookmarks (XEP-0048/0402)
 - `blocklist` - Blocking Command (XEP-0191)
 - `lastactivity` - Last Activity (XEP-0012)
 - `pep` - Personal Eventing Protocol (XEP-0163)
-- `limits` - Connection limiting
-- `admin_adhoc` - Admin commands (XEP-0050)
-- `admin_shell` - Admin shell interface
-- `invites` - Invitation system
-- `invites_adhoc` - Ad-hoc invitations
-- `invites_register` - Registration via invites
-- `tombstones` - Prevent account reuse
-- `server_contact_info` - Server contact info (XEP-0157)
-- `watchregistrations` - Registration monitoring
-- `http` - HTTP server
-- `http_errors` - HTTP error pages
-- `http_files` - Static file serving
-- `http_file_share` - File sharing (XEP-0447)
-- `bosh` - BOSH (XEP-0124/0206)
-- `websocket` - WebSocket (RFC 7395)
-- `muc` - Multi-User Chat (XEP-0045)
-- `muc_mam` - MUC Message Archive Management
-- `muc_unique` - Unique MUC names
-- `proxy65` - File transfer proxy (XEP-0065)
-- `turn_external` - TURN services (XEP-0215)
-- `motd` - Message of the day
-- `welcome` - Welcome messages
-- `announce` - Server announcements
-- `register_ibr` - In-band registration
-- `register_limits` - Registration limits
-- `user_account_management` - Account management
-- `vcard4` - Modern vCard format (XEP-0292)
-- `vcard_legacy` - vCard compatibility
-- `mimicking` - Username mimicking prevention
-- `cloud_notify` - Push notifications (XEP-0357)
-- `http_openmetrics` - Expose metrics in OpenMetrics format
+
+**Security and administration**:
+
+- `limits`, `admin_adhoc`, `admin_shell`, `invites`, `invites_adhoc`, `invites_register`, `tombstones`, `server_contact_info`, `watchregistrations`
+
+**HTTP services**:
+
+- `http`, `http_errors`, `http_files`, `http_file_share`, `bosh`, `websocket`, `http_openmetrics`
+
+**Multi-user chat**:
+
+- `muc`, `muc_mam`, `muc_unique`
+
+**File transfer and media**:
+
+- `proxy65`, `turn_external`
+
+**User profiles and vCard**:
+
+- `vcard4`, `vcard_legacy`
+
+**Miscellaneous modules**:
+
+- `motd`, `welcome`, `announce`, `register_ibr`, `register_limits`, `user_account_management`, `mimicking`, `cloud_notify`
 
 ### Community Modules (Third-Party)
 

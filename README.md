@@ -50,14 +50,17 @@ modules.d/
     ├── stable/            # Well-tested (firewall, spam_reporting)
     │   ├── anti-spam.cfg.lua
     │   ├── firewall.cfg.lua
-    │   ├── push-notifications.cfg.lua
-    │   ├── web-features.cfg.lua
-    │   └── monitoring.cfg.lua
+    │   └── user-experience.cfg.lua
     ├── beta/              # Mostly stable (password_reset, sasl2)
+    │   ├── compliance.cfg.lua
+    │   ├── modern-auth.cfg.lua
+    │   ├── push-notifications.cfg.lua
+    │   └── web-features.cfg.lua
     └── alpha/             # Experimental (audit, json_logs)
+        └── monitoring.cfg.lua
 ```
 
-### XMPP Features (25+ XEPs Implemented)
+### XMPP Features (30+ XEPs Implemented)
 
 #### Core Communication
 

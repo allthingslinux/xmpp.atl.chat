@@ -17,8 +17,12 @@ config/
 ├── firewall/                   # Firewall rules and policies
 │   └── anti-spam.pfw
 └── modules.d/                  # Module-specific configurations
-    ├── official/               # Official Prosody modules
+    ├── core/                   # Core Prosody modules
+    │   └── core.cfg.lua
     └── community/              # Community modules by stability
+        ├── stable/             # Production-ready third-party
+        ├── beta/               # Mostly stable third-party
+        └── alpha/              # Experimental third-party
 ```
 
 ## 🔧 **Configuration Modules**
