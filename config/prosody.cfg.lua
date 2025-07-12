@@ -96,7 +96,14 @@ local function load_domain_configs()
 	print("Loading domain configurations...")
 
 	local domain_configs = {
-		"/etc/prosody/domains/main.cfg.lua",
+		"/etc/prosody/domains/primary/domain.cfg.lua",
+		"/etc/prosody/domains/primary/users.cfg.lua",
+		"/etc/prosody/domains/primary/features.cfg.lua",
+		"/etc/prosody/domains/conference/domain.cfg.lua",
+		"/etc/prosody/domains/conference/rooms.cfg.lua",
+		"/etc/prosody/domains/upload/domain.cfg.lua",
+		"/etc/prosody/domains/upload/policies.cfg.lua",
+		"/etc/prosody/domains/proxy/domain.cfg.lua",
 	}
 
 	for _, config in ipairs(domain_configs) do
