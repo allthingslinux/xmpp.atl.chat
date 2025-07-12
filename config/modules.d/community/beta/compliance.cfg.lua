@@ -1,14 +1,14 @@
 -- ============================================================================
--- COMPLIANCE AND STANDARDS MODULES
+-- COMPLIANCE AND STANDARDS MODULES (BETA)
 -- ============================================================================
 -- Stability Level: 🟡 Beta (Mostly Stable)
 -- XMPP compliance testing and service information
 
 -- ============================================================================
--- XMPP COMPLIANCE SUITES 2023 - XEP-0479
+-- mod_compliance_2023 - XMPP Compliance Suites 2023 Self-Test
 -- ============================================================================
+-- Self-test module for XMPP Compliance Suites 2023
 
--- Enable compliance testing
 compliance_2023_enable = os.getenv("PROSODY_COMPLIANCE_2023") == "true"
 
 -- Compliance testing configuration
@@ -16,10 +16,20 @@ compliance_2023_auto_test = os.getenv("PROSODY_COMPLIANCE_AUTO_TEST") == "true"
 compliance_2023_report_file = os.getenv("PROSODY_COMPLIANCE_REPORT") or "/var/log/prosody/compliance.log"
 
 -- ============================================================================
+-- mod_compliance_latest - XMPP Compliance Suites Self-Test
+-- ============================================================================
+-- Self-test module for latest XMPP Compliance Suites
+
+compliance_latest_enable = os.getenv("PROSODY_COMPLIANCE_LATEST") == "true"
+compliance_latest_auto_test = os.getenv("PROSODY_COMPLIANCE_LATEST_AUTO_TEST") == "true"
+compliance_latest_report_file = os.getenv("PROSODY_COMPLIANCE_LATEST_REPORT")
+	or "/var/log/prosody/compliance_latest.log"
+
+-- ============================================================================
 -- SERVICE OUTAGE STATUS - XEP-0455
 -- ============================================================================
+-- Service outage communication (not in official beta list - may be custom)
 
--- Service outage communication
 service_outage_enable = os.getenv("PROSODY_SERVICE_OUTAGE_NOTIFICATIONS") == "true"
 
 -- Outage notification settings
@@ -29,8 +39,8 @@ service_outage_status_url = os.getenv("PROSODY_STATUS_URL") or "https://status.e
 -- ============================================================================
 -- SERVER INFORMATION - XEP-0128
 -- ============================================================================
+-- Enhanced service discovery information (not in official beta list - may be custom)
 
--- Enhanced service discovery information
 server_info_enable = os.getenv("PROSODY_ENHANCED_SERVER_INFO") == "true"
 
 -- Server information fields
@@ -41,8 +51,8 @@ server_info_admin_contact = os.getenv("PROSODY_ADMIN_CONTACT") or "admin@localho
 -- ============================================================================
 -- EXTERNAL SERVICE DISCOVERY - XEP-0215
 -- ============================================================================
+-- External service discovery configuration (not in official beta list - may be custom)
 
--- External service discovery configuration
 extdisco_enable = os.getenv("PROSODY_ENABLE_EXTDISCO") == "true"
 
 -- External services configuration

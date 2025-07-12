@@ -1,35 +1,34 @@
 -- ============================================================================
--- ANTI-SPAM AND ABUSE PREVENTION MODULES
+-- ANTI-SPAM AND ABUSE PREVENTION MODULES (STABLE)
 -- ============================================================================
 -- Stability Level: 🟢 Stable (Production Ready)
--- Modules focused on preventing spam, abuse, and unwanted registrations
+-- Registration blocking and abuse prevention
 
 -- ============================================================================
--- SPAM REPORTING - XEP-0377
+-- mod_block_registrations - Block User Registrations
 -- ============================================================================
+-- Prevent new user registrations except for administrators
+-- Useful for private servers or during maintenance
 
--- Spam reporting configuration
-spam_reporting_threshold = tonumber(os.getenv("PROSODY_SPAM_THRESHOLD")) or 3
-spam_reporting_notification = os.getenv("PROSODY_SPAM_NOTIFICATION") or "admin@localhost"
-
--- ============================================================================
--- REGISTRATION MONITORING
--- ============================================================================
-
--- Registration monitoring and alerts
-watchregistrations_alert_admins = true
-watchregistrations_registration_whitelist = "/etc/prosody/whitelist.txt"
-watchregistrations_registration_blacklist = "/etc/prosody/blacklist.txt"
-
--- Block registrations configuration
 block_registrations_except_admins = true
 block_registrations_message = "Registration is currently disabled"
 
 -- ============================================================================
--- BLOCKLIST CONFIGURATION
+-- REGISTRATION MONITORING (CORE MODULE)
 -- ============================================================================
+-- Configuration for mod_watchregistrations (core module)
+-- Monitor and alert on new user registrations
 
--- DNS blocklist providers (XMPP Safeguarding Manifesto compliant)
+watchregistrations_alert_admins = true
+watchregistrations_registration_whitelist = "/etc/prosody/whitelist.txt"
+watchregistrations_registration_blacklist = "/etc/prosody/blacklist.txt"
+
+-- ============================================================================
+-- DNS BLOCKLIST CONFIGURATION
+-- ============================================================================
+-- DNS blocklist providers for IP reputation checking
+-- XMPP Safeguarding Manifesto compliant providers
+
 blocklist_providers = {
 	"zen.spamhaus.org",
 	"sbl.spamhaus.org",
@@ -41,9 +40,3 @@ blocklist_providers = {
 
 -- Local blocklist file
 blocklist_file = "/etc/prosody/blocklist.txt"
-
--- ============================================================================
--- USER TOMBSTONES
--- ============================================================================
-
--- Tombstone expiry is configured in global.cfg.lua

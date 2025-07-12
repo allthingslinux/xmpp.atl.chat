@@ -1,14 +1,14 @@
 -- ============================================================================
--- MODERN AUTHENTICATION MODULES
+-- MODERN AUTHENTICATION MODULES (BETA)
 -- ============================================================================
 -- Stability Level: 🟡 Beta (Mostly Stable)
--- Next-generation authentication and security features
+-- Next-generation SASL authentication features
 
 -- ============================================================================
--- SASL2 - XEP-0388: Extensible SASL Profile
+-- mod_sasl2 - XEP-0388: Extensible SASL Profile
 -- ============================================================================
+-- Enable SASL2 for modern authentication flows
 
--- Enable SASL2 for modern authentication
 sasl2_enable = os.getenv("PROSODY_ENABLE_SASL2") == "true"
 
 -- SASL2 configuration
@@ -16,32 +16,32 @@ sasl2_channel_binding = os.getenv("PROSODY_SASL2_CHANNEL_BINDING") ~= "false"
 sasl2_tls_unique = os.getenv("PROSODY_SASL2_TLS_UNIQUE") ~= "false"
 
 -- ============================================================================
--- BIND2 - XEP-0386: Bind 2
+-- mod_sasl2_bind2 - Bind 2 Integration with SASL2
 -- ============================================================================
+-- Streamlined connection setup with SASL2
 
--- Streamlined connection setup
 bind2_enable = os.getenv("PROSODY_ENABLE_BIND2") == "true"
 
 -- ============================================================================
--- FAST AUTHENTICATION - XEP-0484
+-- mod_sasl2_fast - Fast Authentication Streamlining Tokens
 -- ============================================================================
+-- Fast Authentication Streamlining Tokens for quicker reconnection
 
--- Fast Authentication Streamlining Tokens
 sasl2_fast_enable = os.getenv("PROSODY_SASL2_FAST_TOKENS") == "true"
 sasl2_fast_token_lifetime = tonumber(os.getenv("PROSODY_FAST_TOKEN_LIFETIME")) or 86400 -- 24 hours
 
 -- ============================================================================
--- SASL SCRAM DOWNGRADE PROTECTION - XEP-0474
+-- mod_auth_ha1 - Authentication Module for 'HA1' Hashed Credentials
 -- ============================================================================
+-- Authentication module for 'HA1' hashed credentials in a text file, as used by reTurnServer
 
--- Prevent SASL downgrade attacks
-sasl_ssdp_enable = os.getenv("PROSODY_SASL_SSDP") ~= "false"
-sasl_ssdp_strict_mode = os.getenv("PROSODY_SASL_SSDP_STRICT") == "true"
+auth_ha1_file = os.getenv("PROSODY_AUTH_HA1_FILE") or "/etc/prosody/ha1_credentials.txt"
 
 -- ============================================================================
--- INSTANT STREAM RESUMPTION - XEP-0397
+-- mod_auth_internal_yubikey - Two-Factor Authentication Using Yubikeys
 -- ============================================================================
+-- Two-factor authentication using Yubikeys for enhanced security
 
--- Instant stream resumption for faster reconnection
-isr_enable = os.getenv("PROSODY_ENABLE_ISR") == "true"
-isr_token_lifetime = tonumber(os.getenv("PROSODY_ISR_TOKEN_LIFETIME")) or 3600 -- 1 hour
+yubikey_api_id = os.getenv("PROSODY_YUBIKEY_API_ID")
+yubikey_api_key = os.getenv("PROSODY_YUBIKEY_API_KEY")
+yubikey_required = os.getenv("PROSODY_YUBIKEY_REQUIRED") == "true"
