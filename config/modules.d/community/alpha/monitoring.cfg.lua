@@ -1,5 +1,5 @@
 -- ============================================================================
--- ALPHA/EXPERIMENTAL MODULES CONFIGURATION
+-- MONITORING AND AUDITING MODULES
 -- ============================================================================
 -- Stability Level: 🟠 Alpha (Experimental)
 -- WARNING: These modules are experimental and may have bugs or breaking changes

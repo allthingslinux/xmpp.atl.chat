@@ -11,11 +11,13 @@ modules.d/
 │   └── modules.cfg.lua         # Official modules configuration
 └── community/                   # 🏗️ Community modules (third-party)
     ├── stable/                 # 🟢 Stable community modules
-    │   └── security.cfg.lua    # Security modules configuration
+    │   ├── anti-spam.cfg.lua   # Anti-spam and abuse prevention
+    │   └── firewall.cfg.lua    # Firewall and rate limiting
     ├── beta/                   # 🟡 Beta community modules
-    │   └── advanced-xmpp.cfg.lua # Advanced XMPP features
+    │   ├── push-notifications.cfg.lua # Push notifications and mobile
+    │   └── web-features.cfg.lua # Web registration and HTTP features
     └── alpha/                  # 🟠 Alpha community modules
-        └── experimental.cfg.lua # Experimental features
+        └── monitoring.cfg.lua  # Performance monitoring and auditing
 ```
 
 ## Module Categories
