@@ -1,14 +1,14 @@
 # Modules Configuration Directory
 
-This directory contains configuration files organized by **official status** for better reliability and maintainability, aligned with the official Prosody documentation.
+This directory contains configuration files organized by **source and distribution** for better reliability and maintainability, aligned with Prosody's internal module structure.
 
 ## Directory Structure
 
 ```text
 modules.d/
 ├── README.md                    # This file
-├── official/                    # ✅ Official modules (distributed with Prosody)
-│   └── official.cfg.lua        # Official modules configuration
+├── distributed/                 # ✅ Distributed modules (shipped with Prosody)
+│   └── distributed.cfg.lua     # Distributed modules configuration
 └── community/                   # 🏗️ Community modules (third-party)
     ├── stable/                 # 🟢 Stable community modules
     │   ├── anti-spam.cfg.lua   # Anti-spam and abuse prevention
@@ -27,16 +27,16 @@ modules.d/
 
 ### 🟢 **Core Modules**
 
-- **Status**: Always enabled - Essential XMPP functionality
-- **Source**: Built into Prosody core
+- **Status**: Autoloaded by Prosody - Essential XMPP functionality
+- **Source**: Built into Prosody core (autoload_modules)
 - **Risk**: Minimal - Required for basic operation
 - **Configuration**: Configured in main `prosody.cfg.lua` file
-- **Examples**: `roster`, `saslauth`, `tls`, `dialback`, `disco`
+- **Examples**: `presence`, `message`, `iq`, `offline`, `c2s`, `s2s`
 
-### ✅ **Official Modules**
+### ✅ **Distributed Modules**
 
-- **Status**: Enabled by default - Distributed with Prosody
-- **Source**: Official Prosody distribution
+- **Status**: Enabled by default - Shipped with Prosody
+- **Source**: Official Prosody distribution (not autoloaded)
 - **Risk**: Low - Officially maintained and tested
 - **Examples**: `mam`, `smacks`, `carbons`, `bosh`, `websocket`, `muc`
 
@@ -66,8 +66,8 @@ modules.d/
 Control which module categories are loaded:
 
 ```bash
-# Official modules (enabled by default)
-PROSODY_ENABLE_OFFICIAL=true     # Official Prosody modules
+# Distributed modules (enabled by default)
+PROSODY_ENABLE_DISTRIBUTED=true  # Distributed Prosody modules
 
 # Community modules
 PROSODY_ENABLE_SECURITY=true     # Community security modules (stable)
@@ -79,15 +79,27 @@ PROSODY_ENABLE_ALPHA=false       # Community alpha/experimental modules
 
 The main `prosody.cfg.lua` file loads configurations conditionally:
 
-1. **Core modules** - Always enabled (built into Prosody, configured in main file)
-2. **Official modules** - Enabled by default (`PROSODY_ENABLE_OFFICIAL != false`)
+1. **Core modules** - Autoloaded by Prosody (configured in main file)
+2. **Distributed modules** - Enabled by default (`PROSODY_ENABLE_DISTRIBUTED != false`)
 3. **Community stable** - Enabled by default (`PROSODY_ENABLE_SECURITY != false`)
 4. **Community beta** - Opt-in (`PROSODY_ENABLE_BETA == true`)
 5. **Community alpha** - Opt-in (`PROSODY_ENABLE_ALPHA == true`)
 
 ## Module Inventory
 
-### Core Modules (Always Enabled)
+### Core Modules (Autoloaded by Prosody)
+
+Based on Prosody's `autoload_modules`:
+
+- `presence` - Presence stanza handling (autoloaded)
+- `message` - Message stanza handling (autoloaded)
+- `iq` - IQ stanza handling (autoloaded)
+- `offline` - Offline message storage (autoloaded)
+- `c2s` - Client-to-server connections (autoloaded)
+- `s2s` - Server-to-server connections (autoloaded)
+- `s2s_auth_certs` - S2S certificate authentication (autoloaded)
+
+Essential modules (always needed):
 
 - `roster` - Contact list management
 - `saslauth` - SASL authentication
@@ -100,13 +112,8 @@ The main `prosody.cfg.lua` file loads configurations conditionally:
 - `uptime` - Server uptime reporting
 - `time` - Time synchronization
 - `ping` - Connection keep-alive
-- `iq` - IQ stanza handling
-- `message` - Message stanza handling
-- `presence` - Presence stanza handling
-- `c2s` - Client-to-server connections
-- `s2s` - Server-to-server connections
 
-### Official Modules (Distributed with Prosody)
+### Distributed Modules (Shipped with Prosody)
 
 - `mam` - Message Archive Management (XEP-0313)
 - `smacks` - Stream Management (XEP-0198)
@@ -140,7 +147,6 @@ The main `prosody.cfg.lua` file loads configurations conditionally:
 - `motd` - Message of the day
 - `welcome` - Welcome messages
 - `announce` - Server announcements
-- `offline` - Offline message storage
 - `register_ibr` - In-band registration
 - `register_limits` - Registration limits
 - `user_account_management` - Account management
@@ -160,7 +166,7 @@ The main `prosody.cfg.lua` file loads configurations conditionally:
 
 ### Production Deployments
 
-- ✅ Use official modules for core functionality
+- ✅ Use distributed modules for core functionality
 - ✅ Consider community stable modules for security
 - ⚠️ Test community beta modules thoroughly
 - ❌ Avoid community alpha modules in production
@@ -174,18 +180,22 @@ The main `prosody.cfg.lua` file loads configurations conditionally:
 
 ### Security Considerations
 
-- ✅ Prefer official modules over community alternatives
+- ✅ Prefer distributed modules over community alternatives
 - ✅ Regularly update community modules
 - ✅ Monitor prosody-modules for security advisories
 - ✅ Disable unused modules to reduce attack surface
 
-## Official Documentation
+## Prosody Source Alignment
 
-This organization is based on the official Prosody modules documentation:
+This organization is based on Prosody's internal module structure:
 
-- **Core modules**: <https://prosody.im/doc/modules>
+- **Core modules**: Based on `autoload_modules` in Prosody's modulemanager
+- **Distributed modules**: Shipped with Prosody but not autoloaded
 - **Community modules**: <https://modules.prosody.im/>
 
-For the most up-to-date information, always refer to the official documentation.
+For the most up-to-date information, always refer to:
 
-This organization makes it clear which modules are officially supported and helps you make informed decisions about reliability and security.
+- **Prosody core**: <https://prosody.im/doc/modules>
+- **Community modules**: <https://modules.prosody.im/>
+
+This organization aligns with Prosody's internal structure and makes it clear which modules are autoloaded, distributed, or community-provided.

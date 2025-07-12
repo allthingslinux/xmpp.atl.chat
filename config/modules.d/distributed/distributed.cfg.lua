@@ -1,13 +1,13 @@
 -- ============================================================================
--- OFFICIAL PROSODY MODULES CONFIGURATION
+-- DISTRIBUTED PROSODY MODULES CONFIGURATION
 -- ============================================================================
--- Status: ✅ Official (Distributed with Prosody)
+-- Status: ✅ Distributed (Shipped with Prosody)
 -- Stability: 🟢 Stable (Production Ready)
 -- Risk: Low - Officially maintained and tested
 -- 
--- Note: Core modules (roster, saslauth, tls, etc.) are built into Prosody
--- and configured in the main prosody.cfg.lua file. This file contains
--- configuration for official modules that are distributed with Prosody.
+-- Note: Core modules (presence, message, iq, etc.) are autoloaded by Prosody.
+-- This file contains configuration for distributed modules that are shipped
+-- with Prosody but not autoloaded.
 
 -- ============================================================================
 -- MESSAGE ARCHIVE MANAGEMENT (MAM) - XEP-0313

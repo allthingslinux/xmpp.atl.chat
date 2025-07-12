@@ -40,12 +40,12 @@ config/
 
 ### Module Organization
 
-Module categorization based on **official status** rather than stability:
+Module categorization based on **source and distribution** rather than stability:
 
 ```text
 modules.d/
-├── official/              # Distributed with Prosody
-│   └── official.cfg.lua   # MAM, carbons, smacks, websocket, etc.
+├── distributed/           # Shipped with Prosody
+│   └── distributed.cfg.lua # MAM, carbons, smacks, websocket, etc.
 └── community/             # Third-party modules
     ├── stable/            # Well-tested (firewall, spam_reporting)
     │   ├── anti-spam.cfg.lua
@@ -147,7 +147,7 @@ PROSODY_DB_DRIVER=SQLite3
 ```
 
 - **Resources**: 64-128MB RAM, 1 CPU core
-- **Features**: Core + Official modules
+- **Features**: Core + Distributed modules
 - **Database**: SQLite
 
 ### Community Server (50-500 users)
@@ -186,7 +186,7 @@ PROSODY_DOMAIN=yourdomain.com
 PROSODY_ADMINS=admin@yourdomain.com
 
 # Module Control
-PROSODY_ENABLE_OFFICIAL=true      # Official Prosody modules
+PROSODY_ENABLE_DISTRIBUTED=true   # Distributed Prosody modules
 PROSODY_ENABLE_SECURITY=true      # Security & anti-spam
 PROSODY_ENABLE_BETA=false         # Beta community modules
 PROSODY_ENABLE_ALPHA=false        # Alpha experimental modules

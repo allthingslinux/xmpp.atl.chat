@@ -4,49 +4,56 @@
 -- Module loading, organization by official status, and stability management
 
 -- ============================================================================
--- CORE MODULES (ALWAYS ENABLED)
+-- CORE MODULES (AUTOLOADED BY PROSODY)
 -- ============================================================================
 
--- Core modules (official Prosody core modules - always enabled)
+-- Core modules (autoloaded by Prosody - cannot be disabled)
+-- Based on Prosody's autoload_modules and core functionality
 local core_modules = {
-    -- Authentication and TLS
+    -- Platform-specific module (automatically determined)
+    -- prosody.platform,
+    
+    -- Core XMPP stanza handling (autoloaded)
+    "presence", "message", "iq", "offline",
+    
+    -- Core connection handling (autoloaded)
+    "c2s", "s2s", "s2s_auth_certs",
+    
+    -- Essential authentication and security (always needed)
     "roster", "saslauth", "tls", "dialback", "disco",
     
     -- Basic XMPP functionality
-    "private", "vcard", "version", "uptime", "time", "ping", "iq", "message", "presence",
-    
-    -- Core server functionality
-    "c2s", "s2s"
+    "private", "vcard", "version", "uptime", "time", "ping"
 }
 
 -- ============================================================================
--- OFFICIAL MODULES (DISTRIBUTED WITH PROSODY)
+-- DISTRIBUTED MODULES (SHIPPED WITH PROSODY)
 -- ============================================================================
 
--- Official core modules (distributed with Prosody - stable)
-local official_stable_modules = {
-    -- Modern XMPP features (official)
+-- Distributed modules (shipped with Prosody but not autoloaded)
+local distributed_modules = {
+    -- Modern XMPP features (distributed with Prosody)
     "carbons", "mam", "smacks", "csi", "csi_simple", "bookmarks",
     "blocklist", "lastactivity", "pep",
     
-    -- Security and administration (official)
+    -- Security and administration (distributed)
     "limits", "admin_adhoc", "admin_shell", "invites", "invites_adhoc", "invites_register",
     "tombstones", "server_contact_info", "watchregistrations",
     
-    -- HTTP services (official)
+    -- HTTP services (distributed)
     "http", "http_errors", "http_files", "http_file_share", "bosh", "websocket", "http_openmetrics",
     
-    -- Multi-user chat (official)
+    -- Multi-user chat (distributed)
     "muc", "muc_mam", "muc_unique",
     
     -- File transfer and media
     "proxy65", "turn_external",
     
-    -- User profiles and vCard (official)
+    -- User profiles and vCard (distributed)
     "vcard4", "vcard_legacy",
     
-    -- Miscellaneous official modules
-    "motd", "welcome", "announce", "offline", "register_ibr", "register_limits",
+    -- Miscellaneous distributed modules
+    "motd", "welcome", "announce", "register_ibr", "register_limits",
     "user_account_management", "mimicking", "cloud_notify"
 }
 
@@ -93,13 +100,14 @@ local function build_module_list()
     local modules = {}
     
     -- Always include core modules (essential XMPP functionality)
+    -- Note: Some of these are autoloaded by Prosody, but we include them for completeness
     for _, module in ipairs(core_modules) do
         table.insert(modules, module)
     end
     
-    -- Official stable modules (enabled by default)
-    if os.getenv("PROSODY_ENABLE_OFFICIAL") ~= "false" then
-        for _, module in ipairs(official_stable_modules) do
+    -- Distributed modules (shipped with Prosody, enabled by default)
+    if os.getenv("PROSODY_ENABLE_DISTRIBUTED") ~= "false" then
+        for _, module in ipairs(distributed_modules) do
             table.insert(modules, module)
         end
     end
@@ -138,14 +146,14 @@ modules_enabled = build_module_list()
 local function log_module_stability()
     local stability_info = {
         core = #core_modules,
-        official_stable = #official_stable_modules,
+        distributed = #distributed_modules,
         community_stable = #community_stable_modules,
         community_beta = #community_beta_modules,
         community_alpha = #community_alpha_modules
     }
     
-    module:log("info", "Module profile: Core=%d, Official=%d, Community(Stable=%d, Beta=%d, Alpha=%d)", 
-              stability_info.core, stability_info.official_stable, stability_info.community_stable,
+    module:log("info", "Module profile: Core=%d, Distributed=%d, Community(Stable=%d, Beta=%d, Alpha=%d)", 
+              stability_info.core, stability_info.distributed, stability_info.community_stable,
               stability_info.community_beta, stability_info.community_alpha)
     
     -- Log total enabled modules
@@ -161,8 +169,8 @@ log_module_stability()
 
 -- Include modular configuration files based on enabled module categories
 
--- Always include official modules configuration (stable)
-Include "/etc/prosody/modules.d/official/*.cfg.lua"
+-- Always include distributed modules configuration (shipped with Prosody)
+Include "/etc/prosody/modules.d/distributed/*.cfg.lua"
 
 -- Include community stable modules configuration (security-focused)
 if os.getenv("PROSODY_ENABLE_SECURITY") ~= "false" then
