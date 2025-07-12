@@ -1,0 +1,253 @@
+version: '3.8'
+
+# Professional Prosody XMPP Server
+# Basic deployment configuration
+
+services:
+  # ============================================================================
+  # PROSODY XMPP SERVER
+  # ============================================================================
+  prosody:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: professional-prosody:latest
+    container_name: prosody
+    hostname: prosody
+    restart: unless-stopped
+
+    # Environment configuration
+    environment:
+      # Basic settings
+      - PROSODY_DOMAIN=${PROSODY_DOMAIN:-localhost}
+      - PROSODY_ADMINS=${PROSODY_ADMINS:-admin@localhost}
+
+      # Security settings (enabled by default)
+      - PROSODY_ENABLE_SECURITY=${PROSODY_ENABLE_SECURITY:-true}
+      - PROSODY_ENABLE_MODERN=${PROSODY_ENABLE_MODERN:-true}
+
+      # Optional features
+      - PROSODY_ENABLE_HTTP=${PROSODY_ENABLE_HTTP:-false}
+      - PROSODY_ENABLE_ADMIN=${PROSODY_ENABLE_ADMIN:-false}
+      - PROSODY_ENABLE_ENTERPRISE=${PROSODY_ENABLE_ENTERPRISE:-false}
+
+      # Registration settings
+      - PROSODY_ALLOW_REGISTRATION=${PROSODY_ALLOW_REGISTRATION:-false}
+
+      # Database settings
+      - PROSODY_STORAGE=${PROSODY_STORAGE:-sqlite}
+      - PROSODY_DB_DRIVER=${PROSODY_DB_DRIVER:-SQLite3}
+
+      # Performance settings
+      - PROSODY_C2S_RATE=${PROSODY_C2S_RATE:-10kb/s}
+      - PROSODY_C2S_BURST=${PROSODY_C2S_BURST:-25kb}
+      - PROSODY_S2S_RATE=${PROSODY_S2S_RATE:-30kb/s}
+      - PROSODY_S2S_BURST=${PROSODY_S2S_BURST:-100kb}
+
+      # Logging
+      - PROSODY_LOG_LEVEL=${PROSODY_LOG_LEVEL:-info}
+      - PROSODY_LOG_FORMAT=${PROSODY_LOG_FORMAT:-default}
+
+      # Archive settings
+      - PROSODY_ARCHIVE_POLICY=${PROSODY_ARCHIVE_POLICY:-roster}
+      - PROSODY_ARCHIVE_EXPIRE=${PROSODY_ARCHIVE_EXPIRE:-1y}
+
+      # MUC settings
+      - PROSODY_MUC_LOG_EXPIRE=${PROSODY_MUC_LOG_EXPIRE:-1y}
+      - PROSODY_MUC_HISTORY=${PROSODY_MUC_HISTORY:-50}
+
+      # Upload settings (if HTTP enabled)
+      - PROSODY_UPLOAD_SIZE_LIMIT=${PROSODY_UPLOAD_SIZE_LIMIT:-10485760}
+      - PROSODY_UPLOAD_EXPIRE=${PROSODY_UPLOAD_EXPIRE:-2592000}
+
+    # Port mappings
+    ports:
+      - '${PROSODY_C2S_PORT:-5222}:5222' # Client connections
+      - '${PROSODY_S2S_PORT:-5269}:5269' # Server connections
+      - '${PROSODY_HTTP_PORT:-5280}:5280' # HTTP (BOSH/WebSocket)
+      - '${PROSODY_HTTPS_PORT:-5281}:5281' # HTTPS
+
+    # Volume mounts
+    volumes:
+      # Configuration
+      - prosody_config:/etc/prosody
+      - ./config:/etc/prosody/custom:ro
+
+      # Data persistence
+      - prosody_data:/var/lib/prosody/data
+      - prosody_uploads:/var/lib/prosody/uploads
+
+      # SSL certificates
+      - prosody_certs:/etc/prosody/certs
+
+      # Logs
+      - prosody_logs:/var/log/prosody
+
+    # Health check
+    healthcheck:
+      test: ['CMD', '/opt/prosody/scripts/health-check.sh']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '1.0'
+        reservations:
+          memory: 64M
+          cpus: '0.5'
+
+    # Logging
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+    # Dependencies
+    depends_on:
+      - db
+
+    # Networks
+    networks:
+      - prosody_network
+
+  # ============================================================================
+  # DATABASE (OPTIONAL - ONLY IF USING SQL STORAGE)
+  # ============================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: prosody-db
+    restart: unless-stopped
+
+    environment:
+      - POSTGRES_DB=${PROSODY_DB_NAME:-prosody}
+      - POSTGRES_USER=${PROSODY_DB_USER:-prosody}
+      - POSTGRES_PASSWORD=${PROSODY_DB_PASSWORD:-prosody}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+        reservations:
+          memory: 32M
+          cpus: '0.25'
+
+    # Health check
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${PROSODY_DB_USER:-prosody}']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Networks
+    networks:
+      - prosody_network
+
+    # Only start if using SQL storage
+    profiles:
+      - sql
+
+  # ============================================================================
+  # REDIS CACHE (OPTIONAL - FOR PERFORMANCE)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: prosody-redis
+    restart: unless-stopped
+
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+
+    volumes:
+      - redis_data:/data
+
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.25'
+        reservations:
+          memory: 16M
+          cpus: '0.1'
+
+    # Health check
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Networks
+    networks:
+      - prosody_network
+
+    # Only start if caching is enabled
+    profiles:
+      - cache
+
+# ============================================================================
+# VOLUMES
+# ============================================================================
+volumes:
+  # Prosody volumes
+  prosody_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/config
+
+  prosody_data:
+    driver: local
+
+  prosody_uploads:
+    driver: local
+
+  prosody_certs:
+    driver: local
+
+  prosody_logs:
+    driver: local
+
+  # Database volumes
+  postgres_data:
+    driver: local
+
+  redis_data:
+    driver: local
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  prosody_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

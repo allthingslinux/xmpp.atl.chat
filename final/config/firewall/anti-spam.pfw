@@ -1,0 +1,135 @@
+# Anti-Spam Firewall Rules for Prosody
+# Based on best practices from analyzed implementations
+
+# ============================================================================
+# DNS BLOCKLIST CHECKS
+# ============================================================================
+
+# Check sender's server against DNS blocklists
+FROM: <*>@<*>
+CHECK: dns_lookup(zen.spamhaus.org, $<@from_host>)
+BOUNCE: Your server is listed in spam databases (Spamhaus)
+
+FROM: <*>@<*>
+CHECK: dns_lookup(bl.spamcop.net, $<@from_host>)
+BOUNCE: Your server is listed in spam databases (SpamCop)
+
+FROM: <*>@<*>
+CHECK: dns_lookup(dnsbl.sorbs.net, $<@from_host>)
+BOUNCE: Your server is listed in spam databases (SORBS)
+
+# ============================================================================
+# RATE LIMITING RULES
+# ============================================================================
+
+# Limit messages per user per minute
+FROM: <*>@<*>
+LIMIT: 10 messages/minute
+BOUNCE: Too many messages, please slow down
+
+# Limit presence updates per user per minute
+FROM: <*>@<*>
+TYPE: presence
+LIMIT: 20 presence/minute
+BOUNCE: Too many presence updates
+
+# Limit IQ requests per user per minute
+FROM: <*>@<*>
+TYPE: iq
+LIMIT: 30 iq/minute
+BOUNCE: Too many IQ requests
+
+# ============================================================================
+# CONTENT FILTERING
+# ============================================================================
+
+# Block messages with suspicious URLs
+FROM: <*>@<*>
+BODY CONTAINS: bit.ly
+BOUNCE: Suspicious URL detected
+
+FROM: <*>@<*>
+BODY CONTAINS: tinyurl.com
+BOUNCE: Suspicious URL detected
+
+FROM: <*>@<*>
+BODY CONTAINS: t.co
+BOUNCE: Suspicious URL detected
+
+# Block messages with excessive caps
+FROM: <*>@<*>
+BODY MATCHES: [A-Z]{20,}
+BOUNCE: Excessive capital letters detected
+
+# Block messages with repetitive patterns
+FROM: <*>@<*>
+BODY MATCHES: (.)\1{10,}
+BOUNCE: Repetitive content detected
+
+# ============================================================================
+# SENDER REPUTATION
+# ============================================================================
+
+# Quarantine new users for first 24 hours
+FROM: <*>@<*>
+CHECK: user_age() < 86400
+QUARANTINE: New user quarantine
+
+# Block users with high spam score
+FROM: <*>@<*>
+CHECK: spam_score() > 5
+BOUNCE: High spam score detected
+
+# ============================================================================
+# SUBSCRIPTION ABUSE PREVENTION
+# ============================================================================
+
+# Limit subscription requests per user per hour
+FROM: <*>@<*>
+TYPE: presence
+CONDITION: $<@type> = "subscribe"
+LIMIT: 5 subscribe/hour
+BOUNCE: Too many subscription requests
+
+# ============================================================================
+# MUC SPAM PREVENTION
+# ============================================================================
+
+# Limit MUC messages per user per minute
+TO: <*>@conference.*
+FROM: <*>@<*>
+LIMIT: 5 messages/minute
+BOUNCE: Too many MUC messages
+
+# Prevent MUC flooding
+TO: <*>@conference.*
+FROM: <*>@<*>
+BODY LENGTH: >1000
+BOUNCE: Message too long for MUC
+
+# ============================================================================
+# REGISTRATION ABUSE PREVENTION
+# ============================================================================
+
+# Limit registrations per IP per hour
+FROM: <*>@<*>
+TYPE: iq
+CONDITION: $<@type> = "set" and $<query@xmlns> = "jabber:iq:register"
+LIMIT: 3 registrations/hour per IP
+BOUNCE: Too many registration attempts
+
+# ============================================================================
+# EMERGENCY RULES
+# ============================================================================
+
+# Emergency spam wave protection
+FROM: <*>@<*>
+BODY CONTAINS: [SPAM_KEYWORD]
+BOUNCE: Spam keyword detected
+
+# Block known spam domains
+FROM: <*>@spam-domain.com
+BOUNCE: Domain blocked for spam
+
+FROM: <*>@spam-domain.net
+BOUNCE: Domain blocked for spam 
