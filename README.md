@@ -23,6 +23,15 @@ This is a comprehensive, production-ready Prosody XMPP server deployment based o
 - **HTTP File Upload** - File sharing capabilities
 - **OMEMO Support** - End-to-end encryption
 
+### Official Status-Based Module System
+
+- **🟢 Core Modules** - Essential XMPP functionality (always enabled)
+- **✅ Official Modules** - Distributed with Prosody (enabled by default)
+- **🟢 Community Stable** - Well-tested third-party modules (enabled by default)
+- **🟡 Community Beta** - Mostly stable third-party modules (opt-in)
+- **🟠 Community Alpha** - Experimental third-party modules (opt-in)
+- **Reliability-based configuration** - Clear distinction between official and community modules
+
 ### Enterprise-Grade Operations
 
 - **Multi-architecture support** (AMD64, ARM64, ARM)
@@ -87,11 +96,13 @@ xmpp.atl.chat/
 │   └── docker-compose.enterprise.yml # Enterprise deployment
 ├── config/
 │   ├── prosody.cfg.lua         # Main configuration
-│   ├── modules.d/              # Modular configuration
-│   │   ├── core.cfg.lua        # Core modules
-│   │   ├── security.cfg.lua    # Security modules
-│   │   ├── modern.cfg.lua      # Modern XMPP features
-│   │   └── enterprise.cfg.lua  # Enterprise features
+│   ├── modules.d/              # Official status-based modular configuration
+│   │   ├── core/               # 🟢 Core modules (always enabled)
+│   │   ├── official/           # ✅ Official modules (distributed with Prosody)
+│   │   └── community/          # 🏗️ Community modules (third-party)
+│   │       ├── stable/         # 🟢 Stable community modules
+│   │       ├── beta/           # 🟡 Beta community modules
+│   │       └── alpha/          # 🟠 Alpha community modules
 │   ├── firewall/               # Firewall rules
 │   │   ├── anti-spam.pfw       # Anti-spam rules
 │   │   ├── rate-limit.pfw      # Rate limiting
@@ -157,10 +168,20 @@ xmpp.atl.chat/
 
 ### Anti-Spam
 
-- DNS blocklist integration (Spamhaus, etc.)
+- DNS blocklist integration (Spamhaus, xmppbl.org)
+- Real-time JID blocklists and server reputation
 - Rate limiting and connection throttling
 - User quarantine system
 - Registration controls and CAPTCHA
+
+### XMPP Safeguarding 2025 Compliance
+
+- **TLS 1.3 support** with forward secrecy
+- **SASL channel binding** for enhanced authentication
+- **Stanza size limits** to prevent DoS attacks
+- **Comprehensive blocklists** for spam prevention
+- **DNS security** (DNSSEC, CAA, TLSA records)
+- **Abuse reporting** via XEP-0157
 
 ### Monitoring
 

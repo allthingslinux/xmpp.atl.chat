@@ -22,14 +22,15 @@ services:
       - PROSODY_DOMAIN=${PROSODY_DOMAIN:-localhost}
       - PROSODY_ADMINS=${PROSODY_ADMINS:-admin@localhost}
 
-      # Security settings (enabled by default)
+      # Stability-based module controls
       - PROSODY_ENABLE_SECURITY=${PROSODY_ENABLE_SECURITY:-true}
       - PROSODY_ENABLE_MODERN=${PROSODY_ENABLE_MODERN:-true}
+      - PROSODY_ENABLE_BETA=${PROSODY_ENABLE_BETA:-true}
+      - PROSODY_ENABLE_ALPHA=${PROSODY_ENABLE_ALPHA:-false}
 
       # Optional features
       - PROSODY_ENABLE_HTTP=${PROSODY_ENABLE_HTTP:-false}
       - PROSODY_ENABLE_ADMIN=${PROSODY_ENABLE_ADMIN:-false}
-      - PROSODY_ENABLE_ENTERPRISE=${PROSODY_ENABLE_ENTERPRISE:-false}
 
       # Registration settings
       - PROSODY_ALLOW_REGISTRATION=${PROSODY_ALLOW_REGISTRATION:-false}

@@ -1,5 +1,8 @@
--- Security Module Configuration
--- Anti-spam, firewall, and security hardening
+-- ============================================================================
+-- STABLE SECURITY MODULES CONFIGURATION
+-- ============================================================================
+-- Stability Level: 🟢 Stable (Production Ready)
+-- These modules are well-tested and safe for production use
 
 -- ============================================================================
 -- ANTI-SPAM CONFIGURATION
@@ -57,5 +60,11 @@ failed_auth_threshold = tonumber(os.getenv("PROSODY_FAILED_AUTH_THRESHOLD")) or 
 failed_auth_window = tonumber(os.getenv("PROSODY_FAILED_AUTH_WINDOW")) or 300 -- 5 minutes
 
 -- Connection monitoring
-monitor_connections = true
-max_connections_per_ip = tonumber(os.getenv("PROSODY_MAX_CONNECTIONS_PER_IP")) or 10 
+max_connections_per_ip = tonumber(os.getenv("PROSODY_MAX_CONNECTIONS_PER_IP")) or 10
+
+-- ============================================================================
+-- TOMBSTONES CONFIGURATION
+-- ============================================================================
+
+-- Tombstone expiry (for deleted users)
+user_tombstone_expire = 60*86400 -- 2 months 
