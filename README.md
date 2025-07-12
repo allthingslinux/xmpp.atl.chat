@@ -186,6 +186,7 @@ PROSODY_DOMAIN=yourdomain.com
 PROSODY_ADMINS=admin@yourdomain.com
 
 # Module Control
+PROSODY_DISABLE_AUTOLOADED=false  # Disable autoloaded modules (not recommended)
 PROSODY_ENABLE_DISTRIBUTED=true   # Distributed Prosody modules
 PROSODY_ENABLE_SECURITY=true      # Security & anti-spam
 PROSODY_ENABLE_BETA=false         # Beta community modules
