@@ -54,14 +54,20 @@ gc_settings = {
 -- Connection limits and rate limiting
 limits = {
     c2s = {
-        rate = os.getenv("PROSODY_C2S_RATE") or "10kb/s";
-        burst = os.getenv("PROSODY_C2S_BURST") or "25kb";
+        rate = os.getenv("PROSODY_C2S_RATE") or "1mb/s";
+        burst = os.getenv("PROSODY_C2S_BURST") or "2mb";
     };
     s2sin = {
-        rate = os.getenv("PROSODY_S2S_RATE") or "30kb/s";
-        burst = os.getenv("PROSODY_S2S_BURST") or "100kb";
+        rate = os.getenv("PROSODY_S2S_RATE") or "500kb/s";
+        burst = os.getenv("PROSODY_S2S_BURST") or "1mb";
     };
 }
+
+-- Stream management hibernation time (24 hours for mobile devices)
+smacks_hibernation_time = tonumber(os.getenv("PROSODY_SMACKS_HIBERNATION")) or 86400
+
+-- PEP (Personal Eventing Protocol) settings
+pep_max_items = tonumber(os.getenv("PROSODY_PEP_MAX_ITEMS")) or 10000
 
 -- ============================================================================
 -- DATABASE CONFIGURATION
@@ -100,6 +106,27 @@ elseif storage_backend == "sqlite" then
 end
 
 -- ============================================================================
+-- CONTACT INFORMATION AND COMPLIANCE
+-- ============================================================================
+
+-- Server contact information (required for compliance)
+contact_info = {
+    admin = { "xmpp:admin@" .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "mailto:admin@" .. (os.getenv("PROSODY_DOMAIN") or "localhost") };
+    support = { "xmpp:admin@" .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "mailto:support@" .. (os.getenv("PROSODY_DOMAIN") or "localhost") };
+    abuse = { "xmpp:admin@" .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "mailto:abuse@" .. (os.getenv("PROSODY_DOMAIN") or "localhost") };
+}
+
+-- Blocked usernames for registration
+block_registrations_users = { 
+    "admin", "administrator", "root", "xmpp", "postmaster", "webmaster", 
+    "hostmaster", "abuse", "support", "help", "info", "noreply", "no-reply",
+    "system", "daemon", "service", "test", "guest", "anonymous"
+}
+
+-- Tombstone configuration
+user_tombstone_expire = 60*86400 -- 2 months
+
+-- ============================================================================
 -- MODULE MANAGEMENT (ENVIRONMENT-DRIVEN)
 -- ============================================================================
 
@@ -112,13 +139,15 @@ local core_modules = {
 -- Security modules
 local security_modules = {
     "firewall", "limits", "blocklist", "spam_reporting",
-    "watchregistrations", "block_registrations"
+    "watchregistrations", "block_registrations", "mimicking", "tombstones"
 }
 
 -- Modern XMPP features
 local modern_modules = {
     "carbons", "mam", "smacks", "csi_simple",
-    "cloud_notify", "push", "bookmarks", "vcard4"
+    "cloud_notify", "cloud_notify_extensions", "push", "bookmarks", "vcard4",
+    "invites", "invites_adhoc", "invites_register", "invites_register_web",
+    "password_reset", "http_altconnect", "lastactivity", "pubsub_serverinfo"
 }
 
 -- HTTP services
@@ -128,7 +157,7 @@ local http_modules = {
 
 -- Administration modules
 local admin_modules = {
-    "admin_adhoc", "admin_shell", "statistics", "prometheus"
+    "admin_adhoc", "admin_shell", "statistics", "prometheus", "server_contact_info"
 }
 
 -- Enterprise modules
@@ -258,6 +287,19 @@ VirtualHost (main_domain)
         archive_expires_after = os.getenv("PROSODY_ARCHIVE_EXPIRE") or "1y"
         max_archive_query_results = tonumber(os.getenv("PROSODY_ARCHIVE_MAX_RESULTS")) or 50
     end
+    
+    -- HTTP services configuration
+    if os.getenv("PROSODY_ENABLE_HTTP") == "true" then
+        http_host = os.getenv("PROSODY_HTTP_HOST") or main_domain
+        http_external_url = os.getenv("PROSODY_HTTP_EXTERNAL_URL") or ("https://" .. main_domain .. "/")
+        trusted_proxies = { "127.0.0.1", "::1" }
+        
+        -- Web-based invitation system paths
+        http_paths = {
+            invites_page = "/join/$host/invite";
+            invites_register_web = "/join/$host/register";
+        }
+    end
 
 -- ============================================================================
 -- COMPONENTS CONFIGURATION
@@ -268,7 +310,8 @@ local muc_domain = "conference." .. main_domain
 Component (muc_domain) "muc"
     name = "Multi-user chat"
     modules_enabled = {
-        "muc_mam", "muc_limits", "muc_log", "muc_room_metadata"
+        "muc_mam", "muc_limits", "muc_log", "muc_room_metadata",
+        "muc_moderation", "muc_offline_delivery", "muc_hats_adhoc"
     }
     
     -- MUC-specific settings
@@ -285,11 +328,27 @@ if os.getenv("PROSODY_ENABLE_HTTP") == "true" then
         http_upload_path = "/var/lib/prosody/uploads"
 end
 
+-- HTTP File Share component (modern file sharing)
+if os.getenv("PROSODY_ENABLE_HTTP") == "true" then
+    local files_domain = "files." .. main_domain
+    Component (files_domain) "http_file_share"
+        http_file_share_size_limit = tonumber(os.getenv("PROSODY_FILE_SHARE_SIZE_LIMIT")) or 104857600 -- 100 MiB
+        http_file_share_expires_after = tonumber(os.getenv("PROSODY_FILE_SHARE_EXPIRE")) or 2592000 -- 30 days
+        http_file_share_global_quota = tonumber(os.getenv("PROSODY_FILE_SHARE_QUOTA")) or 10737418240 -- 10 GiB
+end
+
 -- Proxy65 component for file transfers
 local proxy_domain = "proxy." .. main_domain
 Component (proxy_domain) "proxy65"
     proxy65_address = main_domain
     proxy65_port = 5000
+
+-- PubSub component (publish-subscribe messaging)
+local pubsub_domain = "pubsub." .. main_domain
+Component (pubsub_domain) "pubsub"
+    name = "Publish-Subscribe service"
+    pubsub_max_items = tonumber(os.getenv("PROSODY_PUBSUB_MAX_ITEMS")) or 1000
+    expose_publisher = true
 
 -- ============================================================================
 -- ADDITIONAL CONFIGURATION FILES
