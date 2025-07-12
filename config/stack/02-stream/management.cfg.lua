@@ -1,16 +1,13 @@
 -- Layer 02: Stream - Stream Management Configuration
--- XEP-0198: Stream Management for connection reliability
--- Handles connection resumption, stanza acknowledgment, and mobile optimization
+-- Stream resumption, client state indication, and mobile optimizations
+-- XEP-0198: Stream Management, XEP-0352: Client State Indication
 
--- Stream management modules
--- Essential for mobile clients and unreliable connections
-modules_enabled = {
+local stream_management_modules = {
 	"smacks", -- XEP-0198: Stream Management
 	"smacks_offline", -- Offline message handling with SM
-	"carbons", -- XEP-0280: Message Carbons (works with SM)
-	"csi_simple", -- XEP-0352: Client State Indication
-	"throttle_presence", -- Throttle presence updates for mobile
-	"filter_chatstates", -- Filter chat states for mobile
+	"csi_simple", -- XEP-0352: Client State Indication (built-in)
+	"csi_battery_saver", -- Battery optimization for mobile clients (community)
+	"filter_chatstates", -- Filter chat states for mobile (community)
 }
 
 -- Stream Management configuration

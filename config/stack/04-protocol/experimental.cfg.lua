@@ -7,52 +7,35 @@ local experimental_config = {
 	-- Experimental Messaging Features
 	-- Cutting-edge messaging enhancements
 	experimental_messaging = {
-		"message_retraction", -- XEP-0424: Message Retraction
-		"message_moderation", -- XEP-0425: Message Moderation
-		"message_markup", -- XEP-0394: Message Markup
-		"message_styling", -- XEP-0393: Message Styling
-		"spoiler_messages", -- XEP-0382: Spoiler Messages
-		"message_fastening", -- XEP-0422: Message Fastening
-		"message_references", -- XEP-0372: References
-		"message_reactions", -- XEP-0444: Message Reactions
+		"message_retraction", -- XEP-0424: Message Retraction (community)
+		"message_moderation", -- XEP-0425: Message Moderation (community)
+		"message_styling", -- XEP-0393: Message Styling (community)
+		"spoiler_messages", -- XEP-0382: Spoiler Messages (community)
+		"message_fastening", -- XEP-0422: Message Fastening (community)
 	},
 
-	-- Modern Authentication
+	-- Experimental Authentication Features
 	-- Next-generation authentication mechanisms
-	modern_auth = {
-		"sasl2", -- XEP-0388: Extensible SASL Profile
-		"bind2", -- XEP-0386: Bind 2.0
-		"fast", -- XEP-0484: Fast Authentication Streamlining Tokens
+	experimental_auth = {
+		"sasl2", -- XEP-0388: Extensible SASL Profile (community)
+		"sasl2_bind2", -- XEP-0386: Bind 2 (community)
+		"sasl2_fast", -- XEP-0484: Fast Authentication Streamlining Tokens (community)
+		"sasl2_sm", -- XEP-0198 integration with SASL2 (community)
 	},
 
-	-- Mobile and IoT Features
-	-- Optimizations for mobile and IoT devices
-	mobile_iot = {
-		"csi_advanced", -- Advanced Client State Indication
-		"push_advanced", -- Advanced Push Notifications
-		"mobile_compliance", -- XEP-0286: Mobile Considerations
-		"battery_optimization", -- Battery optimization features
+	-- Experimental Mobile Features
+	-- Advanced mobile and battery optimization
+	experimental_mobile = {
+		"csi_battery_saver", -- Advanced CSI implementation (community)
+		"push_summary", -- Push notification summaries (community)
+		"isr", -- XEP-0397: Instant Stream Resumption (community)
 	},
 
-	-- Real-Time Communication
-	-- Advanced RTC and multimedia features
-	rtc_advanced = {
-		"jingle_webrtc", -- WebRTC integration with Jingle
-		"webrtc_datachannel", -- WebRTC data channels
-	},
-
-	-- Privacy and Security Enhancements
-	-- Advanced privacy and security features
-	privacy_security = {
-		"forward_secrecy", -- Forward secrecy
-		"message_mixing", -- XEP-0369: Mediated Information eXchange (MIX)
-	},
-
-	-- Emerging Standards
-	-- Emerging and draft XEPs
-	emerging_standards = {
-		"xep_draft_implementations", -- Draft XEP implementations
-		"community_extensions", -- Community-driven extensions
+	-- Experimental Protocol Extensions
+	-- Draft and experimental protocol features
+	experimental_protocols = {
+		"compliance_2023", -- XEP-0479: XMPP Compliance Suites 2023 (community)
+		"inject_ecaps2", -- XEP-0390: Entity Capabilities 2.0 (community)
 	},
 }
 
@@ -77,21 +60,21 @@ local function apply_experimental_config()
 
 	-- Modern authentication (staging only)
 	if env_type == "staging" then
-		for _, module in ipairs(experimental_config.modern_auth) do
+		for _, module in ipairs(experimental_config.experimental_auth) do
 			table.insert(core_modules, module)
 		end
 	end
 
 	-- Mobile and IoT (development only)
 	if env_type == "development" then
-		for _, module in ipairs(experimental_config.mobile_iot) do
+		for _, module in ipairs(experimental_config.experimental_mobile) do
 			table.insert(core_modules, module)
 		end
 	end
 
 	-- RTC advanced (development only)
 	if env_type == "development" then
-		for _, module in ipairs(experimental_config.rtc_advanced) do
+		for _, module in ipairs(experimental_config.experimental_protocols) do
 			table.insert(core_modules, module)
 		end
 	end

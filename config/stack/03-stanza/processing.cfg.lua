@@ -1,71 +1,37 @@
 -- Layer 03: Stanza - Processing Configuration
--- Stanza processing pipelines, transformation, and workflow management
--- XEP-0079: Advanced Message Processing, XEP-0033: Extended Stanza Addressing
--- XEP-0131: Stanza Headers and Internet Metadata, XEP-0297: Stanza Forwarding
--- Comprehensive stanza processing and transformation
+-- Advanced stanza processing, routing, and transformation
+-- XEP-0033: Extended Stanza Addressing, XEP-0297: Stanza Forwarding, XEP-0280: Message Carbons
 
 local processing_config = {
 	-- Core Processing Modules
-	-- Essential stanza processing
+	-- Essential stanza processing capabilities
 	core_processing = {
-		"stanza_router", -- Core stanza routing
-		"message_router", -- Message routing logic
-		"presence_router", -- Presence routing logic
-		"iq_router", -- IQ routing logic
+		"carbons", -- XEP-0280: Message Carbons
+		"addressing", -- XEP-0033: Extended Stanza Addressing (community)
+		"stanza_counter", -- Stanza statistics (community)
 	},
 
-	-- Advanced Message Processing (XEP-0079)
-	-- Sophisticated message processing capabilities
-	amp_processing = {
-		"amp", -- XEP-0079: Advanced Message Processing
-		"amp_rules", -- AMP rule processing
-		"message_conditions", -- Message condition evaluation
-		"delivery_semantics", -- Message delivery semantics
+	-- Message Processing
+	-- Advanced message processing features
+	message_processing = {
+		"offline", -- Offline message storage
+		"mam", -- XEP-0313: Message Archive Management
+		"smacks", -- XEP-0198: Stream Management
 	},
 
-	-- Stanza Transformation
-	-- Stanza modification and transformation
-	transformation = {
-		"stanza_modify", -- Stanza modification
-		"address_rewrite", -- Address rewriting
-		"content_transform", -- Content transformation
-		"namespace_transform", -- Namespace transformation
+	-- Stanza Forwarding and Routing
+	-- Advanced routing and forwarding capabilities
+	forwarding = {
+		"stanza_forwarding", -- XEP-0297: Stanza Forwarding (community)
+		"component", -- XEP-0114: Jabber Component Protocol
 	},
 
-	-- Extended Processing Features
-	-- Extended stanza addressing and headers
-	extended_processing = {
-		"address", -- XEP-0033: Extended Stanza Addressing
-		"stanza_headers", -- XEP-0131: Stanza Headers and Internet Metadata
-		"forwarding", -- XEP-0297: Stanza Forwarding
+	-- Processing Enhancement
+	-- Stanza enhancement and transformation
+	enhancement = {
 		"delay", -- XEP-0203: Delayed Delivery
-	},
-
-	-- Pipeline Processing
-	-- Processing pipeline management
-	pipeline_processing = {
-		"processing_hints", -- XEP-0334: Message Processing Hints
-		"priority", -- Message priority handling
-		"queueing", -- Message queueing
-		"batch_processing", -- Batch processing
-	},
-
-	-- Workflow and Automation
-	-- Automated processing workflows
-	workflow_processing = {
-		"auto_responder", -- Automatic response generation
-		"message_routing_rules", -- Message routing rules
-		"conditional_processing", -- Conditional processing logic
-		"event_triggers", -- Event-triggered processing
-	},
-
-	-- Performance Processing
-	-- Performance-optimized processing
-	performance_processing = {
-		"async_processing", -- Asynchronous processing
-		"parallel_processing", -- Parallel processing
-		"cache_processing", -- Cached processing results
-		"lazy_evaluation", -- Lazy evaluation
+		"time", -- XEP-0202: Entity Time
+		"version", -- XEP-0092: Software Version
 	},
 }
 

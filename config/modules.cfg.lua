@@ -188,7 +188,7 @@ local community_beta_modules = {
 	-- Logging and monitoring
 	"lastlog", -- Log last login time
 	"lastlog2", -- Record last timestamp of events
-	"message_logging", -- Log/archive all user messages
+	-- Note: message_logging is handled by mam (Message Archive Management)
 	"munin", -- Implementation of the Munin node protocol
 
 	-- PubSub enhancements

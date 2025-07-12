@@ -1,61 +1,44 @@
--- Layer 03: Stanza - Filtering Configuration
--- Content filtering, spam prevention, firewall rules, and stanza validation
--- XEP-0016: Privacy Lists, XEP-0191: Blocking Command, XEP-0158: CAPTCHA Forms
--- Comprehensive stanza filtering and security mechanisms
+-- Layer 03: Stanza - Filtering and Firewall Configuration
+-- Advanced stanza filtering, anti-spam, and content filtering
+-- XEP-0016: Privacy Lists, XEP-0191: Blocking Command, mod_firewall
 
 local filtering_config = {
 	-- Core Filtering Modules
-	-- Essential filtering and validation
+	-- Essential filtering and blocking capabilities
 	core_filtering = {
-		"firewall", -- Advanced stanza firewall
-		"filter_chatstates", -- Filter chat state notifications
-		"limits", -- Rate limiting and resource management
-		"watchregistrations", -- Monitor registration attempts
+		"filter_chatstates", -- Filter chat state notifications (community)
+		"firewall", -- Advanced stanza firewall (community)
+		"spam_reporting", -- XEP-0377: Spam Reporting (community)
 	},
 
-	-- Anti-Spam and Abuse Prevention
-	-- Comprehensive spam and abuse protection
-	anti_spam = {
-		"spam_reporting", -- XEP-0377: Spam Reporting
-		"block_strangers", -- Block messages from strangers
-		"block_subscriptions", -- Block subscription requests
-		"throttle_unsolicited", -- Throttle unsolicited messages
+	-- Privacy and Blocking
+	-- User privacy controls and blocking
+	privacy_controls = {
+		"privacy", -- XEP-0016: Privacy Lists (deprecated but supported)
+		"blocking", -- XEP-0191: Blocking Command
+		"blocklist", -- Simple blocklist implementation
+	},
+
+	-- Anti-Spam and Security
+	-- Spam prevention and security filtering
+	security_filtering = {
+		"anti_spam", -- Anti-spam filtering (community)
+		"watchlist", -- Security watchlist (community)
+		"limits", -- Rate limiting and abuse prevention
 	},
 
 	-- Content Filtering
-	-- Message and content filtering capabilities
+	-- Message content and media filtering
 	content_filtering = {
-		"filter_words", -- Word filtering and profanity detection
-		"message_logging", -- Message logging for compliance
-		"mam_muc", -- MUC message archiving
-		"carbons", -- Message carbons filtering
+		-- Note: Most content filtering is policy-based
+		-- and implemented through mod_firewall rules
 	},
 
-	-- Privacy and Security Filtering
-	-- Privacy protection and security filtering
-	privacy_filtering = {
-		"privacy", -- XEP-0016: Privacy Lists
-		"blocking", -- XEP-0191: Blocking Command
-		"filter_iq", -- IQ stanza filtering
-		"roster_command", -- Roster manipulation protection
-	},
-
-	-- Compliance and Legal Filtering
-	-- Compliance, legal, and regulatory filtering
+	-- Compliance and Archiving
+	-- Compliance and regulatory filtering
 	compliance_filtering = {
-		"audit", -- Audit logging
-		"compliance_archive", -- Compliance message archiving
-		"retention_policy", -- Data retention policy enforcement
-		"gdpr_compliance", -- GDPR compliance features
-	},
-
-	-- Advanced Filtering Features
-	-- Sophisticated filtering and analysis
-	advanced_filtering = {
-		"measure_stanza_counts", -- Stanza statistics and monitoring
-		"stanza_counter", -- Count different stanza types
-		"bandwidth_monitor", -- Monitor bandwidth usage
-		"connection_throttle", -- Connection rate limiting
+		-- Note: Compliance features are handled by
+		-- MAM (mod_mam) and audit modules
 	},
 }
 
@@ -72,7 +55,7 @@ local function apply_filtering_config()
 	end
 
 	-- Anti-spam (always enabled)
-	for _, module in ipairs(filtering_config.anti_spam) do
+	for _, module in ipairs(filtering_config.security_filtering) do
 		table.insert(core_modules, module)
 	end
 
@@ -84,7 +67,7 @@ local function apply_filtering_config()
 	end
 
 	-- Privacy filtering (always enabled)
-	for _, module in ipairs(filtering_config.privacy_filtering) do
+	for _, module in ipairs(filtering_config.privacy_controls) do
 		table.insert(core_modules, module)
 	end
 

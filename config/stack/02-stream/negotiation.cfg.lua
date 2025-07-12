@@ -1,71 +1,51 @@
--- Layer 02: Stream - Negotiation Configuration
--- XEP-0115: Entity Capabilities, XEP-0030: Service Discovery, XEP-0128: Service Discovery Extensions
--- XEP-0237: Roster Versioning, XEP-0352: Client State Indication, XEP-0286: Mobile Considerations
--- Handles stream feature negotiation, capabilities, and service discovery
+-- Layer 02: Stream - Stream Feature Negotiation Configuration
+-- Service discovery, entity capabilities, and mobile optimizations
+-- XEP-0030: Service Discovery, XEP-0115: Entity Capabilities, XEP-0352: Client State Indication
 
 local negotiation_config = {
-	-- Core Service Discovery (XEP-0030)
-	-- Essential for client-server capability negotiation
-	service_discovery = {
+	-- Service Discovery and Capabilities
+	-- Core discovery mechanisms for XMPP features
+	discovery = {
 		"disco", -- XEP-0030: Service Discovery
-		"disco_publish", -- Publish service discovery information
-		"disco_items", -- Service discovery items
-	},
-
-	-- Entity Capabilities (XEP-0115)
-	-- Efficient capability advertisement and caching
-	capabilities = {
 		"caps", -- XEP-0115: Entity Capabilities
-		"caps_cache", -- Capability caching for performance
-		"entity_time", -- XEP-0202: Entity Time
-		"version", -- XEP-0092: Software Version
-	},
-
-	-- Stream Feature Negotiation
-	-- Core stream features and extensions
-	stream_features = {
-		"starttls", -- TLS negotiation (handled in transport)
-		"sasl", -- SASL authentication (handled in authentication)
-		"bind", -- Resource binding
-		"session", -- Session establishment (legacy)
-		"compression", -- Stream compression negotiation
-	},
-
-	-- Advanced Service Discovery (XEP-0128)
-	-- Extended service discovery with forms
-	extended_discovery = {
-		"disco_forms", -- XEP-0128: Service Discovery Extensions
-		"disco_info_cache", -- Cache disco#info responses
-		"server_info", -- XEP-0157: Contact Addresses for XMPP Services
-		"server_contact_info", -- Server contact information
+		"extdisco", -- XEP-0215: External Service Discovery
+		"server_info", -- Server information discovery
 	},
 
 	-- Mobile and Client Optimizations
-	-- Features for mobile and bandwidth-constrained clients
-	mobile_features = {
-		"csi", -- XEP-0352: Client State Indication
-		"csi_battery_saver", -- Battery optimization for mobile clients
-		"throttle_presence", -- Throttle presence updates for mobile
-		"filter_chatstates", -- Filter chat state notifications
+	-- Battery saving and bandwidth optimization features
+	mobile_optimization = {
+		"csi_simple", -- XEP-0352: Client State Indication (built-in)
+		"csi_battery_saver", -- Battery optimization for mobile clients (community)
+		"filter_chatstates", -- Filter chat state notifications (community)
 	},
 
-	-- Roster and Contact Management
-	-- Enhanced roster features and versioning
-	roster_features = {
-		"roster_versioning", -- XEP-0237: Roster Versioning
-		"roster_alwayswrite", -- Always write roster changes
-		"groups", -- Contact groups support
-		"vcard", -- XEP-0054: vcard-temp
-		"vcard4", -- XEP-0292: vCard4 Over XMPP
+	-- Roster and Presence Management
+	-- Contact management and presence optimization
+	roster_management = {
+		"roster", -- RFC 6121: Roster management
+		"presence", -- RFC 6121: Presence management
+		"pep", -- XEP-0163: Personal Eventing Protocol
+		"vcard", -- XEP-0054: vCard storage
+		"private", -- XEP-0049: Private XML Storage
 	},
 
-	-- Stream Management Integration
-	-- Integration with stream management features
-	stream_integration = {
-		"carbons", -- XEP-0280: Message Carbons
+	-- Message Archive and History
+	-- Message archiving and retrieval capabilities
+	archive_features = {
 		"mam", -- XEP-0313: Message Archive Management
-		"push", -- XEP-0357: Push Notifications
+		"carbons", -- XEP-0280: Message Carbons
+		"smacks", -- XEP-0198: Stream Management
+	},
+
+	-- Advanced Features
+	-- Modern XMPP extensions and capabilities
+	advanced_features = {
 		"blocking", -- XEP-0191: Blocking Command
+		"bookmarks", -- XEP-0048/XEP-0402: Bookmarks
+		"ping", -- XEP-0199: XMPP Ping
+		"time", -- XEP-0202: Entity Time
+		"version", -- XEP-0092: Software Version
 	},
 }
 
@@ -77,12 +57,12 @@ local function apply_negotiation_config()
 	local core_modules = {}
 
 	-- Essential service discovery
-	for _, module in ipairs(negotiation_config.service_discovery) do
+	for _, module in ipairs(negotiation_config.discovery) do
 		table.insert(core_modules, module)
 	end
 
 	-- Entity capabilities (always needed)
-	for _, module in ipairs(negotiation_config.capabilities) do
+	for _, module in ipairs(negotiation_config.caps) do
 		table.insert(core_modules, module)
 	end
 
@@ -99,18 +79,18 @@ local function apply_negotiation_config()
 	end
 
 	-- Mobile optimizations (always enabled for modern XMPP)
-	for _, module in ipairs(negotiation_config.mobile_features) do
+	for _, module in ipairs(negotiation_config.mobile_optimization) do
 		table.insert(core_modules, module)
 	end
 
 	-- Roster features (always enabled)
-	for _, module in ipairs(negotiation_config.roster_features) do
+	for _, module in ipairs(negotiation_config.roster_management) do
 		table.insert(core_modules, module)
 	end
 
 	-- Stream integration features (production and staging)
 	if env_type ~= "development" then
-		for _, module in ipairs(negotiation_config.stream_integration) do
+		for _, module in ipairs(negotiation_config.archive_features) do
 			table.insert(core_modules, module)
 		end
 	end
