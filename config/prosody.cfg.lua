@@ -184,14 +184,24 @@ local official_stable_modules = {
 -- Community modules (third-party - use with caution)
 local community_stable_modules = {
     -- Security modules from prosody-modules
-    "firewall", "spam_reporting", "block_registrations"
+    "firewall", "spam_reporting", "block_registrations",
+    
+    -- User experience modules (stable)
+    "pep_vcard_avatar", "filter_chatstates", "offline_hints", "profile",
+    "watch_spam_reports", "admin_blocklist"
 }
 
 -- Beta community modules (mostly stable third-party)
 local community_beta_modules = {
     -- Advanced features from prosody-modules
     "password_reset", "http_altconnect", "pubsub_serverinfo",
-    "cloud_notify_extensions", "push"
+    "cloud_notify_extensions", "push",
+    
+    -- Modern authentication and security
+    "sasl2", "sasl2_bind2", "sasl2_fast", "sasl_ssdp", "isr",
+    
+    -- Compliance and standards
+    "compliance_2023", "service_outage_status", "server_info", "extdisco"
 }
 
 -- Alpha/Experimental modules (use with extreme caution)
@@ -364,7 +374,8 @@ Component (muc_domain) "muc"
     name = "Multi-user chat"
     modules_enabled = {
         "muc_mam", "muc_limits", "muc_log", "muc_room_metadata",
-        "muc_moderation", "muc_offline_delivery", "muc_hats_adhoc"
+        "muc_moderation", "muc_offline_delivery", "muc_hats_adhoc",
+        "muc_markers", "muc_mention_notifications", "muc_mam_hints"
     }
     
     -- MUC-specific settings

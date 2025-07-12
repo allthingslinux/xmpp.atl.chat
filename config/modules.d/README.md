@@ -12,10 +12,13 @@ modules.d/
 └── community/                   # 🏗️ Community modules (third-party)
     ├── stable/                 # 🟢 Stable community modules
     │   ├── anti-spam.cfg.lua   # Anti-spam and abuse prevention
-    │   └── firewall.cfg.lua    # Firewall and rate limiting
+    │   ├── firewall.cfg.lua    # Firewall and rate limiting
+    │   └── user-experience.cfg.lua # User experience enhancements
     ├── beta/                   # 🟡 Beta community modules
     │   ├── push-notifications.cfg.lua # Push notifications and mobile
-    │   └── web-features.cfg.lua # Web registration and HTTP features
+    │   ├── web-features.cfg.lua # Web registration and HTTP features
+    │   ├── modern-auth.cfg.lua # Modern authentication (SASL2, Bind2, etc.)
+    │   └── compliance.cfg.lua  # Compliance testing and standards
     └── alpha/                  # 🟠 Alpha community modules
         └── monitoring.cfg.lua  # Performance monitoring and auditing
 ```
@@ -149,8 +152,8 @@ The main `prosody.cfg.lua` file loads configurations conditionally:
 
 ### Community Modules (Third-Party)
 
-- **Stable**: `firewall`, `spam_reporting`, `block_registrations`
-- **Beta**: `password_reset`, `http_altconnect`, `pubsub_serverinfo`, `cloud_notify_extensions`, `push`
+- **Stable**: `firewall`, `spam_reporting`, `block_registrations`, `pep_vcard_avatar`, `filter_chatstates`, `offline_hints`, `profile`, `watch_spam_reports`, `admin_blocklist`
+- **Beta**: `password_reset`, `http_altconnect`, `pubsub_serverinfo`, `cloud_notify_extensions`, `push`, `sasl2`, `sasl2_bind2`, `sasl2_fast`, `sasl_ssdp`, `isr`, `compliance_2023`, `service_outage_status`, `server_info`, `extdisco`
 - **Alpha**: `measure_cpu`, `measure_memory`, `measure_message_e2e`, `json_logs`, `audit`, `compliance_policy`
 
 ## Best Practices
