@@ -1,260 +1,401 @@
-# Professional Prosody XMPP Server Setup
+# Prosody XMPP Server
+
+> **XMPP server with modular configuration, XEP compliance, and security features**
+
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](./docker/docker-compose.yml)
+[![Security](https://img.shields.io/badge/Security-Enabled-green)](#security)
+[![XEP Compliance](https://img.shields.io/badge/XEP-Compliant-purple)](#xmpp-features)
 
 ## Overview
 
-This is a comprehensive, production-ready Prosody XMPP server deployment based on analysis of 42+ XMPP implementations. It combines the best practices, security patterns, and optimization techniques from the most successful projects in the ecosystem.
+This is a Prosody XMPP server setup built from analyzing 42+ XMPP implementations. It uses a **modular configuration system** that separates concerns into focused, maintainable components.
 
-## 🏆 Key Features
+### Modular Architecture
 
-### Security-First Architecture
+The configuration is split into 7 focused components instead of a single monolithic file:
 
-- **Mandatory encryption** for all connections (TLS 1.2+)
-- **Anti-spam protection** with DNS blocklist integration
-- **User quarantine system** for suspicious activity
-- **Firewall rules** and rate limiting
-- **Modern cipher suites** and security policies
+```text
+config/
+├── prosody.cfg.lua      # Main entry point (80 lines)
+├── global.cfg.lua       # Global settings & performance
+├── security.cfg.lua     # TLS, encryption & security policies  
+├── database.cfg.lua     # Storage backends & connections
+├── modules.cfg.lua      # Module management & loading
+├── vhosts.cfg.lua       # Virtual host definitions
+└── components.cfg.lua   # XMPP components (MUC, Upload, etc.)
+```
 
-### Modern XMPP Features
+**Before**: Single 442-line file  
+**After**: 7 focused modules
 
-- **Message Archive Management (MAM)** - Full message history
-- **Carbon Copies** - Multi-device synchronization
-- **Stream Management** - Connection resilience
-- **Push Notifications** - Mobile device support
-- **HTTP File Upload** - File sharing capabilities
-- **OMEMO Support** - End-to-end encryption
+## Key Features
 
-### Official Status-Based Module System
+### Modular Configuration
 
-- **🟢 Core Modules** - Essential XMPP functionality (always enabled)
-- **✅ Official Modules** - Distributed with Prosody (enabled by default)
-- **🟢 Community Stable** - Well-tested third-party modules (enabled by default)
-- **🟡 Community Beta** - Mostly stable third-party modules (opt-in)
-- **🟠 Community Alpha** - Experimental third-party modules (opt-in)
-- **Reliability-based configuration** - Clear distinction between official and community modules
+- **Focused Components** - Each file handles one responsibility
+- **Environment-Driven** - No rebuilds needed for changes
+- **Clear Structure** - Well-organized and documented
+- **Validation** - Configuration validation and error checking
+- **Conditional Loading** - Modules loaded based on environment
 
-### Enterprise-Grade Operations
+### Module Organization
 
-- **Multi-architecture support** (AMD64, ARM64, ARM)
-- **Database flexibility** (SQLite, PostgreSQL, MySQL)
-- **Monitoring integration** (Prometheus, Grafana)
-- **Automated backups** and recovery
-- **Health checks** and alerting
-- **Horizontal scaling** support
+Module categorization based on **official status** rather than stability:
 
-### Developer-Friendly
+```text
+modules.d/
+├── official/              # Distributed with Prosody
+│   └── official.cfg.lua   # MAM, carbons, smacks, websocket, etc.
+└── community/             # Third-party modules
+    ├── stable/            # Well-tested (firewall, spam_reporting)
+    │   ├── anti-spam.cfg.lua
+    │   ├── firewall.cfg.lua
+    │   ├── push-notifications.cfg.lua
+    │   ├── web-features.cfg.lua
+    │   └── monitoring.cfg.lua
+    ├── beta/              # Mostly stable (password_reset, sasl2)
+    └── alpha/             # Experimental (audit, json_logs)
+```
 
-- **Environment-driven configuration** - No rebuilds needed
-- **Modular architecture** - Easy customization
-- **Docker Compose** - One-command deployment
-- **Comprehensive documentation** - Clear setup guides
-- **Testing suite** - Validation and debugging
+### XMPP Features (25+ XEPs Implemented)
 
-## 🚀 Quick Start
+#### Core Communication
 
-### Prerequisites
+- **Message Archive Management (XEP-0313)** - Message history
+- **Carbon Copies (XEP-0280)** - Multi-device sync
+- **Stream Management (XEP-0198)** - Connection resilience
+- **Push Notifications (XEP-0357)** - Mobile support
 
-- Docker and Docker Compose
-- Domain name with DNS access
-- SSL certificates (Let's Encrypt recommended)
+#### Security & Privacy
 
-### Basic Deployment
+- **OMEMO Support (XEP-0384)** - End-to-end encryption
+- **SASL2 (XEP-0388)** - Updated authentication
+- **Channel Binding (XEP-0440)** - Security enhancement
+- **FAST (XEP-0484)** - Fast authentication
+
+#### Extensions
+
+- **HTTP File Upload (XEP-0363)** - File sharing
+- **WebSocket (RFC 7395)** - Web client support
+- **Server Info (XEP-0157)** - Service discovery
+- **vCard4 (XEP-0292)** - User profiles
+
+### Security Features
+
+- **TLS 1.3** - Current encryption standards
+- **Anti-Spam** - DNS blocklists, rate limiting, quarantine
+- **Firewall Protection** - Connection monitoring, abuse prevention
+- **Compliance** - XMPP Safeguarding 2025 compliant
+- **Audit Logging** - Security monitoring
+
+### Operations
+
+- **Multi-Architecture Docker** - AMD64, ARM64, ARM support
+- **Database Options** - SQLite, PostgreSQL, MySQL
+- **Monitoring** - Prometheus, Grafana support
+- **Backups** - Automated backup scripts
+- **Health Checks** - Monitoring and validation
+
+## Quick Start
+
+### 1. Basic Setup
 
 ```bash
-# Clone and configure
+# Clone the repository
 git clone https://github.com/allthingslinux/xmpp.atl.chat
-cd final
-cp .env.example .env
+cd xmpp.atl.chat
+
+# Configure environment
+cp examples/env.example .env
 # Edit .env with your domain and settings
 
 # Deploy
 docker-compose up -d
 
-# Check status
+# Verify deployment
 docker-compose ps
 docker-compose logs prosody
 ```
 
-### Advanced Deployment
+### 2. Create Your First User
 
 ```bash
-# Production with PostgreSQL and monitoring
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Create admin user
+docker-compose exec prosody prosodyctl adduser admin@yourdomain.com
 
-# Enterprise with clustering
-docker-compose -f docker-compose.yml -f docker-compose.enterprise.yml up -d
+# Create regular user
+docker-compose exec prosody prosodyctl adduser user@yourdomain.com
 ```
 
-## 📁 Directory Structure
+### 3. Connect & Test
 
-```text
-xmpp.atl.chat/
-├── README.md                    # This file
-├── docker/
-│   ├── Dockerfile              # Multi-stage optimized build
-│   ├── docker-compose.yml      # Basic deployment
-│   ├── docker-compose.prod.yml # Production deployment
-│   └── docker-compose.enterprise.yml # Enterprise deployment
-├── config/
-│   ├── prosody.cfg.lua         # Main configuration (includes core modules)
-│   ├── modules.d/              # Official status-based modular configuration
-│   │   ├── official/           # ✅ Official modules (distributed with Prosody)
-│   │   └── community/          # 🏗️ Community modules (third-party)
-│   │       ├── stable/         # 🟢 Stable community modules
-│   │       ├── beta/           # 🟡 Beta community modules
-│   │       └── alpha/          # 🟠 Alpha community modules
-│   ├── firewall/               # Firewall rules
-│   │   ├── anti-spam.pfw       # Anti-spam rules
-│   │   ├── rate-limit.pfw      # Rate limiting
-│   │   └── blacklist.pfw       # Blacklist rules
-│   └── templates/              # Configuration templates
-├── scripts/
-│   ├── setup.sh               # Initial setup script
-│   ├── backup.sh              # Backup script
-│   ├── restore.sh             # Restore script
-│   ├── health-check.sh        # Health monitoring
-│   └── deploy.sh              # Deployment script
-├── monitoring/
-│   ├── prometheus.yml         # Prometheus configuration
-│   ├── grafana/               # Grafana dashboards
-│   └── alerting/              # Alert rules
-├── tests/
-│   ├── unit/                  # Unit tests
-│   ├── integration/           # Integration tests
-│   └── e2e/                   # End-to-end tests
-├── docs/
-│   ├── DEPLOYMENT.md          # Deployment guide
-│   ├── CONFIGURATION.md       # Configuration reference
-│   ├── SECURITY.md            # Security guide
-│   ├── MONITORING.md          # Monitoring guide
-│   └── TROUBLESHOOTING.md     # Troubleshooting guide
-└── examples/
-    ├── .env.example           # Environment variables
-    ├── nginx.conf             # Nginx reverse proxy
-    └── systemd/               # Systemd services
-```
+Connect with any XMPP client:
 
-## 🔧 Configuration Profiles
+- **Server**: `yourdomain.com`
+- **Port**: `5222` (STARTTLS) or `5223` (Direct TLS)
+- **Username**: `admin@yourdomain.com`
+
+## Configuration Profiles
 
 ### Personal Server (1-50 users)
 
-- **Resources**: 64-128MB RAM, 1-2 CPU cores
+```bash
+# Minimal resource usage
+PROSODY_ENABLE_BETA=false
+PROSODY_ENABLE_ALPHA=false
+PROSODY_DB_DRIVER=SQLite3
+```
+
+- **Resources**: 64-128MB RAM, 1 CPU core
+- **Features**: Core + Official modules
 - **Database**: SQLite
-- **Features**: Core + Modern XMPP
-- **Deployment**: Docker Compose
 
 ### Community Server (50-500 users)
 
+```bash
+# Balanced features and performance
+PROSODY_ENABLE_BETA=true
+PROSODY_ENABLE_ALPHA=false
+PROSODY_DB_DRIVER=PostgreSQL
+```
+
 - **Resources**: 256-512MB RAM, 2-4 CPU cores
+- **Features**: All stable modules + monitoring
 - **Database**: PostgreSQL
-- **Features**: Full feature set + Anti-spam
-- **Deployment**: Docker + Monitoring
 
-### Enterprise Server (500+ users)
+### Production Server (500+ users)
 
-- **Resources**: 512MB-2GB RAM, 4-8 CPU cores
-- **Database**: PostgreSQL Cluster
-- **Features**: All features + Compliance
-- **Deployment**: Kubernetes/Docker Swarm
+```bash
+# Full feature set with monitoring
+PROSODY_ENABLE_BETA=true
+PROSODY_ENABLE_ALPHA=true
+PROSODY_MONITORING=true
+```
 
-## 🛡️ Security Features
+- **Resources**: 512MB-2GB RAM, 4+ CPU cores
+- **Features**: All modules + compliance + monitoring
+- **Database**: PostgreSQL cluster
 
-### Encryption
+## Environment Configuration
 
-- TLS 1.2+ mandatory for all connections
-- Modern cipher suites (ECDHE+AESGCM, ChaCha20)
-- Perfect Forward Secrecy
-- HSTS and security headers
+Key environment variables for customization:
 
-### Anti-Spam
+```bash
+# Domain Configuration
+PROSODY_DOMAIN=yourdomain.com
+PROSODY_ADMINS=admin@yourdomain.com
 
-- DNS blocklist integration (Spamhaus, xmppbl.org)
-- Real-time JID blocklists and server reputation
-- Rate limiting and connection throttling
-- User quarantine system
-- Registration controls and CAPTCHA
+# Module Control
+PROSODY_ENABLE_OFFICIAL=true      # Official Prosody modules
+PROSODY_ENABLE_SECURITY=true      # Security & anti-spam
+PROSODY_ENABLE_BETA=false         # Beta community modules
+PROSODY_ENABLE_ALPHA=false        # Alpha experimental modules
 
-### XMPP Safeguarding 2025 Compliance
+# Database
+PROSODY_DB_DRIVER=SQLite3         # SQLite3, PostgreSQL, MySQL
+PROSODY_DB_HOST=localhost
+PROSODY_DB_NAME=prosody
 
-- **TLS 1.3 support** with forward secrecy
-- **SASL channel binding** for enhanced authentication
-- **Stanza size limits** to prevent DoS attacks
-- **Comprehensive blocklists** for spam prevention
-- **DNS security** (DNSSEC, CAA, TLSA records)
-- **Abuse reporting** via XEP-0157
+# Security
+PROSODY_TLS_CERT_PATH=/etc/prosody/certs/
+PROSODY_REQUIRE_ENCRYPTION=true
+PROSODY_ENABLE_FIREWALL=true
 
-### Monitoring
+# Performance
+PROSODY_MAX_CLIENTS=1000
+PROSODY_RATE_LIMIT=10
+```
 
-- Failed authentication tracking
-- Suspicious activity detection
-- Real-time alerting
-- Audit logging
+## Project Structure
 
-## 📊 Monitoring & Observability
+```
+xmpp.atl.chat/
+├── README.md                    # This comprehensive guide
+├── docker/
+│   ├── Dockerfile               # Multi-stage optimized build
+│   └── docker-compose.yml       # Production-ready deployment
+├── config/                      # Modular configuration system
+│   ├── prosody.cfg.lua          # Main entry point (80 lines)
+│   ├── global.cfg.lua           # Global settings & admins
+│   ├── security.cfg.lua         # TLS & security policies
+│   ├── database.cfg.lua         # Storage configuration
+│   ├── modules.cfg.lua          # Module management
+│   ├── vhosts.cfg.lua           # Virtual hosts
+│   ├── components.cfg.lua       # XMPP components
+│   ├── README.md                # Configuration documentation
+│   ├── modules.d/               # Module configurations
+│   │   ├── official/            # Official Prosody modules
+│   │   └── community/           # Community modules by stability
+│   └── firewall/                # Firewall rules
+├── scripts/
+│   ├── entrypoint.sh            # Docker entrypoint
+│   ├── backup.sh                # Automated backups
+│   ├── deploy.sh                # Deployment automation
+│   └── health-check.sh          # Health monitoring
+├── docs/
+│   ├── QUICK_START.md           # Getting started guide
+│   ├── PROSODY_MODULES_ALIGNMENT.md      # Module organization
+│   └── PROSODY_MODULES_XEP_ANALYSIS.md   # XEP compliance analysis
+├── examples/
+│   └── env.example              # Environment template
+└── research/                    # Implementation research
+    ├── review/                  # 42+ implementation reviews
+    └── summary/                 # Analysis summaries
+```
 
-### Metrics
+## Security Features
+
+### Encryption & TLS
+
+- **TLS 1.3 Preferred** with fallback to TLS 1.2
+- **Perfect Forward Secrecy** with ECDHE key exchange
+- **Modern Cipher Suites** (ChaCha20-Poly1305, AES-GCM)
+- **Certificate Validation** with DANE/TLSA support
+
+### Anti-Spam Protection
+
+- **DNS Blocklists** (Spamhaus, xmppbl.org integration)
+- **Real-time JID Blocklists** with server reputation
+- **Rate Limiting** per IP and per user
+- **Registration Controls** with CAPTCHA support
+- **User Quarantine** for suspicious activity
+
+### Firewall & Access Control
+
+- **Connection Rate Limiting** - Prevent DoS attacks
+- **Stanza Size Limits** - Prevent resource exhaustion
+- **IP-based Filtering** - Geographic and reputation-based blocking
+- **Abuse Reporting** - XEP-0157 compliant reporting
+
+### Monitoring & Compliance
+
+- **XMPP Safeguarding 2025** compliance ready
+- **Audit Logging** for security events
+- **Failed Authentication Tracking**
+- **Real-time Security Alerts**
+
+## Monitoring & Observability
+
+### Built-in Metrics
 
 - Connection counts and rates
-- Message throughput
-- Error rates and latencies
-- Resource utilization
+- Message throughput and latency
+- Error rates and types
+- Resource utilization (CPU, memory, disk)
 
-### Dashboards
+### Prometheus Integration
+
+```bash
+# Enable monitoring
+PROSODY_MONITORING=true
+PROSODY_PROMETHEUS_PORT=9090
+```
+
+### Grafana Dashboards
 
 - Real-time server status
 - User activity patterns
 - Performance metrics
-- Security events
+- Security event tracking
 
-### Alerting
-
-- Service downtime
-- High error rates
-- Security incidents
-- Resource exhaustion
-
-## 🔄 Backup & Recovery
+## Backup & Recovery
 
 ### Automated Backups
 
-- Daily database backups
-- Configuration backups
-- Certificate backups
-- Retention policies
+```bash
+# Run backup
+./scripts/backup.sh
 
-### Recovery Procedures
+# Scheduled backups (add to crontab)
+0 2 * * * /path/to/xmpp.atl.chat/scripts/backup.sh
+```
 
-- Point-in-time recovery
-- Disaster recovery
-- Migration procedures
-- Testing protocols
+### What's Backed Up
 
-## 🤝 Contributing
+- **Database** - All user data and messages
+- **Configuration** - All config files
+- **Certificates** - TLS certificates and keys
+- **Logs** - Security and audit logs
 
-This setup is based on community best practices. Contributions welcome:
+## Advanced Deployment
 
-1. Fork the repository
-2. Create feature branch
-3. Test thoroughly
-4. Submit pull request
+### Production with PostgreSQL
 
-## 📄 License
+```bash
+# Production deployment with external database
+PROSODY_DB_DRIVER=PostgreSQL
+PROSODY_DB_HOST=your-postgres-server
+docker-compose up -d
+```
 
-MIT License - See LICENSE file for details
+### Load Balancer Configuration
 
-## 🙏 Acknowledgments
+```nginx
+upstream prosody_cluster {
+    server prosody1:5222;
+    server prosody2:5222;
+    server prosody3:5222;
+}
+```
 
-This setup incorporates best practices from:
+## Testing & Validation
 
-- SaraSmiseth/prosody - Security-first approach
-- prosody/prosody-docker - Official Docker patterns
-- prose-im/prose-pod-server - Enterprise architecture
-- ichuan/prosody - Anti-spam strategies
-- tobi312/prosody - Multi-architecture support
-- And 37+ other excellent implementations
+### Health Checks
 
-## 📞 Support
+```bash
+# Check server health
+./scripts/health-check.sh
 
-- Documentation: `docs/`
-- Issues: GitHub Issues
-- Community: XMPP MUC rooms
-- Security: <security@domain.com>
+# Validate configuration
+docker-compose exec prosody prosodyctl check config
+```
+
+### XEP Compliance Testing
+
+```bash
+# Test modern XMPP features
+prosodyctl check connectivity yourdomain.com
+```
+
+## Contributing
+
+We welcome contributions! This setup incorporates best practices from 42+ XMPP implementations.
+
+### Development Setup
+
+```bash
+# Fork and clone
+git clone https://github.com/yourusername/xmpp.atl.chat
+cd xmpp.atl.chat
+
+# Development environment
+cp examples/env.example .env.dev
+docker-compose up -d
+```
+
+### Contribution Guidelines
+
+1. **Fork** the repository
+2. **Create** a feature branch
+3. **Test** thoroughly with different configurations
+4. **Document** changes in relevant files
+5. **Submit** a pull request with clear description
+
+## License
+
+MIT License - See [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+This professional setup incorporates best practices from the XMPP community:
+
+- **[Prosody IM](https://prosody.im/)** - The amazing XMPP server
+- **[prosody-modules](https://modules.prosody.im/)** - Community module ecosystem
+- **42+ XMPP Implementations** - Research and analysis in `/research/`
+- **XMPP Standards Foundation** - XEP specifications and compliance
+
+---
+
+**Ready to deploy professional XMPP infrastructure?**
+
+[Get Started](#quick-start) • [Configuration Guide](config/README.md) • [XEP Analysis](docs/PROSODY_MODULES_XEP_ANALYSIS.md)

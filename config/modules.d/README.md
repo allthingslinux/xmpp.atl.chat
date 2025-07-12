@@ -8,7 +8,7 @@ This directory contains configuration files organized by **official status** for
 modules.d/
 ├── README.md                    # This file
 ├── official/                    # ✅ Official modules (distributed with Prosody)
-│   └── modules.cfg.lua         # Official modules configuration
+│   └── official.cfg.lua        # Official modules configuration
 └── community/                   # 🏗️ Community modules (third-party)
     ├── stable/                 # 🟢 Stable community modules
     │   ├── anti-spam.cfg.lua   # Anti-spam and abuse prevention
