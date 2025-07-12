@@ -141,11 +141,20 @@ end
 local function load_policy_configs()
 	print("Loading policy configurations...")
 
+	-- Load policies based on environment variables
+	local security_level = get_env_var("PROSODY_SECURITY_LEVEL", "baseline")
+	local performance_tier = get_env_var("PROSODY_PERFORMANCE_TIER", "medium")
+	local compliance_mode = get_env_var("PROSODY_COMPLIANCE", "")
+
 	local policy_configs = {
-		"/etc/prosody/policies/security.cfg.lua",
-		"/etc/prosody/policies/compliance.cfg.lua",
-		"/etc/prosody/policies/performance.cfg.lua",
+		"/etc/prosody/policies/security/" .. security_level .. ".cfg.lua",
+		"/etc/prosody/policies/performance/" .. performance_tier .. ".cfg.lua",
 	}
+
+	-- Add compliance policy if specified
+	if compliance_mode ~= "" then
+		table.insert(policy_configs, "/etc/prosody/policies/compliance/" .. compliance_mode .. ".cfg.lua")
+	end
 
 	for _, config in ipairs(policy_configs) do
 		local file = io.open(config, "r")
@@ -153,6 +162,8 @@ local function load_policy_configs()
 			file:close()
 			print("Loading: " .. config)
 			Include(config)
+		else
+			print("Warning: Policy file not found: " .. config)
 		end
 	end
 end
