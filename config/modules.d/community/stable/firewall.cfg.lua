@@ -26,4 +26,4 @@ max_connections_per_ip = tonumber(os.getenv("PROSODY_MAX_CONNECTIONS_PER_IP")) o
 -- Failed authentication tracking
 track_failed_auths = true
 failed_auth_threshold = tonumber(os.getenv("PROSODY_FAILED_AUTH_THRESHOLD")) or 5
-failed_auth_window = tonumber(os.getenv("PROSODY_FAILED_AUTH_WINDOW")) or 300 -- 5 minutes 
+failed_auth_window = tonumber(os.getenv("PROSODY_FAILED_AUTH_WINDOW")) or 300 -- 5 minutes

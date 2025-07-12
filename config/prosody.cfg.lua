@@ -25,22 +25,22 @@
 -- ============================================================================
 
 -- Global configuration (admins, performance, logging)
-Include "/etc/prosody/global.cfg.lua"
+Include("/etc/prosody/global.cfg.lua")
 
 -- Security configuration (TLS, authentication, firewall)
-Include "/etc/prosody/security.cfg.lua"
+Include("/etc/prosody/security.cfg.lua")
 
 -- Database configuration (storage backends, connections)
-Include "/etc/prosody/database.cfg.lua"
+Include("/etc/prosody/database.cfg.lua")
 
 -- Module management (loading logic, stability tracking)
-Include "/etc/prosody/modules.cfg.lua"
+Include("/etc/prosody/modules.cfg.lua")
 
 -- Virtual hosts configuration (domain settings, SSL)
-Include "/etc/prosody/vhosts.cfg.lua"
+Include("/etc/prosody/vhosts.cfg.lua")
 
 -- Components configuration (MUC, PubSub, HTTP services)
-Include "/etc/prosody/components.cfg.lua"
+Include("/etc/prosody/components.cfg.lua")
 
 -- ============================================================================
 -- CONFIGURATION VALIDATION
@@ -48,25 +48,25 @@ Include "/etc/prosody/components.cfg.lua"
 
 -- Validate critical configuration on startup
 local function validate_configuration()
-    -- Check if domain is properly set
-    local domain = os.getenv("PROSODY_DOMAIN")
-    if not domain or domain == "localhost" then
-        module:log("warn", "PROSODY_DOMAIN not set or using default 'localhost'")
-        module:log("warn", "Please set PROSODY_DOMAIN environment variable for production use")
-    end
-    
-    -- Check if admins are configured
-    if #admins == 0 then
-        module:log("warn", "No administrators configured")
-        module:log("warn", "Please set PROSODY_ADMINS environment variable")
-    end
-    
-    -- Log configuration summary
-    module:log("info", "Prosody XMPP Server Configuration Loaded")
-    module:log("info", "Domain: %s", domain or "localhost")
-    module:log("info", "Administrators: %d", #admins)
-    module:log("info", "Storage backend: %s", default_storage or "unknown")
-    module:log("info", "Security features: %s", os.getenv("PROSODY_ENABLE_SECURITY") ~= "false" and "enabled" or "disabled")
+	-- Check if domain is properly set
+	local domain = os.getenv("PROSODY_DOMAIN")
+	if not domain or domain == "localhost" then
+		log("warn", "PROSODY_DOMAIN not set or using default 'localhost'")
+		log("warn", "Please set PROSODY_DOMAIN environment variable for production use")
+	end
+
+	-- Check if admins are configured
+	if #admins == 0 then
+		log("warn", "No administrators configured")
+		log("warn", "Please set PROSODY_ADMINS environment variable")
+	end
+
+	-- Log configuration summary
+	log("info", "Prosody XMPP Server Configuration Loaded")
+	log("info", "Domain: %s", domain or "localhost")
+	log("info", "Administrators: %d", #admins)
+	log("info", "Storage backend: %s", default_storage or "unknown")
+	log("info", "Security features: %s", os.getenv("PROSODY_ENABLE_SECURITY") ~= "false" and "enabled" or "disabled")
 end
 
 -- Call validation on startup
@@ -90,4 +90,4 @@ validate_configuration()
 -- - config/modules.d/README.md - Module organization documentation
 -- - examples/env.example - Environment variable reference
 --
--- ============================================================================ 
+-- ============================================================================

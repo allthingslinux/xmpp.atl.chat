@@ -15,7 +15,7 @@ measure_cpu_threshold = tonumber(os.getenv("PROSODY_CPU_THRESHOLD")) or 80
 
 -- Memory usage monitoring
 measure_memory_interval = tonumber(os.getenv("PROSODY_MEMORY_MEASURE_INTERVAL")) or 60
-measure_memory_threshold = tonumber(os.getenv("PROSODY_MEMORY_THRESHOLD")) or 512*1024*1024 -- 512MB
+measure_memory_threshold = tonumber(os.getenv("PROSODY_MEMORY_THRESHOLD")) or 512 * 1024 * 1024 -- 512MB
 
 -- End-to-end message metrics (PRIVACY SENSITIVE)
 measure_message_e2e_track_presence = os.getenv("PROSODY_E2E_TRACK_PRESENCE") == "true"
@@ -62,6 +62,6 @@ compliance_gdpr_mode = os.getenv("PROSODY_COMPLIANCE_GDPR") == "true"
 -- ============================================================================
 
 -- Log warning about experimental features
-module:log("warn", "Alpha/Experimental modules are enabled. Use with caution in production!")
-module:log("warn", "These features may have bugs, performance issues, or breaking changes.")
-module:log("info", "Alpha modules: measure_cpu, measure_memory, measure_message_e2e, json_logs, audit, compliance_policy") 
+log("warn", "Alpha/Experimental modules are enabled. Use with caution in production!")
+log("warn", "These features may have bugs, performance issues, or breaking changes.")
+log("info", "Alpha modules: measure_cpu, measure_memory, measure_message_e2e, json_logs, audit, compliance_policy")

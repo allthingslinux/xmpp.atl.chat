@@ -44,4 +44,4 @@ sasl_ssdp_strict_mode = os.getenv("PROSODY_SASL_SSDP_STRICT") == "true"
 
 -- Instant stream resumption for faster reconnection
 isr_enable = os.getenv("PROSODY_ENABLE_ISR") == "true"
-isr_token_lifetime = tonumber(os.getenv("PROSODY_ISR_TOKEN_LIFETIME")) or 3600 -- 1 hour 
+isr_token_lifetime = tonumber(os.getenv("PROSODY_ISR_TOKEN_LIFETIME")) or 3600 -- 1 hour

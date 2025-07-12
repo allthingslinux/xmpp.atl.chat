@@ -47,16 +47,16 @@ extdisco_enable = os.getenv("PROSODY_ENABLE_EXTDISCO") == "true"
 
 -- External services configuration
 extdisco_services = {
-    {
-        type = "stun",
-        host = os.getenv("PROSODY_STUN_HOST") or "stun.example.com",
-        port = tonumber(os.getenv("PROSODY_STUN_PORT")) or 3478,
-    },
-    {
-        type = "turn",
-        host = os.getenv("PROSODY_TURN_HOST") or "turn.example.com",
-        port = tonumber(os.getenv("PROSODY_TURN_PORT")) or 3478,
-        username = os.getenv("PROSODY_TURN_USERNAME"),
-        password = os.getenv("PROSODY_TURN_PASSWORD"),
-    }
-} 
+	{
+		type = "stun",
+		host = os.getenv("PROSODY_STUN_HOST") or "stun.example.com",
+		port = tonumber(os.getenv("PROSODY_STUN_PORT")) or 3478,
+	},
+	{
+		type = "turn",
+		host = os.getenv("PROSODY_TURN_HOST") or "turn.example.com",
+		port = tonumber(os.getenv("PROSODY_TURN_PORT")) or 3478,
+		username = os.getenv("PROSODY_TURN_USERNAME"),
+		password = os.getenv("PROSODY_TURN_PASSWORD"),
+	},
+}

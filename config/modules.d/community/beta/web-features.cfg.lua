@@ -28,4 +28,4 @@ http_altconnect_file = "/etc/prosody/host-meta.json"
 -- ============================================================================
 
 -- Publish server information via PubSub
-pubsub_serverinfo_node = "urn:xmpp:serverinfo:0" 
+pubsub_serverinfo_node = "urn:xmpp:serverinfo:0"

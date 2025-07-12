@@ -31,12 +31,12 @@ block_registrations_message = "Registration is currently disabled"
 
 -- DNS blocklist providers (XMPP Safeguarding Manifesto compliant)
 blocklist_providers = {
-    "zen.spamhaus.org",
-    "sbl.spamhaus.org",
-    "pbl.spamhaus.org",
-    "bl.spamcop.net",
-    "dnsbl.sorbs.net",
-    "xmppbl.org"
+	"zen.spamhaus.org",
+	"sbl.spamhaus.org",
+	"pbl.spamhaus.org",
+	"bl.spamcop.net",
+	"dnsbl.sorbs.net",
+	"xmppbl.org",
 }
 
 -- Local blocklist file
@@ -46,4 +46,4 @@ blocklist_file = "/etc/prosody/blocklist.txt"
 -- USER TOMBSTONES
 -- ============================================================================
 
--- Tombstone expiry is configured in global.cfg.lua 
+-- Tombstone expiry is configured in global.cfg.lua

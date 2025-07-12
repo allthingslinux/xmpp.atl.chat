@@ -17,4 +17,4 @@ cloud_notify_priority_threshold = tonumber(os.getenv("PROSODY_CLOUD_NOTIFY_PRIOR
 -- ANTI-MIMICKING (BETA SECURITY)
 -- ============================================================================
 
--- Username similarity detection is configured in core.cfg.lua 
+-- Username similarity detection is configured in core.cfg.lua

@@ -32,4 +32,4 @@ offline_hints_respect_no_copy = os.getenv("PROSODY_RESPECT_NO_COPY") ~= "false"
 
 -- Enhanced vCard with vCard4 support and PEP integration
 profile_vcard4_support = os.getenv("PROSODY_VCARD4_SUPPORT") ~= "false"
-profile_pep_integration = os.getenv("PROSODY_PROFILE_PEP") ~= "false" 
+profile_pep_integration = os.getenv("PROSODY_PROFILE_PEP") ~= "false"

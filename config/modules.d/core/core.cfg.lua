@@ -4,7 +4,7 @@
 -- Status: ✅ Core (Shipped with Prosody)
 -- Stability: 🟢 Stable (Production Ready)
 -- Risk: Low - Officially maintained and tested
--- 
+--
 -- This file contains configuration for all modules shipped with Prosody,
 -- including required, autoloaded, and distributed modules.
 
@@ -159,4 +159,4 @@ openmetrics_allow_cidr = os.getenv("PROSODY_METRICS_ALLOW_CIDR") or "127.0.0.1/8
 openmetrics_allow_ips = { "127.0.0.1", "::1" }
 
 -- Statistics collection
-statistics_interval = tonumber(os.getenv("PROSODY_STATS_INTERVAL")) or 60 
+statistics_interval = tonumber(os.getenv("PROSODY_STATS_INTERVAL")) or 60
