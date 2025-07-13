@@ -48,8 +48,8 @@ services:
       - '${PROSODY_S2S_PORT:-5269}:5269'        # Server connections
       - '${PROSODY_C2S_DIRECT_TLS_PORT:-5223}:5223'  # Client connections (Direct TLS)
       - '${PROSODY_S2S_DIRECT_TLS_PORT:-5270}:5270'  # Server connections (Direct TLS)
-      - '${PROSODY_HTTP_PORT:-5280}:5280'       # HTTP (BOSH/WebSocket/Admin)
-      - '${PROSODY_HTTPS_PORT:-5281}:5281'      # HTTPS (BOSH/WebSocket/Admin)
+      - '${PROSODY_HTTP_PORT:-5280}:5280'       # HTTP services (WebSocket, BOSH, upload, admin)
+      - '${PROSODY_HTTPS_PORT:-5281}:5281'      # HTTPS services (secure web services)
 
     # Volume mounts
     volumes:

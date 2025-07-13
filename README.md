@@ -150,7 +150,21 @@ docker-compose up -d prometheus grafana node-exporter
 
 Once deployed, access your services:
 
-- **XMPP Admin**: `https://yourdomain.com:5281/admin`
+#### 📱 **XMPP Client Connections**
+
+- **Traditional clients** (Gajim, Pidgin): `yourdomain.com:5222` (STARTTLS) or `yourdomain.com:5223` (Direct TLS)
+- **Web clients** (Converse.js, etc.): WebSocket `wss://yourdomain.com:5281/xmpp-websocket`
+- **Legacy web clients**: BOSH `https://yourdomain.com:5281/http-bind`
+
+#### 🌐 **Web Services**
+
+- **XMPP Admin Interface**: `https://yourdomain.com:5281/admin`
+- **File Upload/Share**: `https://yourdomain.com:5281/upload`
+- **Health Check**: `https://yourdomain.com:5280/health`
+- **Metrics**: `https://yourdomain.com:5281/metrics`
+
+#### 📊 **Monitoring** (when enabled)
+
 - **Grafana Dashboard**: `http://localhost:3000` (admin / see env file)
 - **Prometheus Metrics**: `http://localhost:9090`
 - **TURN Server**: `yourdomain.com:3478` (configured automatically)
