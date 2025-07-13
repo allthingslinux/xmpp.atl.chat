@@ -131,4 +131,4 @@ docs/
 
 ---
 
-*This documentation is maintained by the XMPP server community. Last updated: 2024*
+*This documentation is maintained by AllThingsLinux. Last updated: 2024*
