@@ -161,7 +161,7 @@ RUN mkdir -p /usr/lib/prosody/community-modules &&
     chown -R prosody:prosody /usr/lib/prosody/community-modules/ 2>/dev/null || true
 
 # Copy configuration files
-COPY config/ /etc/prosody/custom/
+COPY config/ /etc/prosody/config/
 
 # Copy scripts
 COPY scripts/entrypoint.sh /opt/prosody/scripts/
