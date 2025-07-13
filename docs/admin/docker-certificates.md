@@ -96,8 +96,30 @@ Add a renewal service to your Docker Compose:
 Run renewal with:
 
 ```bash
-docker-compose --profile renewal up certbot
+docker-compose --profile renewal up certbot-renew
 ```
+
+### Simple Automated Setup
+
+For the easiest automated renewal setup:
+
+```bash
+# One-time setup: Add automated renewal to crontab
+(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+
+# Test the renewal process
+./scripts/renew-certificates.sh
+
+# Check renewal logs
+tail -f /var/log/prosody-cert-renewal.log
+```
+
+**Benefits:**
+
+- ✅ Automatic certificate renewal every day at 3 AM
+- ✅ Automatic Prosody reload when certificates are renewed
+- ✅ Comprehensive logging and error handling
+- ✅ Only renews when certificates are close to expiry (Let's Encrypt handles this)
 
 ## Method 2: Manual Certificate Placement
 

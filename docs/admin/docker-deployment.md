@@ -228,19 +228,37 @@ deploy:
 
 ### Certificate Renewal
 
-1. **Automated renewal** (for Let's Encrypt):
+#### Automated Renewal (Recommended)
 
-   ```bash
-   # Add to crontab
-   0 3 * * * cd /path/to/xmpp.atl.chat && docker-compose --profile renewal up certbot-renew
-   ```
+**Option 1: Using the renewal script** (simplest):
 
-2. **Manual renewal**:
+```bash
+# Set up automated renewal (run once)
+(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 
-   ```bash
-   docker-compose --profile letsencrypt run --rm certbot
-   docker-compose restart prosody
-   ```
+# Test the renewal script
+./scripts/renew-certificates.sh --help
+./scripts/renew-certificates.sh  # Run manually to test
+```
+
+**Option 2: Direct Docker commands**:
+
+```bash
+# Add to crontab
+0 3 * * * cd /path/to/xmpp.atl.chat && docker-compose --profile renewal run --rm certbot-renew && docker-compose restart prosody
+```
+
+#### Manual Renewal
+
+```bash
+# Renew certificates manually
+docker-compose --profile letsencrypt run --rm certbot
+docker-compose restart prosody
+
+# Check certificate expiration
+docker run --rm -v prosody_certs:/certs debian:bookworm-slim \
+  openssl x509 -in /certs/atl.chat.crt -noout -dates
+```
 
 ### Backup Strategy
 

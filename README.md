@@ -30,6 +30,9 @@ cp examples/env.example .env
 docker-compose --profile letsencrypt run --rm certbot  # Let's Encrypt
 # OR copy your existing certificate to the volume
 
+# Set up automatic certificate renewal (recommended)
+(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+
 # Deploy the server
 docker-compose up -d prosody db
 
@@ -205,7 +208,7 @@ The **`prosody-manager`** script provides comprehensive server management:
 
 - **`scripts/entrypoint.sh`** - Docker container initialization
 - **`scripts/generate-dhparam.sh`** - DH parameter generation for TLS
-
+- **`scripts/renew-certificates.sh`** - Automated certificate renewal with Prosody reload
 - **`scripts/init-db.sql`** - PostgreSQL database initialization
 
 ## 🤝 Contributing
