@@ -267,8 +267,13 @@ http_default_host = os.getenv("PROSODY_DOMAIN") or "localhost"
 http_external_url = "https://" .. (os.getenv("PROSODY_DOMAIN") or "localhost") .. "/"
 
 -- Security interfaces (production best practice)
-http_interfaces = { "127.0.0.1", "::1" } -- HTTP only on localhost
+http_interfaces = { "*", "::" } -- HTTP accessible from internet for Let's Encrypt
 https_interfaces = { "*", "::" } -- HTTPS on all interfaces
+
+-- Let's Encrypt webroot configuration
+http_files = {
+	["/.well-known/acme-challenge/"] = "/var/www/certbot/.well-known/acme-challenge/",
+}
 
 -- Trusted proxies for X-Forwarded-For headers (WebSocket/BOSH proxies)
 trusted_proxies = {
