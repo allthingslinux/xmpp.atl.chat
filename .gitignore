@@ -2,3 +2,11 @@
 prosody-hg
 prosody-modules
 research/
+
+# Runtime data directories (local bind mounts)
+logs/
+certs/
+letsencrypt-webroot/
+
+# Environment configuration
+.env

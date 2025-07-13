@@ -60,14 +60,14 @@ services:
       - prosody_data:/var/lib/prosody/data
       - prosody_uploads:/var/lib/prosody/uploads
 
-      # SSL certificates
-      - prosody_certs:/etc/prosody/certs
+      # SSL certificates (local directory for easier management)
+      - ./certs:/etc/prosody/certs
 
       # Scripts (for certificate management)
       - ./scripts:/opt/prosody/scripts:ro
 
-      # Logs
-      - prosody_logs:/var/log/prosody
+      # Logs (local directory for easier access)
+      - ./logs:/var/log/prosody
 
     # Health check
     healthcheck:
@@ -326,7 +326,7 @@ services:
     image: certbot/certbot:latest
     container_name: prosody-certbot
     volumes:
-      - prosody_certs:/etc/letsencrypt
+      - ./certs:/etc/letsencrypt
       - ./letsencrypt-webroot:/var/www/certbot
     environment:
       - PROSODY_DOMAIN=${PROSODY_DOMAIN:-atl.chat}
@@ -351,7 +351,7 @@ services:
     image: certbot/certbot:latest
     container_name: prosody-certbot-renew
     volumes:
-      - prosody_certs:/etc/letsencrypt
+      - ./certs:/etc/letsencrypt
       - ./letsencrypt-webroot:/var/www/certbot
     command: renew --quiet
     profiles:
@@ -366,10 +366,6 @@ volumes:
   prosody_data:
     driver: local
   prosody_uploads:
-    driver: local
-  prosody_certs:
-    driver: local
-  prosody_logs:
     driver: local
   postgres_data:
     driver: local
