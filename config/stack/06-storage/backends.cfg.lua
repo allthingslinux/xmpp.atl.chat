@@ -20,7 +20,7 @@ local storage_backends = {
 	-- Memory Storage
 	-- High-performance in-memory storage
 	memory_storage = {
-		"storage_memory", -- In-memory storage (community)
+		-- "storage_memory", -- In-memory storage (core - not needed to explicitly enable)
 	},
 
 	-- Archive Storage
