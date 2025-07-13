@@ -59,83 +59,83 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
     dumb-init \
-    gosu &&
+    gosu && \
     rm -rf /var/lib/apt/lists/*
 
 # Create prosody user and directories
-RUN groupadd -r prosody && useradd -r -g prosody prosody &&
-    mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody &&
+RUN groupadd -r prosody && useradd -r -g prosody prosody && \
+    mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody && \
     chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody
 
 # Download and install latest Prosody
-RUN PROSODY_VERSION=$(curl -s https://api.github.com/repos/bjc/prosody/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4) &&
-    curl -L "https://github.com/bjc/prosody/archive/${PROSODY_VERSION}.tar.gz" | tar -xz &&
-    cd prosody-* &&
+RUN PROSODY_VERSION=$(curl -s https://api.github.com/repos/bjc/prosody/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4) && \
+    curl -L "https://github.com/bjc/prosody/archive/${PROSODY_VERSION}.tar.gz" | tar -xz && \
+    cd prosody-* && \
     ./configure \
-        --prefix=/usr/local \
-        --sysconfdir=/etc/prosody \
-        --datadir=/var/lib/prosody \
-        --with-lua=/usr \
-        --runwith=lua5.4 \
-        --no-example-certs &&
-    make &&
-    make install &&
-    cd .. &&
+    --prefix=/usr/local \
+    --sysconfdir=/etc/prosody \
+    --datadir=/var/lib/prosody \
+    --with-lua=/usr \
+    --runwith=lua5.4 \
+    --no-example-certs && \
+    make && \
+    make install && \
+    cd .. && \
     rm -rf prosody-*
 
 # Copy community modules from builder stage
 COPY --from=builder /opt/prosody-modules /opt/prosody-modules
 
 # Install community modules
-RUN cd /opt/prosody-modules &&
+RUN cd /opt/prosody-modules && \
     for module in \
-        mod_pastebin \
-        mod_http_openmetrics \
-        mod_cloud_notify \
-        mod_smacks \
-        mod_csi_simple \
-        mod_csi_battery_saver \
-        mod_filter_chatstates \
-        mod_spam_reporting \
-        mod_measure_client_connections \
-        mod_measure_stanza_counts \
-        mod_measure_message_e2ee \
-        mod_stanza_counter \
-        mod_watchregistrations \
-        mod_tombstones \
-        mod_server_contact_info \
-        mod_register_limits \
-        mod_flags \
-        mod_s2s_auth_dane_in \
-        mod_user_account_management \
-        mod_account_activity \
-        mod_extdisco \
-        mod_turncredentials \
-        mod_external_services \
-        mod_http_altconnect \
-        mod_compression \
-        mod_bookmarks \
-        mod_vcard4 \
-        mod_vcard_legacy \
-        mod_http_file_share \
-        mod_proxy65 \
-        mod_muc_mam \
-        mod_muc_unique \
-        mod_addressing \
-        mod_receipts \
-        mod_blocklist \
-        mod_privacy \
-        mod_limits \
-        mod_firewall \
-        mod_admin_web \
-        mod_statistics \
-        mod_watchdog \
-        mod_uptime \
-        mod_posix \
-        mod_register_ibr; do
-        if [ -d "$module" ]; then
-            cp -r "$module" /usr/local/lib/prosody/modules/ || true
-        fi
+    mod_pastebin \
+    mod_http_openmetrics \
+    mod_cloud_notify \
+    mod_smacks \
+    mod_csi_simple \
+    mod_csi_battery_saver \
+    mod_filter_chatstates \
+    mod_spam_reporting \
+    mod_measure_client_connections \
+    mod_measure_stanza_counts \
+    mod_measure_message_e2ee \
+    mod_stanza_counter \
+    mod_watchregistrations \
+    mod_tombstones \
+    mod_server_contact_info \
+    mod_register_limits \
+    mod_flags \
+    mod_s2s_auth_dane_in \
+    mod_user_account_management \
+    mod_account_activity \
+    mod_extdisco \
+    mod_turncredentials \
+    mod_external_services \
+    mod_http_altconnect \
+    mod_compression \
+    mod_bookmarks \
+    mod_vcard4 \
+    mod_vcard_legacy \
+    mod_http_file_share \
+    mod_proxy65 \
+    mod_muc_mam \
+    mod_muc_unique \
+    mod_addressing \
+    mod_receipts \
+    mod_blocklist \
+    mod_privacy \
+    mod_limits \
+    mod_firewall \
+    mod_admin_web \
+    mod_statistics \
+    mod_watchdog \
+    mod_uptime \
+    mod_posix \
+    mod_register_ibr; do \
+    if [ -d "$module" ]; then \
+    cp -r "$module" /usr/local/lib/prosody/modules/ || true; \
+    fi; \
     done
 
 # Create necessary directories and set permissions
@@ -145,12 +145,12 @@ RUN mkdir -p \
     /var/log/prosody \
     /var/run/prosody \
     /var/www/certbot/.well-known/acme-challenge \
-    /certs &&
+    /certs && \
     chown -R prosody:prosody \
-        /var/lib/prosody \
-        /var/log/prosody \
-        /var/run/prosody \
-        /certs &&
+    /var/lib/prosody \
+    /var/log/prosody \
+    /var/run/prosody \
+    /certs && \
     chmod 755 /var/www/certbot/.well-known/acme-challenge
 
 # Copy configuration files
@@ -165,7 +165,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh \
     /usr/local/bin/prosody-manager
 
 # Set ownership for configuration
-RUN chown root:prosody /etc/prosody/prosody.cfg.lua &&
+RUN chown root:prosody /etc/prosody/prosody.cfg.lua && \
     chmod 640 /etc/prosody/prosody.cfg.lua
 
 # Expose ports
