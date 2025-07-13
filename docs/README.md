@@ -24,13 +24,10 @@ Production deployment and management guides:
 
 | Guide | Description |
 |-------|-------------|
-| **[Docker Deployment](admin/docker-deployment-guide.md)** | Production Docker setup |
-| **[Certificate Management](admin/certificate-management.md)** | SSL/TLS certificates with Let's Encrypt |
-| **[Security Hardening](admin/security.md)** | Security features and best practices |
-| **[WebSocket Configuration](admin/websocket-configuration.md)** | Reverse proxy and WebSocket setup |
-| **[Prosodyctl Management](admin/prosodyctl-management.md)** | Server management with prosodyctl |
-| **[Port Configuration](admin/port-configuration-guide.md)** | Network ports and firewall setup |
-| **[DNS Setup](admin/dns-setup.md)** | DNS records and domain configuration |
+| **[Administrator Guide](admin/README.md)** | Essential admin documentation and CLI tool |
+| **[DNS Setup](admin/dns-setup.md)** | Required DNS records and security |
+| **[Certificate Management](admin/certificate-management.md)** | SSL/TLS certificates and Let's Encrypt |
+| **[Security Hardening](admin/security.md)** | Production security configuration |
 
 ## 💻 For Developers
 
