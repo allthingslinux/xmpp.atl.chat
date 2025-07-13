@@ -270,10 +270,20 @@ http_external_url = "https://" .. (os.getenv("PROSODY_DOMAIN") or "localhost") .
 http_interfaces = { "*", "::" } -- HTTP accessible from internet for Let's Encrypt
 https_interfaces = { "*", "::" } -- HTTPS on all interfaces
 
--- Let's Encrypt webroot configuration
+-- HTTP static file serving configuration
+-- Let's Encrypt webroot (required for certificate validation)
 http_files = {
 	["/.well-known/acme-challenge/"] = "/var/www/certbot/.well-known/acme-challenge/",
 }
+
+-- Optional: Additional static file serving
+-- Configure via PROSODY_HTTP_FILES_DIR environment variable
+if os.getenv("PROSODY_HTTP_FILES_DIR") then
+	http_files_dir = os.getenv("PROSODY_HTTP_FILES_DIR")
+	http_index_files = { "index.html", "index.htm" }
+	http_dir_listing = (os.getenv("PROSODY_HTTP_DIR_LISTING") == "true")
+	log("info", "HTTP static files enabled: %s", http_files_dir)
+end
 
 -- Trusted proxies for X-Forwarded-For headers (WebSocket/BOSH proxies)
 trusted_proxies = {
