@@ -21,10 +21,8 @@ This is a **professional-grade Prosody XMPP server** featuring a **single, opini
 └── README.md          # Configuration documentation
 
 🐳 docker/
-├── docker-compose.yml          # Production-ready deployment
-├── docker-compose.monitoring.yml  # Optional: Prometheus + Grafana
-├── docker-compose.turn.yml       # Optional: TURN/STUN for voice/video
-└── Dockerfile                   # Optimized container build
+├── docker-compose.yml  # Single comprehensive deployment
+└── Dockerfile         # Optimized container build
 ```
 
 ### ✨ What's Included
@@ -101,44 +99,61 @@ Connect with any XMPP client:
 - **File Upload**: `https://yourdomain.com:5281/upload`
 - **WebSocket**: `wss://yourdomain.com:5281/xmpp-websocket`
 
-## 🔧 Optional Services
+## 🔧 Deployment Options
 
-### 📊 Monitoring Stack (Optional)
+### 🚀 Full Deployment (Recommended)
 
-Add Prometheus and Grafana monitoring:
-
-```bash
-# Deploy with monitoring
-docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
-
-# Access Grafana dashboard
-open http://localhost:3000
-# Default login: admin / (see GRAFANA_ADMIN_PASSWORD in .env)
-```
-
-### 📞 TURN/STUN Server (Optional)
-
-Add voice/video call support:
+Deploy all services for a complete XMPP solution:
 
 ```bash
-# Deploy with TURN server
-docker-compose -f docker-compose.yml -f docker-compose.turn.yml up -d
+# All services: XMPP + Database + Monitoring + TURN/STUN
+docker-compose up -d
 
-# TURN server will be available at turn.yourdomain.com:3478
+# Check all services
+docker-compose ps
 ```
 
-### 🔄 Full Deployment
+This includes:
 
-Deploy everything at once:
+- **Prosody XMPP server** with PostgreSQL database
+- **Monitoring stack** (Prometheus + Grafana + Node Exporter)
+- **TURN/STUN server** for voice/video calls
+
+### 🎯 Minimal Deployment
+
+Deploy only essential XMPP services:
 
 ```bash
-# All services: XMPP + Database + Monitoring + TURN
-docker-compose \
-  -f docker-compose.yml \
-  -f docker-compose.monitoring.yml \
-  -f docker-compose.turn.yml \
-  up -d
+# Just XMPP server and database
+docker-compose up -d prosody db
+
+# Check status
+docker-compose logs -f prosody
 ```
+
+### 📊 Custom Service Selection
+
+Choose specific services to deploy:
+
+```bash
+# XMPP + Database + Monitoring only
+docker-compose up -d prosody db prometheus grafana
+
+# XMPP + Database + TURN server only  
+docker-compose up -d prosody db coturn
+
+# Add monitoring to existing deployment
+docker-compose up -d prometheus grafana node-exporter
+```
+
+### 🌐 Service Access
+
+Once deployed, access your services:
+
+- **XMPP Admin**: `https://yourdomain.com:5281/admin`
+- **Grafana Dashboard**: `http://localhost:3000` (admin / see env file)
+- **Prometheus Metrics**: `http://localhost:9090`
+- **TURN Server**: `yourdomain.com:3478` (configured automatically)
 
 ## 🎯 Configuration Philosophy
 

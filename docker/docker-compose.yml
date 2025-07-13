@@ -1,8 +1,8 @@
 version: '3.8'
 
 # Professional Prosody XMPP Server
-# Production-ready single-profile deployment
-# Matches the simplified prosody.cfg.lua configuration
+# Complete single-file deployment with all services
+# Includes XMPP server, database, monitoring, and TURN/STUN server
 
 services:
   # ============================================================================
@@ -181,6 +181,166 @@ services:
     networks:
       - prosody_network
 
+  # ============================================================================
+  # COTURN - TURN/STUN SERVER (for voice/video calls)
+  # ============================================================================
+  coturn:
+    image: coturn/coturn:latest
+    container_name: prosody-coturn
+    restart: unless-stopped
+    
+    ports:
+      # STUN/TURN ports
+      - '${TURN_PORT:-3478}:3478'
+      - '${TURN_PORT:-3478}:3478/udp'
+      - '${TURNS_PORT:-5349}:5349'
+      - '${TURNS_PORT:-5349}:5349/udp'
+      # Relay ports range
+      - '${TURN_MIN_PORT:-49152}-${TURN_MAX_PORT:-65535}:49152-65535/udp'
+    
+    environment:
+      # Basic configuration
+      - TURN_DOMAIN=${PROSODY_DOMAIN:-localhost}
+      - TURN_REALM=${PROSODY_DOMAIN:-localhost}
+      
+      # Authentication
+      - TURN_USERNAME=${TURN_USERNAME:-prosody}
+      - TURN_PASSWORD=${TURN_PASSWORD:-changeme}
+      - TURN_SECRET=${TURN_SECRET:-changeme}
+      
+      # Security settings
+      - TURN_NO_LOOPBACK_PEERS=true
+      - TURN_NO_MULTICAST_PEERS=true
+      - TURN_STALE_NONCE=true
+      - TURN_SECURE_STUN=true
+      
+      # Logging
+      - TURN_LOG_FILE=stdout
+      - TURN_VERBOSE=false
+    
+    volumes:
+      - coturn_data:/var/lib/coturn
+    
+    command: >
+      turnserver
+        --listening-port=3478
+        --tls-listening-port=5349
+        --min-port=49152
+        --max-port=65535
+        --realm=${TURN_REALM:-localhost}
+        --server-name=${TURN_DOMAIN:-localhost}
+        --lt-cred-mech
+        --user=${TURN_USERNAME:-prosody}:${TURN_PASSWORD:-changeme}
+        --use-auth-secret
+        --static-auth-secret=${TURN_SECRET:-changeme}
+        --no-loopback-peers
+        --no-multicast-peers
+        --mobility
+        --no-cli
+        --no-tlsv1
+        --no-tlsv1_1
+        --cipher-list=ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS
+        --no-sslv2
+        --no-sslv3
+        --log-file=stdout
+        --simple-log
+    
+    networks:
+      - prosody_network
+    
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '1.0'
+        reservations:
+          memory: 64M
+          cpus: '0.25'
+
+  # ============================================================================
+  # PROMETHEUS - METRICS COLLECTION
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prosody-prometheus
+    restart: unless-stopped
+    
+    ports:
+      - '${PROMETHEUS_PORT:-9090}:9090'
+    
+    volumes:
+      - prometheus_data:/prometheus
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/rules:/etc/prometheus/rules:ro
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    
+    networks:
+      - prosody_network
+
+  # ============================================================================
+  # GRAFANA - VISUALIZATION
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: prosody-grafana
+    restart: unless-stopped
+    
+    ports:
+      - '${GRAFANA_PORT:-3000}:3000'
+    
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=redis-datasource,grafana-piechart-panel
+    
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    
+    depends_on:
+      - prometheus
+    
+    networks:
+      - prosody_network
+
+  # ============================================================================
+  # NODE EXPORTER - SYSTEM METRICS
+  # ============================================================================
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: prosody-node-exporter
+    restart: unless-stopped
+    
+    ports:
+      - '${NODE_EXPORTER_PORT:-9100}:9100'
+    
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    
+    networks:
+      - prosody_network
+
 # ============================================================================
 # VOLUMES
 # ============================================================================
@@ -194,6 +354,12 @@ volumes:
   prosody_logs:
     driver: local
   postgres_data:
+    driver: local
+  coturn_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 # ============================================================================
