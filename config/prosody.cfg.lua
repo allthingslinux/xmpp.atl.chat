@@ -10,6 +10,27 @@ user = "prosody"
 group = "prosody"
 
 -- ===============================================
+-- CREDENTIAL AND FILE MANAGEMENT (Prosody 13.0+)
+-- ===============================================
+
+-- Support for secure credential management
+-- Uses Prosody 13.0+ FileContents, FileLine, and Credential directives
+local function load_secure_config()
+	-- Check if we're running Prosody 13.0+ with credential support
+	local has_credentials = os.getenv("CREDENTIALS_DIRECTORY")
+
+	if has_credentials then
+		print("Using secure credential management (Prosody 13.0+)")
+		-- Example credential loading (uncomment when needed)
+		-- database_password = Credential("db_password")
+		-- ldap_bind_password = Credential("ldap_password")
+		-- component_secret = Credential("component_secret")
+	else
+		print("Using environment variables for credentials")
+	end
+end
+
+-- ===============================================
 -- ENVIRONMENT DETECTION
 -- ===============================================
 
@@ -175,6 +196,9 @@ end
 print("=== PROSODY LAYER-BASED CONFIGURATION ===")
 print("Environment: " .. get_env_var("PROSODY_ENV", "development"))
 print("Production Mode: " .. tostring(is_production()))
+
+-- Load secure configuration first
+load_secure_config()
 
 -- Load all configurations in proper order
 load_layer_configs()
