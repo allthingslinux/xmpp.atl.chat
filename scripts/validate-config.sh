@@ -337,6 +337,26 @@ validate_prosody_config() {
             ((WARNING_CHECKS++))
         fi
         ((TOTAL_CHECKS++))
+
+        # Check certificate configuration (Prosody 0.12+)
+        if prosodyctl check certs 2>/dev/null; then
+            log_success "Prosody certificate check passed"
+            ((PASSED_CHECKS++))
+        else
+            log_warning "Prosody certificate check failed (certificates may be missing or invalid)"
+            ((WARNING_CHECKS++))
+        fi
+        ((TOTAL_CHECKS++))
+
+        # Check connectivity if domain is set
+        if [[ -n "${PROSODY_DOMAIN:-}" ]] && prosodyctl check connectivity "${PROSODY_DOMAIN}" 2>/dev/null; then
+            log_success "Prosody connectivity check passed for ${PROSODY_DOMAIN}"
+            ((PASSED_CHECKS++))
+        else
+            log_warning "Prosody connectivity check failed (network/DNS issues may exist)"
+            ((WARNING_CHECKS++))
+        fi
+        ((TOTAL_CHECKS++))
     else
         log_warning "prosodyctl not available - skipping Prosody validation"
         ((WARNING_CHECKS++))

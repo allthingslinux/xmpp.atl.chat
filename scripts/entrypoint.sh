@@ -125,25 +125,76 @@ setup_ssl_certificates() {
     local cert_file="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}.crt"
     local key_file="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}.key"
 
-    # Check if certificates exist
-    if [[ ! -f "$cert_file" ]] || [[ ! -f "$key_file" ]]; then
-        log_warn "SSL certificates not found, generating self-signed certificates..."
+    # Check for Let's Encrypt format first (Prosody automatic discovery)
+    local le_cert="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}/fullchain.pem"
+    local le_key="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}/privkey.pem"
 
-        # Generate self-signed certificate
-        openssl req -x509 -newkey rsa:4096 -keyout "$key_file" -out "$cert_file" \
-            -days 365 -nodes -subj "/CN=${PROSODY_DOMAIN}" \
-            -addext "subjectAltName=DNS:${PROSODY_DOMAIN},DNS:*.${PROSODY_DOMAIN}" \
-            2>/dev/null
-
-        log_warn "Self-signed certificates generated. Please replace with proper certificates for production use."
+    if [[ -f "$le_cert" ]] && [[ -f "$le_key" ]]; then
+        log_info "Let's Encrypt certificates found"
+        cert_file="$le_cert"
+        key_file="$le_key"
+    elif [[ -f "$cert_file" ]] && [[ -f "$key_file" ]]; then
+        log_info "Standard certificates found"
     else
-        log_info "SSL certificates found"
+        log_warn "No certificates found, generating self-signed certificate..."
 
-        # Validate certificate
-        if ! openssl x509 -in "$cert_file" -noout -checkend 86400 >/dev/null 2>&1; then
-            log_warn "SSL certificate expires within 24 hours"
+        # Use prosodyctl to generate certificate (preferred method)
+        if command -v prosodyctl >/dev/null 2>&1; then
+            log_info "Using prosodyctl to generate self-signed certificate..."
+            echo | prosodyctl cert generate "${PROSODY_DOMAIN}" 2>/dev/null || {
+                log_warn "prosodyctl cert generate failed, falling back to OpenSSL..."
+                generate_openssl_certificate
+            }
+        else
+            log_warn "prosodyctl not available, using OpenSSL..."
+            generate_openssl_certificate
         fi
+
+        log_warn "Self-signed certificate generated. Replace with proper certificates for production."
     fi
+
+    # Validate certificate expiry
+    if ! openssl x509 -in "$cert_file" -noout -checkend 86400 >/dev/null 2>&1; then
+        log_warn "SSL certificate expires within 24 hours"
+    fi
+
+    # Set proper permissions following Prosody documentation
+    set_certificate_permissions "$cert_file" "$key_file"
+}
+
+generate_openssl_certificate() {
+    # Generate self-signed certificate with Subject Alternative Names
+    openssl req -x509 -newkey rsa:4096 -keyout "$key_file" -out "$cert_file" \
+        -days 365 -nodes -subj "/CN=${PROSODY_DOMAIN}" \
+        -addext "subjectAltName=DNS:${PROSODY_DOMAIN},DNS:*.${PROSODY_DOMAIN},DNS:conference.${PROSODY_DOMAIN},DNS:upload.${PROSODY_DOMAIN}" \
+        2>/dev/null
+}
+
+set_certificate_permissions() {
+    local cert_file="$1"
+    local key_file="$2"
+
+    log_debug "Setting certificate permissions per Prosody documentation..."
+
+    # Certificate files (public) - readable by prosody (644)
+    chmod 644 "$cert_file" 2>/dev/null || true
+    chown root:prosody "$cert_file" 2>/dev/null || chown prosody:prosody "$cert_file" 2>/dev/null || true
+
+    # Private key files - readable only by prosody and root (640)
+    chmod 640 "$key_file" 2>/dev/null || true
+    chown root:prosody "$key_file" 2>/dev/null || chown prosody:prosody "$key_file" 2>/dev/null || true
+
+    # Certificate directory permissions
+    chmod 750 "${PROSODY_CERT_DIR}" 2>/dev/null || true
+    chown root:prosody "${PROSODY_CERT_DIR}" 2>/dev/null || chown prosody:prosody "${PROSODY_CERT_DIR}" 2>/dev/null || true
+
+    # Let's Encrypt subdirectory if it exists
+    if [[ -d "${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}" ]]; then
+        chmod 750 "${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}" 2>/dev/null || true
+        chown root:prosody "${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}" 2>/dev/null || chown prosody:prosody "${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}" 2>/dev/null || true
+    fi
+
+    log_debug "Certificate permissions set successfully"
 }
 
 # Database initialization

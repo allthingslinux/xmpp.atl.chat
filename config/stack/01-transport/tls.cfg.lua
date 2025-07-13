@@ -3,8 +3,23 @@
 -- Handles encryption, certificates, and cryptographic settings
 
 -- Certificate configuration
--- Automatic certificate management and paths
+-- Automatic certificate management and paths (Prosody 0.12+)
+-- Prosody will automatically search for certificates in:
+-- 1. {hostname}.crt & {hostname}.key
+-- 2. {hostname}/fullchain.pem & {hostname}/privkey.pem (Let's Encrypt format)
+-- 3. {service}.crt & {service}.key (for service certificates)
 certificates = "certs"
+
+-- Service-specific certificates
+-- Configure certificates for specific services
+-- https_certificate = "certs/https.crt"  -- HTTPS service certificate
+-- legacy_ssl_certificate = "certs/legacy.crt"  -- Legacy SSL certificate
+
+-- Per-port HTTPS certificates (for multiple HTTPS services)
+-- https_certificate = {
+--     [5281] = "certs/web.crt";     -- Main web interface
+--     [6281] = "certs/admin.crt";   -- Admin interface
+-- }
 
 -- SSL/TLS configuration for different connection types
 ssl = {

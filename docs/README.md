@@ -15,6 +15,7 @@ This directory contains comprehensive documentation for the Professional Prosody
 
 - **[Deployment Guide](admin/deployment.md)** - Production deployment strategies
 - **[Security Hardening](admin/security.md)** - Security best practices
+- **[Certificate Management](admin/certificate-management.md)** - SSL/TLS certificate handling
 - **[Monitoring & Logging](admin/monitoring.md)** - Observability and metrics
 - **[Backup & Recovery](admin/backup.md)** - Data protection strategies
 - **[DNS & Network Setup](admin/dns-setup.md)** - DNS security and network configuration
@@ -46,6 +47,7 @@ docs/
 ├── admin/                       # Administrator documentation
 │   ├── deployment.md            # Production deployment
 │   ├── security.md              # Security hardening
+│   ├── certificate-management.md # SSL/TLS certificate management
 │   ├── monitoring.md            # Monitoring & logging
 │   ├── backup.md                # Backup & recovery
 │   └── dns-setup.md             # DNS & network setup
