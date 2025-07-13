@@ -6,8 +6,8 @@ local storage_backends = {
 	-- SQL Database Backends
 	-- Production-ready SQL storage for scalability
 	sql_backends = {
-		"storage_sql", -- SQL storage driver (community)
-		"storage_sql2", -- Enhanced SQL storage (community)
+		-- "storage_sql", -- SQL storage driver (core - not needed to explicitly enable)
+		-- "storage_sql2", -- Enhanced SQL storage (community - check if exists)
 	},
 
 	-- File-based Storage

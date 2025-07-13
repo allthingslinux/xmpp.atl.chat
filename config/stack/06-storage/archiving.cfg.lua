@@ -13,7 +13,7 @@ local archiving_config = {
 	-- Archive Storage and Indexing
 	-- Enhanced archiving capabilities
 	archive_storage = {
-		"mam_muc", -- MUC message archiving (community)
+		-- "muc_mam", -- MUC message archiving (core - not needed to explicitly enable)
 		-- "mam_archive_size", -- Archive size management (community)
 	},
 

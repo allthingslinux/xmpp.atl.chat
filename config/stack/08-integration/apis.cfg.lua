@@ -15,7 +15,7 @@ local apis_config = {
 	-- Administrative APIs
 	-- APIs for server administration and management
 	admin_api = {
-		"admin_rest", -- REST API for administration (community)
+		-- "admin_rest", -- REST API for administration (community - DOESN'T EXIST)
 		-- "admin_api", -- Administrative API (community, if available)
 	},
 

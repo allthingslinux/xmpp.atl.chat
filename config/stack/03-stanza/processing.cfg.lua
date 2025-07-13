@@ -22,7 +22,7 @@ local processing_config = {
 	-- Stanza Forwarding and Routing
 	-- Advanced routing and forwarding capabilities
 	forwarding = {
-		"stanza_forwarding", -- XEP-0297: Stanza Forwarding (community)
+		-- "stanza_forwarding", -- XEP-0297: Stanza Forwarding (community - DOESN'T EXIST)
 		"component", -- XEP-0114: Jabber Component Protocol
 	},
 

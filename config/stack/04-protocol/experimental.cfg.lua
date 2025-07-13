@@ -7,11 +7,11 @@ local experimental_config = {
 	-- Experimental Messaging Features
 	-- Cutting-edge messaging enhancements
 	experimental_messaging = {
-		"message_retraction", -- XEP-0424: Message Retraction (community)
-		"message_moderation", -- XEP-0425: Message Moderation (community)
-		"message_styling", -- XEP-0393: Message Styling (community)
-		"spoiler_messages", -- XEP-0382: Spoiler Messages (community)
-		"message_fastening", -- XEP-0422: Message Fastening (community)
+		-- "message_retraction", -- XEP-0424: Message Retraction (community - DOESN'T EXIST)
+		-- "message_moderation", -- XEP-0425: Message Moderation (community - DOESN'T EXIST)
+		-- "message_styling", -- XEP-0393: Message Styling (community - DOESN'T EXIST)
+		-- "spoiler_messages", -- XEP-0382: Spoiler Messages (community - DOESN'T EXIST)
+		-- "message_fastening", -- XEP-0422: Message Fastening (community - CHECK IF EXISTS)
 	},
 
 	-- Experimental Authentication Features

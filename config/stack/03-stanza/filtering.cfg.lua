@@ -23,7 +23,7 @@ local filtering_config = {
 	-- Spam prevention and security filtering
 	security_filtering = {
 		"anti_spam", -- Anti-spam filtering (community)
-		"watchlist", -- Security watchlist (community)
+		-- "watchlist", -- Security watchlist (community - DOESN'T EXIST)
 		"limits", -- Rate limiting and abuse prevention
 	},
 
@@ -165,43 +165,23 @@ firewall_config = {
 	},
 }
 
--- Anti-Spam Configuration
--- Comprehensive spam prevention settings
+-- Anti-Spam Configuration (mod_anti_spam)
+-- Based on actual module options from prosody-modules
 anti_spam_config = {
-	-- Basic anti-spam settings
-	enabled = true, -- Enable anti-spam
+	-- Basic spam action configuration (actual module options)
+	anti_spam_default_action = "bounce", -- Default action: bounce, drop, quarantine
 
-	-- Stranger filtering
-	stranger_filtering = {
-		enabled = false, -- Block messages from strangers
-		whitelist_roster = true, -- Allow messages from roster contacts
-		whitelist_subscribed = true, -- Allow messages from subscribed contacts
-		require_subscription = false, -- Require subscription for messaging
+	-- Custom actions for different spam reasons
+	anti_spam_actions = {
+		["known-spam-source"] = "drop",
+		["spam-domain"] = "bounce",
 	},
 
-	-- Subscription request filtering
-	subscription_filtering = {
-		enabled = false, -- Filter subscription requests
-		max_requests_per_hour = 10, -- Maximum requests per hour
-		require_message = false, -- Require message with subscription
-		auto_approve_known = false, -- Auto-approve known contacts
-	},
-
-	-- Challenge-response system
-	challenge_response = {
-		enabled = false, -- Enable challenge-response
-		challenge_type = "captcha", -- Challenge type: captcha, question
-		max_attempts = 3, -- Maximum challenge attempts
-		timeout = 300, -- Challenge timeout (5 minutes)
-	},
-
-	-- Reputation system
-	reputation_system = {
-		enabled = false, -- Enable reputation tracking
-		initial_score = 50, -- Initial reputation score
-		min_score = 0, -- Minimum reputation score
-		max_score = 100, -- Maximum reputation score
-		decay_rate = 0.1, -- Daily reputation decay
+	-- Pattern-based blocking (actual module option)
+	anti_spam_block_patterns = {
+		-- Block OTR handshake greetings (from module docs)
+		"^%?OTRv2?3?%?",
+		-- Add other patterns as needed
 	},
 }
 

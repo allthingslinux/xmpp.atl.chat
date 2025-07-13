@@ -14,7 +14,7 @@ local http_config = {
 	-- File Upload Services
 	-- XEP-0363: HTTP File Upload implementation
 	file_upload = {
-		"http_upload", -- XEP-0363: HTTP File Upload (community)
+		-- "http_upload", -- OBSOLETE: Use mod_http_file_share (core) instead
 	},
 
 	-- Web Administration
