@@ -1,0 +1,218 @@
+version: '3.8'
+
+# Professional Prosody XMPP Server - Production Configuration
+# Production overrides with security hardening and performance optimization
+
+services:
+  # ============================================================================
+  # PROSODY - PRODUCTION OVERRIDES
+  # ============================================================================
+  prosody:
+    # Production environment variables
+    environment:
+      # Security hardening
+      - PROSODY_SECURITY_LEVEL=enhanced
+      - PROSODY_COMPLIANCE=enterprise
+      - PROSODY_ENABLE_SECURITY=true
+      - PROSODY_ENABLE_MODERN=true
+      - PROSODY_ENABLE_BETA=true
+      - PROSODY_ENABLE_ALPHA=false
+      
+      # Performance optimization
+      - PROSODY_PERFORMANCE_TIER=large
+      - PROSODY_C2S_RATE=50kb/s
+      - PROSODY_C2S_BURST=100kb
+      - PROSODY_S2S_RATE=100kb/s
+      - PROSODY_S2S_BURST=500kb
+      
+      # Production logging
+      - PROSODY_LOG_LEVEL=warn
+      - PROSODY_LOG_FORMAT=json
+      - PROSODY_ENABLE_AUDIT=true
+      
+      # Database settings
+      - PROSODY_STORAGE=sql
+      - PROSODY_DB_DRIVER=PostgreSQL
+      - PROSODY_DB_POOL_SIZE=20
+      - PROSODY_DB_MAX_CONNECTIONS=100
+      
+      # Archive settings
+      - PROSODY_ARCHIVE_POLICY=all
+      - PROSODY_ARCHIVE_EXPIRE=2y
+      - PROSODY_MUC_LOG_EXPIRE=2y
+      
+      # Monitoring
+      - PROSODY_ENABLE_METRICS=true
+      - PROSODY_METRICS_PORT=9090
+      - PROSODY_ENABLE_PROMETHEUS=true
+
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '4.0'
+        reservations:
+          memory: 512M
+          cpus: '1.0'
+      
+      # High availability settings
+      replicas: 1
+      restart_policy:
+        condition: unless-stopped
+        delay: 5s
+        max_attempts: 3
+        window: 60s
+
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+      - seccomp:unconfined  # May need adjustment for XMPP
+    
+    # Production sysctls
+    sysctls:
+      - net.core.somaxconn=65535
+      - net.core.netdev_max_backlog=5000
+      - net.ipv4.tcp_max_syn_backlog=8192
+      - net.ipv4.tcp_keepalive_time=600
+      - net.ipv4.tcp_keepalive_intvl=30
+      - net.ipv4.tcp_keepalive_probes=3
+      - net.ipv4.ip_local_port_range=1024 65535
+    
+    # Ulimits for high concurrency
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 32768
+        hard: 32768
+    
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+
+  # ============================================================================
+  # DATABASE - PRODUCTION CONFIGURATION
+  # ============================================================================
+  db:
+    # Production PostgreSQL image
+    image: postgres:15-alpine
+    
+    # Enhanced environment
+    environment:
+      - POSTGRES_DB=${PROSODY_DB_NAME:-prosody}
+      - POSTGRES_USER=${PROSODY_DB_USER:-prosody}
+      - POSTGRES_PASSWORD=${PROSODY_DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+      - POSTGRES_SHARED_PRELOAD_LIBRARIES=pg_stat_statements
+      - POSTGRES_MAX_CONNECTIONS=200
+      - POSTGRES_SHARED_BUFFERS=256MB
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=1GB
+      - POSTGRES_WORK_MEM=4MB
+      - POSTGRES_MAINTENANCE_WORK_MEM=64MB
+      - POSTGRES_CHECKPOINT_COMPLETION_TARGET=0.9
+      - POSTGRES_WAL_BUFFERS=16MB
+      - POSTGRES_DEFAULT_STATISTICS_TARGET=100
+    
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    
+    # Volume configuration for production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./monitoring/db-config:/etc/postgresql/conf.d:ro
+    
+    # Command overrides for production
+    command: >
+      postgres
+        -c max_connections=200
+        -c shared_buffers=256MB
+        -c effective_cache_size=1GB
+        -c maintenance_work_mem=64MB
+        -c checkpoint_completion_target=0.9
+        -c wal_buffers=16MB
+        -c default_statistics_target=100
+        -c random_page_cost=1.1
+        -c effective_io_concurrency=200
+        -c work_mem=4MB
+        -c min_wal_size=1GB
+        -c max_wal_size=4GB
+        -c max_worker_processes=8
+        -c max_parallel_workers_per_gather=4
+        -c max_parallel_workers=8
+        -c max_parallel_maintenance_workers=4
+        -c log_statement=none
+        -c log_min_duration_statement=1000
+        -c shared_preload_libraries=pg_stat_statements
+
+  # ============================================================================
+  # REDIS - PRODUCTION CONFIGURATION
+  # ============================================================================
+  redis:
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '1.0'
+        reservations:
+          memory: 64M
+          cpus: '0.25'
+    
+    # Production Redis configuration
+    command: >
+      redis-server
+        --appendonly yes
+        --appendfsync everysec
+        --maxmemory 200mb
+        --maxmemory-policy allkeys-lru
+        --tcp-keepalive 300
+        --timeout 0
+        --tcp-backlog 511
+        --save 900 1
+        --save 300 10
+        --save 60 10000
+        --stop-writes-on-bgsave-error yes
+        --rdbcompression yes
+        --rdbchecksum yes
+
+# ============================================================================
+# PRODUCTION VOLUME OVERRIDES
+# ============================================================================
+volumes:
+  prosody_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/prosody-xmpp
+
+# ============================================================================
+# PRODUCTION NETWORK OVERRIDES
+# ============================================================================
+networks:
+  prosody_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+    driver_opts:
+      com.docker.network.bridge.name: prosody0
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.bridge.host_binding_ipv4: "0.0.0.0" 

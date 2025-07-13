@@ -72,7 +72,7 @@ services:
     volumes:
       # Configuration
       - prosody_config:/etc/prosody
-      - ./config:/etc/prosody/custom:ro
+      - ./config:/etc/prosody/config:ro
 
       # Data persistence
       - prosody_data:/var/lib/prosody/data
@@ -120,6 +120,8 @@ services:
     # Networks
     networks:
       - prosody_network
+      - monitoring_network
+      - turn_network
 
   # ============================================================================
   # DATABASE (OPTIONAL - ONLY IF USING SQL STORAGE)
@@ -252,3 +254,13 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
+  
+  monitoring_network:
+    driver: bridge
+    external: true
+    name: prosody_monitoring_network
+  
+  turn_network:
+    driver: bridge
+    external: true
+    name: prosody_turn_network

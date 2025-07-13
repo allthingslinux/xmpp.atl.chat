@@ -91,6 +91,8 @@ lua-unbound \
     lua-event \
     lua-bitop \
     lua-zlib
+# Redis support for caching
+lua-redis
 # Plugin management
 luarocks
 # System utilities
@@ -116,6 +118,7 @@ RUN echo "Verifying Prosody dependencies..." &&
     lua5.4 -e "pcall(require, 'readline') and print('LuaReadline - OK') or print('LuaReadline - Not available but optional')" &&
     lua5.4 -e "pcall(require, 'event') and print('LuaEvent - OK') or print('LuaEvent - Not available but optional')" &&
     lua5.4 -e "pcall(require, 'bit') and print('BitOp - OK') or print('BitOp - Not available but optional')" &&
+    lua5.4 -e "pcall(require, 'redis') and print('Redis - OK') or print('Redis - Not available but optional')" &&
     prosody --version
 
 # Configure LuaRocks for Prosody plugin management
@@ -145,19 +148,24 @@ RUN mkdir -p \
         /var/lib/prosody \
         /var/log/prosody
 
-# Link community modules
-RUN ln -sf /opt/prosody-modules/mod_* /usr/lib/prosody/modules/ 2>/dev/null || true
+# Setup community modules
+RUN mkdir -p /usr/lib/prosody/community-modules &&
+    cp -r /opt/prosody-modules/* /usr/lib/prosody/community-modules/ 2>/dev/null || true &&
+    # Create symlinks for specific modules that are stable
+    for module in /opt/prosody-modules/mod_*; do
+        if [[ -f "$module" ]]; then
+            ln -sf "$module" /usr/lib/prosody/modules/ 2>/dev/null || true
+        fi
+    done &&
+    # Set proper permissions
+    chown -R prosody:prosody /usr/lib/prosody/community-modules/ 2>/dev/null || true
 
 # Copy configuration files
-COPY config/prosody.cfg.lua /etc/prosody/
-COPY config/modules.d/ /etc/prosody/modules.d/
-COPY config/firewall/ /etc/prosody/firewall/
-COPY config/templates/ /etc/prosody/templates/
+COPY config/ /etc/prosody/custom/
 
 # Copy scripts
 COPY scripts/entrypoint.sh /opt/prosody/scripts/
 COPY scripts/health-check.sh /opt/prosody/scripts/
-COPY scripts/setup.sh /opt/prosody/scripts/
 
 # Make scripts executable
 RUN chmod +x /opt/prosody/scripts/*.sh
@@ -187,6 +195,22 @@ USER prosody
 
 # Use tini for proper signal handling
 ENTRYPOINT ["/usr/bin/tini", "--"]
+
+# Production optimizations and security hardening
+RUN echo "session required pam_limits.so" >>/etc/pam.d/common-session &&
+    echo "prosody soft nofile 65536" >>/etc/security/limits.conf &&
+    echo "prosody hard nofile 65536" >>/etc/security/limits.conf &&
+    echo "prosody soft nproc 32768" >>/etc/security/limits.conf &&
+    echo "prosody hard nproc 32768" >>/etc/security/limits.conf
+
+# Set security and performance sysctls (requires privileged mode or host networking)
+# These would typically be set at the host level:
+# net.core.somaxconn = 65535
+# net.core.netdev_max_backlog = 5000
+# net.ipv4.tcp_max_syn_backlog = 8192
+# net.ipv4.tcp_keepalive_time = 600
+# net.ipv4.tcp_keepalive_intvl = 30
+# net.ipv4.tcp_keepalive_probes = 3
 
 # Default command
 CMD ["/opt/prosody/scripts/entrypoint.sh"]
