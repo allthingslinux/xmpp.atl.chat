@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Professional Prosody XMPP Server Entrypoint
-# Security-first initialization with comprehensive setup
+# Modern Docker initialization script for production deployment
 
 # ============================================================================
 # CONSTANTS AND CONFIGURATION
@@ -10,285 +10,225 @@ set -euo pipefail
 
 readonly PROSODY_USER="prosody"
 readonly PROSODY_CONFIG_DIR="/etc/prosody"
-readonly PROSODY_DATA_DIR="/var/lib/prosody/data"
+readonly PROSODY_DATA_DIR="/var/lib/prosody"
 readonly PROSODY_LOG_DIR="/var/log/prosody"
 readonly PROSODY_CERT_DIR="/etc/prosody/certs"
 readonly PROSODY_UPLOAD_DIR="/var/lib/prosody/uploads"
+readonly PROSODY_CONFIG_FILE="${PROSODY_CONFIG_DIR}/prosody.cfg.lua"
+readonly PROSODY_PID_FILE="/var/run/prosody/prosody.pid"
 
 # Colors for output
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
-readonly NC='\033[0m' # No Color
+readonly NC='\033[0m'
 
 # ============================================================================
 # LOGGING FUNCTIONS
 # ============================================================================
 
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1" >&2
+    echo -e "${GREEN}[INFO]${NC} $(date '+%Y-%m-%d %H:%M:%S') $1" >&2
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1" >&2
+    echo -e "${YELLOW}[WARN]${NC} $(date '+%Y-%m-%d %H:%M:%S') $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1" >&2
+    echo -e "${RED}[ERROR]${NC} $(date '+%Y-%m-%d %H:%M:%S') $1" >&2
 }
 
 log_debug() {
     if [[ "${PROSODY_LOG_LEVEL:-info}" == "debug" ]]; then
-        echo -e "${BLUE}[DEBUG]${NC} $1" >&2
+        echo -e "${BLUE}[DEBUG]${NC} $(date '+%Y-%m-%d %H:%M:%S') $1" >&2
     fi
 }
 
 # ============================================================================
-# UTILITY FUNCTIONS
+# VALIDATION FUNCTIONS
 # ============================================================================
 
-# Check if running as root
-check_root() {
-    if [[ $EUID -eq 0 ]]; then
-        log_error "This script should not be run as root"
-        exit 1
-    fi
-}
-
-# Validate environment variables
 validate_environment() {
     log_info "Validating environment configuration..."
 
-    # Check domain
+    # Validate required domain
     if [[ -z "${PROSODY_DOMAIN:-}" ]]; then
-        log_warn "PROSODY_DOMAIN not set, using 'localhost'"
-        export PROSODY_DOMAIN="localhost"
-    fi
-
-    # Check admins
-    if [[ -z "${PROSODY_ADMINS:-}" ]]; then
-        log_warn "PROSODY_ADMINS not set, using 'admin@${PROSODY_DOMAIN}'"
-        export PROSODY_ADMINS="admin@${PROSODY_DOMAIN}"
-    fi
-
-    # Validate storage backend
-    case "${PROSODY_STORAGE:-sqlite}" in
-    sqlite | sql)
-        log_debug "Storage backend: ${PROSODY_STORAGE}"
-        ;;
-    *)
-        log_error "Invalid storage backend: ${PROSODY_STORAGE}"
+        log_error "PROSODY_DOMAIN is required but not set"
         exit 1
-        ;;
-    esac
+    fi
+
+    # Validate domain format
+    if [[ ! "${PROSODY_DOMAIN}" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
+        log_error "Invalid domain format: ${PROSODY_DOMAIN}"
+        exit 1
+    fi
+
+    # Set default admin if not provided
+    if [[ -z "${PROSODY_ADMINS:-}" ]]; then
+        export PROSODY_ADMINS="admin@${PROSODY_DOMAIN}"
+        log_info "Using default admin: ${PROSODY_ADMINS}"
+    fi
+
+    # Validate database configuration for SQL storage
+    if [[ "${PROSODY_STORAGE:-sql}" == "sql" ]]; then
+        local required_vars=(
+            "PROSODY_DB_DRIVER"
+            "PROSODY_DB_NAME"
+            "PROSODY_DB_USER"
+            "PROSODY_DB_PASSWORD"
+            "PROSODY_DB_HOST"
+        )
+
+        for var in "${required_vars[@]}"; do
+            if [[ -z "${!var:-}" ]]; then
+                log_error "Database variable ${var} is required for SQL storage"
+                exit 1
+            fi
+        done
+    fi
 
     log_info "Environment validation complete"
 }
 
-# Check directory permissions
-check_permissions() {
-    log_info "Checking directory permissions..."
+# ============================================================================
+# SETUP FUNCTIONS
+# ============================================================================
+
+setup_directories() {
+    log_info "Setting up directories..."
 
     local dirs=(
-        "$PROSODY_CONFIG_DIR"
         "$PROSODY_DATA_DIR"
         "$PROSODY_LOG_DIR"
         "$PROSODY_CERT_DIR"
         "$PROSODY_UPLOAD_DIR"
+        "$(dirname "$PROSODY_PID_FILE")"
     )
 
     for dir in "${dirs[@]}"; do
         if [[ ! -d "$dir" ]]; then
-            log_warn "Directory $dir does not exist, creating..."
+            log_debug "Creating directory: $dir"
             mkdir -p "$dir"
         fi
 
-        if [[ ! -r "$dir" ]]; then
-            log_error "Cannot read directory: $dir"
-            exit 1
-        fi
-
-        if [[ ! -w "$dir" ]]; then
-            log_error "Cannot write to directory: $dir"
-            exit 1
-        fi
+        # Ensure proper ownership
+        chown -R "$PROSODY_USER:$PROSODY_USER" "$dir" 2>/dev/null || true
     done
 
-    log_info "Directory permissions check complete"
+    log_info "Directory setup complete"
 }
 
-# Initialize SSL certificates
-setup_ssl_certificates() {
+setup_certificates() {
     log_info "Setting up SSL certificates..."
 
     local cert_file="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}.crt"
     local key_file="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}.key"
 
-    # Check for Let's Encrypt format first (Prosody automatic discovery)
+    # Check for Let's Encrypt certificates (preferred)
     local le_cert="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}/fullchain.pem"
     local le_key="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}/privkey.pem"
 
-    if [[ -f "$le_cert" ]] && [[ -f "$le_key" ]]; then
-        log_info "Let's Encrypt certificates found"
-        cert_file="$le_cert"
-        key_file="$le_key"
-    elif [[ -f "$cert_file" ]] && [[ -f "$key_file" ]]; then
-        log_info "Standard certificates found"
-    else
-        log_warn "No certificates found, generating self-signed certificate..."
+    if [[ -f "$le_cert" && -f "$le_key" ]]; then
+        log_info "Let's Encrypt certificates found for ${PROSODY_DOMAIN}"
+        return 0
+    fi
 
-        # Use prosodyctl to generate certificate (preferred method)
-        if command -v prosodyctl >/dev/null 2>&1; then
-            log_info "Using prosodyctl to generate self-signed certificate..."
-            echo | prosodyctl cert generate "${PROSODY_DOMAIN}" 2>/dev/null || {
-                log_warn "prosodyctl cert generate failed, falling back to OpenSSL..."
-                generate_openssl_certificate
-            }
+    # Check for standard certificates
+    if [[ -f "$cert_file" && -f "$key_file" ]]; then
+        log_info "Standard certificates found for ${PROSODY_DOMAIN}"
+
+        # Check certificate validity
+        if openssl x509 -in "$cert_file" -noout -checkend 86400 >/dev/null 2>&1; then
+            log_info "Certificate is valid for at least 24 hours"
         else
-            log_warn "prosodyctl not available, using OpenSSL..."
-            generate_openssl_certificate
+            log_warn "Certificate expires within 24 hours - consider renewal"
         fi
-
-        log_warn "Self-signed certificate generated. Replace with proper certificates for production."
+        return 0
     fi
 
-    # Validate certificate expiry
-    if ! openssl x509 -in "$cert_file" -noout -checkend 86400 >/dev/null 2>&1; then
-        log_warn "SSL certificate expires within 24 hours"
-    fi
+    # Generate self-signed certificate for development/testing
+    log_warn "No certificates found, generating self-signed certificate for ${PROSODY_DOMAIN}"
+    log_warn "This is suitable for development only - use proper certificates in production"
 
-    # Set proper permissions following Prosody documentation
-    set_certificate_permissions "$cert_file" "$key_file"
-}
+    # Generate private key
+    openssl genrsa -out "$key_file" 4096 2>/dev/null
 
-generate_openssl_certificate() {
-    # Generate self-signed certificate with Subject Alternative Names
-    openssl req -x509 -newkey rsa:4096 -keyout "$key_file" -out "$cert_file" \
-        -days 365 -nodes -subj "/CN=${PROSODY_DOMAIN}" \
+    # Generate certificate with proper Subject Alternative Names
+    openssl req -new -x509 -key "$key_file" -out "$cert_file" -days 365 \
+        -subj "/CN=${PROSODY_DOMAIN}" \
         -addext "subjectAltName=DNS:${PROSODY_DOMAIN},DNS:*.${PROSODY_DOMAIN},DNS:conference.${PROSODY_DOMAIN},DNS:upload.${PROSODY_DOMAIN}" \
         2>/dev/null
+
+    # Set proper permissions
+    chown "$PROSODY_USER:$PROSODY_USER" "$cert_file" "$key_file"
+    chmod 644 "$cert_file"
+    chmod 600 "$key_file"
+
+    log_info "Self-signed certificate generated successfully"
 }
 
-set_certificate_permissions() {
-    local cert_file="$1"
-    local key_file="$2"
-
-    log_debug "Setting certificate permissions per Prosody documentation..."
-
-    # Certificate files (public) - readable by prosody (644)
-    chmod 644 "$cert_file" 2>/dev/null || true
-    chown root:prosody "$cert_file" 2>/dev/null || chown prosody:prosody "$cert_file" 2>/dev/null || true
-
-    # Private key files - readable only by prosody and root (640)
-    chmod 640 "$key_file" 2>/dev/null || true
-    chown root:prosody "$key_file" 2>/dev/null || chown prosody:prosody "$key_file" 2>/dev/null || true
-
-    # Certificate directory permissions
-    chmod 750 "${PROSODY_CERT_DIR}" 2>/dev/null || true
-    chown root:prosody "${PROSODY_CERT_DIR}" 2>/dev/null || chown prosody:prosody "${PROSODY_CERT_DIR}" 2>/dev/null || true
-
-    # Let's Encrypt subdirectory if it exists
-    if [[ -d "${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}" ]]; then
-        chmod 750 "${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}" 2>/dev/null || true
-        chown root:prosody "${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}" 2>/dev/null || chown prosody:prosody "${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}" 2>/dev/null || true
+wait_for_database() {
+    if [[ "${PROSODY_STORAGE:-sql}" != "sql" ]]; then
+        log_debug "Not using SQL storage, skipping database wait"
+        return 0
     fi
 
-    log_debug "Certificate permissions set successfully"
-}
+    local host="${PROSODY_DB_HOST}"
+    local port="${PROSODY_DB_PORT:-5432}"
+    local max_attempts=30
+    local attempt=1
 
-# Database initialization
-setup_database() {
-    log_info "Setting up database..."
+    log_info "Waiting for database connection to ${host}:${port}..."
 
-    case "${PROSODY_STORAGE:-sqlite}" in
-    sqlite)
-        local db_file="${PROSODY_DATA_DIR}/prosody.sqlite"
-        if [[ ! -f "$db_file" ]]; then
-            log_info "Creating SQLite database..."
-            touch "$db_file"
-        fi
-        ;;
-    sql)
-        log_info "Using external SQL database"
-        # Wait for database to be ready
-        if [[ -n "${PROSODY_DB_HOST:-}" ]]; then
-            log_info "Waiting for database connection..."
-            local retries=30
-            while ! nc -z "${PROSODY_DB_HOST}" "${PROSODY_DB_PORT:-5432}" && [[ $retries -gt 0 ]]; do
-                log_debug "Database not ready, waiting... ($retries retries left)"
-                sleep 2
-                ((retries--))
-            done
-
-            if [[ $retries -eq 0 ]]; then
-                log_error "Database connection timeout"
-                exit 1
-            fi
-
+    while [[ $attempt -le $max_attempts ]]; do
+        if timeout 5 bash -c "</dev/tcp/${host}/${port}" 2>/dev/null; then
             log_info "Database connection established"
+            return 0
         fi
-        ;;
-    esac
-}
 
-# Create initial admin user
-create_admin_user() {
-    log_info "Setting up admin users..."
-
-    # Parse admin list
-    IFS=',' read -ra ADMIN_ARRAY <<<"${PROSODY_ADMINS}"
-    for admin in "${ADMIN_ARRAY[@]}"; do
-        admin=$(echo "$admin" | xargs) # trim whitespace
-        log_info "Ensuring admin user exists: $admin"
-
-        # Check if user exists (prosodyctl will handle this gracefully)
-        if ! prosodyctl check config >/dev/null 2>&1; then
-            log_warn "Configuration check failed, but continuing..."
-        fi
+        log_debug "Database not ready, attempt ${attempt}/${max_attempts}"
+        sleep 2
+        ((attempt++))
     done
+
+    log_error "Database connection timeout after ${max_attempts} attempts"
+    exit 1
 }
 
-# Setup firewall rules
-setup_firewall() {
-    if [[ "${PROSODY_ENABLE_SECURITY:-true}" == "true" ]]; then
-        log_info "Setting up firewall rules..."
+validate_configuration() {
+    log_info "Validating Prosody configuration..."
 
-        # Ensure firewall rule files exist
-        local firewall_dir="${PROSODY_CONFIG_DIR}/firewall"
-        if [[ -d "$firewall_dir" ]]; then
-            for rule_file in "$firewall_dir"/*.pfw; do
-                if [[ -f "$rule_file" ]]; then
-                    log_debug "Found firewall rule: $(basename "$rule_file")"
-                fi
-            done
-        fi
+    # Check if config file exists
+    if [[ ! -f "$PROSODY_CONFIG_FILE" ]]; then
+        log_error "Configuration file not found: $PROSODY_CONFIG_FILE"
+        exit 1
     fi
-}
 
-# Health check setup
-setup_health_check() {
-    log_info "Setting up health monitoring..."
-
-    # Create health check endpoint if HTTP is enabled
-    if [[ "${PROSODY_ENABLE_HTTP:-false}" == "true" ]]; then
-        log_debug "HTTP services enabled, health check available at :5280/health"
+    # Validate configuration using prosodyctl
+    if ! prosodyctl check config 2>/dev/null; then
+        log_error "Prosody configuration validation failed"
+        log_error "Please check your configuration file: $PROSODY_CONFIG_FILE"
+        exit 1
     fi
+
+    log_info "Configuration validation successful"
 }
 
 # ============================================================================
 # SIGNAL HANDLERS
 # ============================================================================
 
-# Graceful shutdown handler
-shutdown_handler() {
-    log_info "Received shutdown signal, stopping Prosody gracefully..."
+# shellcheck disable=SC2317  # Function is called by signal handlers
+cleanup() {
+    log_info "Received shutdown signal, stopping Prosody..."
 
-    # Send SIGTERM to prosody process
-    if [[ -n "${PROSODY_PID:-}" ]]; then
+    if [[ -n "${PROSODY_PID:-}" ]] && kill -0 "$PROSODY_PID" 2>/dev/null; then
+        # Send SIGTERM for graceful shutdown
         kill -TERM "$PROSODY_PID" 2>/dev/null || true
 
-        # Wait for graceful shutdown
+        # Wait for graceful shutdown (max 30 seconds)
         local timeout=30
         while kill -0 "$PROSODY_PID" 2>/dev/null && [[ $timeout -gt 0 ]]; do
             sleep 1
@@ -307,65 +247,72 @@ shutdown_handler() {
 }
 
 # Setup signal handlers
-trap shutdown_handler SIGTERM SIGINT
+trap cleanup SIGTERM SIGINT SIGQUIT
 
 # ============================================================================
-# MAIN INITIALIZATION
+# MAIN FUNCTION
 # ============================================================================
 
 main() {
     log_info "Starting Professional Prosody XMPP Server..."
-    log_info "Version: $(prosody --version 2>/dev/null | head -n1 || echo 'Unknown')"
 
-    # Security check
-    check_root
+    # Display version information
+    local prosody_version
+    prosody_version=$(prosody --version 2>/dev/null | head -n1 || echo "Unknown")
+    log_info "Prosody version: $prosody_version"
 
-    # Environment setup
+    # Environment and setup
     validate_environment
-    check_permissions
+    setup_directories
+    setup_certificates
+    wait_for_database
+    validate_configuration
 
-    # Service setup
-    setup_ssl_certificates
-    setup_database
-    setup_firewall
-    setup_health_check
+    # Display configuration summary
+    log_info "Configuration summary:"
+    log_info "  Domain: ${PROSODY_DOMAIN}"
+    log_info "  Admins: ${PROSODY_ADMINS}"
+    log_info "  Storage: ${PROSODY_STORAGE:-sql}"
+    log_info "  Log level: ${PROSODY_LOG_LEVEL:-info}"
+    log_info "  Allow registration: ${PROSODY_ALLOW_REGISTRATION:-false}"
 
-    # Configuration validation
-    log_info "Validating Prosody configuration..."
-    if ! prosodyctl check config; then
-        log_error "Configuration validation failed"
-        exit 1
+    if [[ "${PROSODY_STORAGE:-sql}" == "sql" ]]; then
+        log_info "  Database: ${PROSODY_DB_DRIVER} on ${PROSODY_DB_HOST}:${PROSODY_DB_PORT:-5432}"
     fi
-
-    log_info "Configuration validation successful"
-
-    # Create admin users after prosody starts
-    create_admin_user &
 
     # Start Prosody
     log_info "Starting Prosody XMPP server..."
-    log_info "Domain: ${PROSODY_DOMAIN}"
-    log_info "Admins: ${PROSODY_ADMINS}"
-    log_info "Storage: ${PROSODY_STORAGE:-sqlite}"
-    log_info "Security: ${PROSODY_ENABLE_SECURITY:-true}"
-    log_info "Modern Features: ${PROSODY_ENABLE_MODERN:-true}"
-    log_info "HTTP Services: ${PROSODY_ENABLE_HTTP:-false}"
 
-    # Start prosody in foreground
-    exec prosody --config="$PROSODY_CONFIG_DIR/prosody.cfg.lua" --foreground &
+    # Switch to prosody user and start in foreground
+    exec su-exec "$PROSODY_USER" prosody \
+        --config="$PROSODY_CONFIG_FILE" \
+        --foreground &
+
     PROSODY_PID=$!
-
     log_info "Prosody started with PID: $PROSODY_PID"
 
-    # Wait for prosody to exit
+    # Wait for Prosody process
     wait $PROSODY_PID
+    local exit_code=$?
 
-    log_info "Prosody process exited"
+    if [[ $exit_code -eq 0 ]]; then
+        log_info "Prosody exited normally"
+    else
+        log_error "Prosody exited with code: $exit_code"
+    fi
+
+    exit $exit_code
 }
 
 # ============================================================================
 # SCRIPT EXECUTION
 # ============================================================================
 
-# Run main function
+# Ensure we're running as root initially (for setup)
+if [[ $EUID -ne 0 ]]; then
+    log_error "This script must be run as root for initial setup"
+    exit 1
+fi
+
+# Execute main function
 main "$@"

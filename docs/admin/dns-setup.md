@@ -1,16 +1,96 @@
-# DNS Security Setup Guide
+# DNS Setup Guide
 
-This guide covers setting up DNS security records required by the XMPP Safeguarding Manifesto 2025.
+Complete DNS configuration for Professional Prosody XMPP Server, including service delegation and security records.
 
 ## Overview
 
-The following DNS security measures are required:
+This guide covers all DNS records needed for a production XMPP deployment:
 
+- **SRV Records** - Service delegation (e.g., `@atl.chat` → `xmpp.atl.chat`)
+- **A/AAAA Records** - Basic domain resolution
 - **DNSSEC** - DNS Security Extensions
 - **CAA Records** - Certificate Authority Authorization
 - **TLSA Records** - Transport Layer Security Authentication
 
-## 1. DNSSEC Configuration
+## 1. Service Delegation with SRV Records
+
+### Use Case: Clean Domain Separation
+
+You want users to have `@atl.chat` addresses but run XMPP services on `xmpp.atl.chat`. This keeps your main domain clean:
+
+- **User addresses**: `user@atl.chat`
+- **XMPP server**: `xmpp.atl.chat`
+- **Web services**: `xmpp.atl.chat/metrics`, `xmpp.atl.chat/admin`
+- **Main domain**: `atl.chat` remains available for other services
+
+### Required SRV Records
+
+Add these records to your `atl.chat` DNS zone:
+
+```dns
+; Client-to-server (users connecting)
+_xmpp-client._tcp.atl.chat.    3600  IN  SRV  0  5  5222  xmpp.atl.chat.
+
+; Server-to-server (federation)
+_xmpp-server._tcp.atl.chat.    3600  IN  SRV  0  5  5269  xmpp.atl.chat.
+
+; Direct TLS client connections (XEP-0368)
+_xmpps-client._tcp.atl.chat.   3600  IN  SRV  0  5  5223  xmpp.atl.chat.
+
+; Direct TLS server connections (XEP-0368)
+_xmpps-server._tcp.atl.chat.   3600  IN  SRV  0  5  5270  xmpp.atl.chat.
+```
+
+### Configuration Changes
+
+Update your environment variables:
+
+```bash
+# .env file
+PROSODY_DOMAIN=atl.chat                    # Users get @atl.chat addresses
+PROSODY_ADMINS=admin@atl.chat             # Admin uses clean domain
+```
+
+### A Record for Target
+
+Ensure `xmpp.atl.chat` has an A record pointing to your server:
+
+```dns
+; A record for the actual server
+xmpp.atl.chat.    3600  IN  A     YOUR.SERVER.IP.ADDRESS
+
+; AAAA record if you have IPv6
+xmpp.atl.chat.    3600  IN  AAAA  YOUR:SERVER:IPV6:ADDRESS
+```
+
+### Subdomain Services
+
+For MUC (Multi-User Chat) and other components:
+
+```dns
+; MUC service delegation
+_xmpp-server._tcp.conference.atl.chat.  3600  IN  SRV  0  5  5269  xmpp.atl.chat.
+
+; Upload service (if using separate subdomain)
+_xmpp-server._tcp.upload.atl.chat.      3600  IN  SRV  0  5  5269  xmpp.atl.chat.
+```
+
+### Verification
+
+Test your SRV records:
+
+```bash
+# Check client SRV record
+dig SRV _xmpp-client._tcp.atl.chat
+
+# Check server SRV record  
+dig SRV _xmpp-server._tcp.atl.chat
+
+# Test with Prosody's built-in checker
+prosodyctl check dns atl.chat
+```
+
+## 2. DNSSEC Configuration
 
 ### What is DNSSEC?
 
@@ -37,7 +117,7 @@ dig +dnssec your-domain.com
 dig +dnssec +multi your-domain.com
 ```
 
-## 2. CAA Records
+## 3. CAA Records
 
 ### What are CAA Records?
 
@@ -81,7 +161,7 @@ dig CAA your-domain.com
 # Should show your CAA records
 ```
 
-## 3. TLSA Records
+## 4. TLSA Records
 
 ### What are TLSA Records?
 
