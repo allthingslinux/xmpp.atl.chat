@@ -308,11 +308,25 @@ http_headers = {
 	["Content-Security-Policy"] = "default-src 'self'",
 }
 
--- File upload configuration (XEP-0363)
+-- File upload configuration (XEP-0363: HTTP File Upload)
 http_file_share_size_limit = tonumber(os.getenv("PROSODY_UPLOAD_SIZE_LIMIT")) or (100 * 1024 * 1024) -- Configurable size limit
-http_file_share_daily_quota = 1024 * 1024 * 1024 -- 1GB per day
-http_file_share_expire_after = 30 * 24 * 3600 -- 30 days
-http_file_share_path = "/var/lib/prosody/http_file_share"
+http_file_share_daily_quota = tonumber(os.getenv("PROSODY_UPLOAD_DAILY_QUOTA")) or (1024 * 1024 * 1024) -- 1GB per day default
+http_file_share_expire_after = tonumber(os.getenv("PROSODY_UPLOAD_EXPIRE_AFTER")) or (30 * 24 * 3600) -- 30 days default
+http_file_share_path = os.getenv("PROSODY_UPLOAD_PATH") or "/var/lib/prosody/http_file_share"
+
+-- Optional: Global quota (total storage limit across all users)
+if os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") then
+	http_file_share_global_quota = tonumber(os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA"))
+end
+
+-- Optional: Allowed file types restriction
+if os.getenv("PROSODY_UPLOAD_ALLOWED_TYPES") then
+	local types = {}
+	for type in string.gmatch(os.getenv("PROSODY_UPLOAD_ALLOWED_TYPES"), "([^,]+)") do
+		table.insert(types, type:match("^%s*(.-)%s*$")) -- trim whitespace
+	end
+	http_file_share_allowed_file_types = types
+end
 
 -- Enhanced BOSH configuration (from bosh.cfg.lua)
 bosh_max_inactivity = 60 -- 60 seconds maximum inactivity
