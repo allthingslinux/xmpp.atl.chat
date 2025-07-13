@@ -46,33 +46,32 @@ prosodyctl reload
 
 ## 🏗️ Certificate Sources
 
-### 1. Wildcard Certificate Script (Recommended)
+### 1. Let's Encrypt Certificates (Recommended)
 
-The project includes a comprehensive script for generating Let's Encrypt wildcard certificates:
+Use Let's Encrypt for free SSL/TLS certificates:
 
 ```bash
-# Generate wildcard certificate with manual DNS validation
-sudo ./scripts/generate-wildcard-cert.sh create -e admin@atl.chat
+# Using Docker (recommended)
+docker-compose --profile letsencrypt run --rm certbot
 
-# Generate certificate with Cloudflare DNS automation
-sudo ./scripts/generate-wildcard-cert.sh create -e admin@atl.chat -p cloudflare
+# Manual certbot for wildcard (requires DNS validation)
+sudo certbot certonly --manual --preferred-challenges=dns \
+  -d "atl.chat,*.atl.chat" --email admin@atl.chat
 
-# Check certificate status
-sudo ./scripts/generate-wildcard-cert.sh check
+# Standard domain certificate (HTTP validation)
+sudo certbot certonly --standalone \
+  -d atl.chat -d xmpp.atl.chat --email admin@atl.chat
 
-# Renew certificate
-sudo ./scripts/generate-wildcard-cert.sh renew
-
-# Install existing certificate to Prosody directory
-sudo ./scripts/generate-wildcard-cert.sh install
+# Renew certificates
+sudo certbot renew
 ```
 
-**Benefits of wildcard certificates:**
+**Benefits of Let's Encrypt certificates:**
 
-- ✅ Covers `atl.chat`, `muc.atl.chat`, `upload.atl.chat`, etc.
-- ✅ Single certificate for all subdomains
-- ✅ Automatic installation to Prosody directory
-- ✅ Supports multiple DNS providers for automation
+- ✅ Free and trusted by all browsers
+- ✅ Automated renewal available
+- ✅ Wildcard support with DNS validation
+- ✅ Simple integration with Docker
 - ✅ Handles certificate renewal automatically
 
 **Supported DNS providers:**

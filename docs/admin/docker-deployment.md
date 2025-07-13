@@ -54,29 +54,7 @@ docker-compose up -d prosody db
 
 Choose one of the following methods:
 
-#### Option A: Automated Wildcard Certificate (Recommended)
-
-1. **Configure DNS provider credentials** in `.env`:
-
-   ```bash
-   # For Cloudflare
-   CLOUDFLARE_API_TOKEN=your_api_token
-   
-   # For AWS Route53
-   AWS_ACCESS_KEY_ID=your_access_key
-   AWS_SECRET_ACCESS_KEY=your_secret_key
-   
-   # For DigitalOcean
-   DO_AUTH_TOKEN=your_do_token
-   ```
-
-2. **Generate certificate**:
-
-   ```bash
-   docker-compose --profile certificates run --rm cert-generator
-   ```
-
-#### Option B: Let's Encrypt Certificate
+#### Option A: Let's Encrypt Certificate (Recommended)
 
 1. **Set up webroot directory**:
 
@@ -90,7 +68,7 @@ Choose one of the following methods:
    docker-compose --profile letsencrypt run --rm certbot
    ```
 
-#### Option C: Manual Certificate
+#### Option B: Manual Certificate
 
 1. **Copy existing certificates**:
 
@@ -187,7 +165,6 @@ docker-compose up -d prosody db coturn prometheus
 
 | Service | Purpose | Profile | Usage |
 |---------|---------|---------|-------|
-| `cert-generator` | Wildcard certificate generation | `certificates` | One-time |
 | `certbot` | Let's Encrypt certificate | `letsencrypt` | One-time |
 | `certbot-renew` | Certificate renewal | `renewal` | Scheduled |
 
@@ -261,7 +238,7 @@ deploy:
 2. **Manual renewal**:
 
    ```bash
-   docker-compose --profile certificates run --rm cert-generator
+   docker-compose --profile letsencrypt run --rm certbot
    docker-compose restart prosody
    ```
 

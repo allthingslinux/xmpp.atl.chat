@@ -6,10 +6,9 @@ This guide explains how to manage SSL/TLS certificates for your Prosody XMPP ser
 
 The Docker setup supports multiple certificate deployment methods:
 
-1. **Wildcard certificates** (recommended for production)
-2. **Let's Encrypt certificates** (automated renewal)
-3. **Manual certificate placement**
-4. **Self-signed certificates** (development only)
+1. **Let's Encrypt certificates** (recommended for production)
+2. **Manual certificate placement**
+3. **Self-signed certificates** (development only)
 
 ## Certificate Volume Structure
 
@@ -25,61 +24,14 @@ Certificates are stored in the `prosody_certs` Docker volume, mapped to `/etc/pr
 └── dhparam.pem               # Diffie-Hellman parameters (optional)
 ```
 
-## Method 1: Wildcard Certificate (Recommended)
-
-### Using the Generate Script
-
-1. **Run the certificate generation script**:
-
-   ```bash
-   # From the host system
-   docker run --rm -it \
-     -v prosody_certs:/etc/prosody/certs \
-     -v $(pwd)/scripts:/scripts \
-     --env-file .env \
-     debian:bookworm-slim \
-     bash /scripts/generate-wildcard-cert.sh
-   ```
-
-2. **Or copy existing certificates**:
-
-   ```bash
-   # Copy your wildcard certificate to the volume
-   docker run --rm -it \
-     -v prosody_certs:/etc/prosody/certs \
-     -v $(pwd):/host \
-     debian:bookworm-slim \
-     bash -c "
-       cp /host/your-wildcard.crt /etc/prosody/certs/atl.chat.crt
-       cp /host/your-wildcard.key /etc/prosody/certs/atl.chat.key
-       chown 999:999 /etc/prosody/certs/atl.chat.*
-       chmod 644 /etc/prosody/certs/atl.chat.crt
-       chmod 600 /etc/prosody/certs/atl.chat.key
-     "
-   ```
-
-### Certificate Requirements
-
-Your wildcard certificate must cover:
-
-- `*.atl.chat` (all subdomains)
-- `atl.chat` (root domain)
-
-This covers:
-
-- `xmpp.atl.chat` (server hostname)
-- `muc.atl.chat` (group chat)
-- `upload.atl.chat` (file uploads)
-- `admin.atl.chat` (admin interface)
-
-## Method 2: Let's Encrypt Integration
+## Method 1: Let's Encrypt Integration (Recommended)
 
 ### Using Certbot with Docker
 
-1. **Create a certificate generation container**:
+1. **For standard domains** (HTTP validation):
 
    ```bash
-   # Create certificates using Certbot
+   # Create certificates using Certbot with webroot
    docker run --rm -it \
      -v prosody_certs:/etc/letsencrypt \
      -v $(pwd)/letsencrypt-webroot:/var/www/certbot \
@@ -90,10 +42,27 @@ This covers:
      --agree-tos \
      --no-eff-email \
      -d atl.chat \
-     -d "*.atl.chat"
+     -d xmpp.atl.chat
    ```
 
-2. **Set up certificate linking**:
+2. **For wildcard domains** (DNS validation):
+
+   ```bash
+   # Create wildcard certificates using manual DNS validation
+   docker run --rm -it \
+     -v prosody_certs:/etc/letsencrypt \
+     certbot/certbot certonly \
+     --manual \
+     --preferred-challenges=dns \
+     --email admin@atl.chat \
+     --agree-tos \
+     --no-eff-email \
+     -d "atl.chat,*.atl.chat"
+   ```
+
+   **Note**: Wildcard certificates require manual DNS TXT record creation during the process.
+
+3. **Set up certificate linking**:
 
    ```bash
    # Link Let's Encrypt certificates to expected location
@@ -130,7 +99,7 @@ Run renewal with:
 docker-compose --profile renewal up certbot
 ```
 
-## Method 3: Manual Certificate Placement
+## Method 2: Manual Certificate Placement
 
 ### For existing certificates
 
