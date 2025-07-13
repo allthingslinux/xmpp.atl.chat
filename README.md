@@ -2,7 +2,7 @@
 
 > **Production-ready XMPP server with comprehensive feature set, extensive XEP compliance, and enterprise security**
 
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](./docker/docker-compose.yml)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](./docker-compose.yml)
 [![Security](https://img.shields.io/badge/Security-Hardened-green)](#-security-features)
 [![XEP Compliance](https://img.shields.io/badge/XEP-50%2B%20Supported-purple)](./docs/reference/xep-compliance.md)
 [![Prosody](https://img.shields.io/badge/Prosody-13.0%2B-orange)](https://prosody.im/)

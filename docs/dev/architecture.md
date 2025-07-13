@@ -98,9 +98,8 @@ This project follows a **single, opinionated configuration** philosophy:
 ```text
 xmpp.atl.chat/
 ├── README.md                     # Main project documentation
-├── docker/
-│   ├── Dockerfile                # Multi-stage container build
-│   └── docker-compose.yml        # Service orchestration
+├── Dockerfile                   # Container definition
+├── docker-compose.yml          # Service orchestration
 ├── config/
 │   ├── prosody.cfg.lua           # Single comprehensive configuration (685 lines)
 │   └── README.md                 # Configuration documentation

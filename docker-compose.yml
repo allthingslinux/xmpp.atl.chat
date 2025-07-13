@@ -10,9 +10,9 @@ services:
   # ============================================================================
   prosody:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    image: professional-prosody:latest
+      context: .
+      dockerfile: Dockerfile
+    image: xmpp-atl-chat:latest
     container_name: prosody
     hostname: prosody
     restart: unless-stopped
