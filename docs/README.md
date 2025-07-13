@@ -100,13 +100,13 @@ This server supports multiple deployment configurations:
 
 ```bash
 # Minimal deployment (XMPP + Database only)
-docker-compose up -d prosody db
+docker compose up -d prosody db
 
 # Full deployment (includes monitoring and TURN/STUN)
-docker-compose up -d
+docker compose up -d
 
 # Custom service selection
-docker-compose up -d prosody db prometheus
+docker compose up -d prosody db prometheus
 ```
 
 ## 🔍 Finding What You Need

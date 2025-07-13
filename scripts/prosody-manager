@@ -658,7 +658,7 @@ deploy_up() {
         return 1
     fi
 
-    if ! command_exists docker-compose && ! docker compose version >/dev/null 2>&1; then
+    if ! docker compose version >/dev/null 2>&1; then
         log_error "Docker Compose is required but not installed"
         return 1
     fi

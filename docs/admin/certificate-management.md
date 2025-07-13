@@ -52,7 +52,7 @@ Use Let's Encrypt for free SSL/TLS certificates:
 
 ```bash
 # Using Docker (recommended)
-docker-compose --profile letsencrypt run --rm certbot
+docker compose --profile letsencrypt run --rm certbot
 
 # Manual certbot for wildcard (requires DNS validation)
 sudo certbot certonly --manual --preferred-challenges=dns \

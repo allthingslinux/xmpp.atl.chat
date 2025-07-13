@@ -63,7 +63,7 @@ renew_certificates() {
     cd "$PROJECT_DIR"
 
     # Try to renew certificates
-    if docker-compose --profile renewal run --rm certbot-renew; then
+    if docker compose --profile renewal run --rm certbot-renew; then
         log_info "Certificate renewal completed successfully"
         return 0
     else
@@ -77,7 +77,7 @@ reload_prosody() {
 
     # Check if Prosody container is running
     if docker ps -q --filter "name=prosody" | grep -q .; then
-        if docker-compose restart prosody; then
+        if docker compose restart prosody; then
             log_info "Prosody reloaded successfully"
         else
             log_error "Failed to reload Prosody"

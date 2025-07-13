@@ -175,13 +175,13 @@ Test your server's compliance with these tools:
 
 ```bash
 # Test XEP compliance
-docker-compose exec prosody prosodyctl check connectivity atl.chat
+docker compose exec prosody prosodyctl check connectivity atl.chat
 
 # Validate configuration
-docker-compose exec prosody prosodyctl check config
+docker compose exec prosody prosodyctl check config
 
 # Check module status
-docker-compose exec prosody prosodyctl list modules
+docker compose exec prosody prosodyctl list modules
 ```
 
 ## 🎯 Compliance Score

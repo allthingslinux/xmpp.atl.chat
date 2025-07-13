@@ -96,7 +96,7 @@ Add a renewal service to your Docker Compose:
 Run renewal with:
 
 ```bash
-docker-compose --profile renewal up certbot-renew
+docker compose --profile renewal up certbot-renew
 ```
 
 ### Simple Automated Setup

@@ -23,7 +23,7 @@ cp examples/env.example .env
 # Edit .env with your domain and credentials
 
 # Start the basic services
-docker-compose up -d prosody db
+docker compose up -d prosody db
 ```
 
 ## Complete Deployment Process
@@ -65,7 +65,7 @@ Choose one of the following methods:
 2. **Generate certificate**:
 
    ```bash
-   docker-compose --profile letsencrypt run --rm certbot
+   docker compose --profile letsencrypt run --rm certbot
    ```
 
 #### Option B: Manual Certificate
@@ -93,23 +93,23 @@ Choose one of the following methods:
 #### Minimal Deployment (XMPP + Database)
 
 ```bash
-docker-compose up -d prosody db
+docker compose up -d prosody db
 ```
 
 #### Full Deployment (All Services)
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 #### Custom Service Selection
 
 ```bash
 # XMPP with voice/video support
-docker-compose up -d prosody db coturn
+docker compose up -d prosody db coturn
 
 # Add monitoring
-docker-compose up -d prosody db coturn prometheus
+docker compose up -d prosody db coturn prometheus
 ```
 
 ### Step 4: Verify Deployment
@@ -117,7 +117,7 @@ docker-compose up -d prosody db coturn prometheus
 1. **Check service status**:
 
    ```bash
-   docker-compose ps
+   docker compose ps
    ```
 
 2. **Check logs**:
@@ -206,7 +206,7 @@ deploy:
 1. **Enable monitoring stack**:
 
    ```bash
-   docker-compose --profile monitoring up -d prometheus node-exporter
+   docker compose --profile monitoring up -d prometheus node-exporter
    ```
 
 2. **Access dashboards**:
@@ -218,7 +218,7 @@ deploy:
 
    ```bash
    # All services
-   docker-compose logs -f
+   docker compose logs -f
    
    # Specific service
    docker logs -f prosody
@@ -245,15 +245,15 @@ deploy:
 
 ```bash
 # Add to crontab
-0 3 * * * cd /path/to/xmpp.atl.chat && docker-compose --profile renewal run --rm certbot-renew && docker-compose restart prosody
+0 3 * * * cd /path/to/xmpp.atl.chat && docker compose --profile renewal run --rm certbot-renew && docker compose restart prosody
 ```
 
 #### Manual Renewal
 
 ```bash
 # Renew certificates manually
-docker-compose --profile letsencrypt run --rm certbot
-docker-compose restart prosody
+docker compose --profile letsencrypt run --rm certbot
+docker compose restart prosody
 
 # Check certificate expiration
 docker run --rm -v prosody_certs:/certs debian:bookworm-slim \
@@ -322,7 +322,7 @@ All services include health checks:
 
 ```bash
 # Check all service health
-docker-compose ps
+docker compose ps
 
 # Manual health check
 docker exec prosody /opt/prosody/scripts/health-check.sh
@@ -354,7 +354,7 @@ docker exec prosody /opt/prosody/scripts/health-check.sh
 1. **Multiple Prosody instances**:
 
    ```bash
-   docker-compose up -d --scale prosody=3
+   docker compose up -d --scale prosody=3
    ```
 
 2. **Load balancer configuration** (Nginx):
@@ -423,8 +423,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Deploy to production
         run: |
-          docker-compose pull
-          docker-compose up -d --remove-orphans
+          docker compose pull
+          docker compose up -d --remove-orphans
           docker system prune -f
 ```
 

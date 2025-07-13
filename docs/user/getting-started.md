@@ -37,21 +37,21 @@ PROSODY_DB_PASSWORD=ChangeMe123!
 
 ```bash
 # Start the server (minimal deployment)
-docker-compose up -d prosody db
+docker compose up -d prosody db
 
 # Check status
-docker-compose logs -f prosody
+docker compose logs -f prosody
 ```
 
 ### 5. Create Users
 
 ```bash
 # Create admin user
-docker-compose exec prosody prosodyctl adduser admin@atl.chat
+docker compose exec prosody prosodyctl adduser admin@atl.chat
 
 # Create regular users
-docker-compose exec prosody prosodyctl adduser alice@atl.chat
-docker-compose exec prosody prosodyctl adduser bob@atl.chat
+docker compose exec prosody prosodyctl adduser alice@atl.chat
+docker compose exec prosody prosodyctl adduser bob@atl.chat
 ```
 
 ### 6. Connect
@@ -162,21 +162,21 @@ Web clients can connect via WebSocket:
 
 ```bash
 # Deploy with TURN/STUN server for voice/video calls
-docker-compose up -d prosody db coturn
+docker compose up -d prosody db coturn
 ```
 
 ### Add Monitoring
 
 ```bash
 # Deploy with monitoring stack
-docker-compose up -d prosody db prometheus
+docker compose up -d prosody db prometheus
 ```
 
 ### Full Deployment
 
 ```bash
 # Deploy everything
-docker-compose up -d
+docker compose up -d
 ```
 
 ## ✅ Verify Your Setup
@@ -185,13 +185,13 @@ docker-compose up -d
 
 ```bash
 # Check if prosody is running
-docker-compose exec prosody prosodyctl status
+docker compose exec prosody prosodyctl status
 
 # Test connectivity
-docker-compose exec prosody prosodyctl check connectivity atl.chat
+docker compose exec prosody prosodyctl check connectivity atl.chat
 
 # Check configuration
-docker-compose exec prosody prosodyctl check config
+docker compose exec prosody prosodyctl check config
 ```
 
 ### Test External Connectivity
@@ -209,26 +209,26 @@ Visit [XMPP Compliance Tester](https://compliance.conversations.im/) and enter y
 
 ```bash
 # List users
-docker-compose exec prosody prosodyctl list users atl.chat
+docker compose exec prosody prosodyctl list users atl.chat
 
 # Change password
-docker-compose exec prosody prosodyctl passwd alice@atl.chat
+docker compose exec prosody prosodyctl passwd alice@atl.chat
 
 # Delete user
-docker-compose exec prosody prosodyctl deluser bob@atl.chat
+docker compose exec prosody prosodyctl deluser bob@atl.chat
 ```
 
 ### Server Management
 
 ```bash
 # Restart prosody
-docker-compose restart prosody
+docker compose restart prosody
 
 # View logs
-docker-compose logs -f prosody
+docker compose logs -f prosody
 
 # Update prosody
-docker-compose pull && docker-compose up -d
+docker compose pull && docker compose up -d
 ```
 
 ## 🛟 Troubleshooting
@@ -255,7 +255,7 @@ docker-compose pull && docker-compose up -d
 
 ### Get Help
 
-- **Logs**: `docker-compose logs prosody`
+- **Logs**: `docker compose logs prosody`
 - **Test connectivity**: `prosodyctl check connectivity atl.chat`
 - **Configuration test**: `prosodyctl check config`
 - **Issues**: [GitHub Issues](https://github.com/allthingslinux/xmpp.atl.chat/issues)

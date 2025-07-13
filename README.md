@@ -27,17 +27,17 @@ cp examples/env.example .env
 # Edit .env with your domain and database password
 
 # Generate SSL certificate (choose one method)
-docker-compose --profile letsencrypt run --rm certbot  # Let's Encrypt
+docker compose --profile letsencrypt run --rm certbot  # Let's Encrypt
 # OR copy your existing certificate to the volume
 
 # Set up automatic certificate renewal (recommended)
 (crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 
 # Deploy the server
-docker-compose up -d prosody db
+docker compose up -d prosody db
 
 # Check status
-docker-compose logs -f prosody
+docker compose logs -f prosody
 ```
 
 📖 **Complete Setup Guide**: [Docker Deployment Guide](docs/admin/docker-deployment.md)
@@ -50,7 +50,7 @@ docker-compose logs -f prosody
 ./scripts/prosody-manager prosodyctl adduser user@atl.chat
 
 # Or directly with Docker
-docker-compose exec prosody prosodyctl adduser admin@atl.chat
+docker compose exec prosody prosodyctl adduser admin@atl.chat
 ```
 
 ### 3. Connect
@@ -112,13 +112,13 @@ This deployment includes multiple services for a complete XMPP solution:
 
 ```bash
 # Minimal deployment (XMPP + Database only)
-docker-compose up -d prosody db
+docker compose up -d prosody db
 
 # Full deployment (all services)
-docker-compose up -d
+docker compose up -d
 
 # Custom service selection
-docker-compose up -d prosody db prometheus grafana
+docker compose up -d prosody db prometheus grafana
 ```
 
 ## 📊 XEP Compliance

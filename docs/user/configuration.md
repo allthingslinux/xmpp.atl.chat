@@ -126,24 +126,24 @@ NODE_EXPORTER_PORT=9100            # System metrics
 
 ```bash
 # Deploy only XMPP server and database
-docker-compose up -d prosody db
+docker compose up -d prosody db
 ```
 
 ### Full Deployment
 
 ```bash
 # Deploy all services (XMPP, Database, Monitoring, TURN)
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Custom Service Selection
 
 ```bash
 # XMPP + Database + Monitoring
-docker-compose up -d prosody db prometheus
+docker compose up -d prosody db prometheus
 
 # XMPP + Database + TURN server
-docker-compose up -d prosody db coturn
+docker compose up -d prosody db coturn
 ```
 
 ## 🌐 Service URLs
@@ -251,11 +251,11 @@ After editing your `.env` file:
 
 ```bash
 # Restart services to apply changes
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 
 # Or restart specific service
-docker-compose restart prosody
+docker compose restart prosody
 ```
 
 ## ✅ Validate Configuration
@@ -264,10 +264,10 @@ docker-compose restart prosody
 
 ```bash
 # Test prosody configuration
-docker-compose exec prosody prosodyctl check config
+docker compose exec prosody prosodyctl check config
 
 # Test connectivity
-docker-compose exec prosody prosodyctl check connectivity atl.chat
+docker compose exec prosody prosodyctl check connectivity atl.chat
 ```
 
 ### Verify Service Access
@@ -321,14 +321,14 @@ Docker Compose automatically sets production resource limits:
 
 ```bash
 # Check logs for configuration errors
-docker-compose logs prosody
+docker compose logs prosody
 ```
 
 **Can't access web services:**
 
 ```bash
 # Check port bindings
-docker-compose ps
+docker compose ps
 # Verify firewall allows the ports
 ```
 
@@ -336,20 +336,20 @@ docker-compose ps
 
 ```bash
 # Check database is running
-docker-compose exec db psql -U prosody -d prosody -c "SELECT 1;"
+docker compose exec db psql -U prosody -d prosody -c "SELECT 1;"
 ```
 
 ### Configuration Validation
 
 ```bash
 # Check all environment variables are loaded
-docker-compose exec prosody env | grep PROSODY
+docker compose exec prosody env | grep PROSODY
 
 # Test configuration syntax
-docker-compose exec prosody prosodyctl check config
+docker compose exec prosody prosodyctl check config
 
 # Test all connectivity
-docker-compose exec prosody prosodyctl check connectivity
+docker compose exec prosody prosodyctl check connectivity
 ```
 
 ## 🎯 Next Steps
