@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y \
     git \
     ca-certificates \
     curl \
-    luarocks &&
+    luarocks && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone community modules
