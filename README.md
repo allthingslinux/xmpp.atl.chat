@@ -36,11 +36,12 @@ docker-compose logs -f prosody
 ### 2. Create Users
 
 ```bash
-# Create admin user
-docker-compose exec prosody prosodyctl adduser admin@yourdomain.com
+# Using the unified CLI tool
+./scripts/prosody-manager prosodyctl adduser admin@yourdomain.com
+./scripts/prosody-manager prosodyctl adduser user@yourdomain.com
 
-# Create regular users  
-docker-compose exec prosody prosodyctl adduser user@yourdomain.com
+# Or directly with Docker
+docker-compose exec prosody prosodyctl adduser admin@yourdomain.com
 ```
 
 ### 3. Connect
@@ -144,15 +145,13 @@ This project includes comprehensive documentation organized by audience:
 
 - **[Getting Started Guide](./docs/user/getting-started.md)** - Detailed deployment walkthrough
 - **[Configuration Guide](./docs/user/configuration.md)** - Environment variables and settings
-- **[Client Setup](./docs/user/client-setup.md)** - Connecting XMPP clients
 
 ### 🛠️ **For Administrators**
 
-- **[Docker Deployment Guide](./docs/admin/docker-deployment-guide.md)** - Production deployment strategies
-- **[Certificate Management](./docs/admin/certificate-management.md)** - SSL/TLS certificate handling
-- **[WebSocket Configuration](./docs/admin/websocket-configuration.md)** - WebSocket setup and reverse proxy
-- **[Security Hardening](./docs/admin/security.md)** - Security best practices
-- **[Prosodyctl Management](./docs/admin/prosodyctl-management.md)** - Server management tools
+- **[Administrator Guide](./docs/admin/README.md)** - Essential admin documentation and CLI tool
+- **[DNS Setup](./docs/admin/dns-setup.md)** - Required DNS records and security
+- **[Certificate Management](./docs/admin/certificate-management.md)** - SSL/TLS certificates and Let's Encrypt
+- **[Security Hardening](./docs/admin/security.md)** - Production security configuration
 
 ### 💻 **For Developers**
 
@@ -168,23 +167,48 @@ This project includes comprehensive documentation organized by audience:
 
 ## 🛠️ Management Tools
 
-Included scripts for server management:
+### Unified CLI Tool
 
-- **`scripts/deploy.sh`** - Automated deployment and updates
-- **`scripts/prosodyctl-manager.sh`** - Enhanced prosodyctl wrapper with additional features
-- **`scripts/backup.sh`** - Database and data backup automation
-- **`scripts/health-check.sh`** - Server health monitoring
-- **`scripts/install-certificates.sh`** - SSL certificate installation and renewal
-- **`scripts/validate-config.sh`** - Configuration validation and testing
+The **`prosody-manager`** script provides comprehensive server management:
+
+```bash
+# Show all available commands
+./scripts/prosody-manager help
+
+# User management
+./scripts/prosody-manager prosodyctl adduser alice@example.com
+./scripts/prosody-manager prosodyctl passwd alice@example.com
+
+# Health monitoring
+./scripts/prosody-manager health all
+
+# Certificate management
+./scripts/prosody-manager cert check example.com
+./scripts/prosody-manager cert install example.com
+
+# Backup operations
+./scripts/prosody-manager backup create
+./scripts/prosody-manager backup restore backup.tar.gz
+
+# Deployment management
+./scripts/prosody-manager deploy up full
+./scripts/prosody-manager deploy logs prosody
+```
+
+### Docker-Specific Scripts
+
+- **`scripts/entrypoint.sh`** - Docker container initialization
+- **`scripts/generate-dhparam.sh`** - DH parameter generation for TLS
+- **`scripts/init-db.sql`** - PostgreSQL database initialization
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [contributing guidelines](./docs/dev/contributing.md) for:
+We welcome contributions! Please:
 
-- **Development workflow**
-- **Testing procedures**
-- **Code style guidelines**
-- **Documentation standards**
+- **Open issues** for bugs or feature requests
+- **Submit pull requests** with clear descriptions
+- **Follow conventional commit** style for commit messages
+- **Update documentation** when making changes
 
 ## 📋 Requirements
 
