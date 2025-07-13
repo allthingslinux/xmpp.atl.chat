@@ -37,21 +37,21 @@ docker-compose logs -f prosody
 
 ```bash
 # Using the unified CLI tool
-./scripts/prosody-manager prosodyctl adduser admin@yourdomain.com
-./scripts/prosody-manager prosodyctl adduser user@yourdomain.com
+./scripts/prosody-manager prosodyctl adduser admin@atl.chat
+./scripts/prosody-manager prosodyctl adduser user@atl.chat
 
 # Or directly with Docker
-docker-compose exec prosody prosodyctl adduser admin@yourdomain.com
+docker-compose exec prosody prosodyctl adduser admin@atl.chat
 ```
 
 ### 3. Connect
 
 Your XMPP server is now ready! Connect with any XMPP client:
 
-- **Server**: `yourdomain.com`
+- **Server**: `atl.chat`
 - **Ports**: 5222 (STARTTLS), 5223 (Direct TLS)
-- **Web Admin**: `https://yourdomain.com:5281/admin`
-- **WebSocket**: `wss://yourdomain.com:5281/xmpp-websocket`
+- **Web Admin**: `https://xmpp.atl.chat:5281/admin`
+- **WebSocket**: `wss://xmpp.atl.chat:5281/xmpp-websocket`
 
 ## 🌟 Key Features
 
@@ -176,15 +176,15 @@ The **`prosody-manager`** script provides comprehensive server management:
 ./scripts/prosody-manager help
 
 # User management
-./scripts/prosody-manager prosodyctl adduser alice@example.com
-./scripts/prosody-manager prosodyctl passwd alice@example.com
+./scripts/prosody-manager prosodyctl adduser alice@atl.chat
+./scripts/prosody-manager prosodyctl passwd alice@atl.chat
 
 # Health monitoring
 ./scripts/prosody-manager health all
 
 # Certificate management
-./scripts/prosody-manager cert check example.com
-./scripts/prosody-manager cert install example.com
+./scripts/prosody-manager cert check atl.chat
+./scripts/prosody-manager cert install atl.chat
 
 # Backup operations
 ./scripts/prosody-manager backup create

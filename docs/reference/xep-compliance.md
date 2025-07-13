@@ -175,7 +175,7 @@ Test your server's compliance with these tools:
 
 ```bash
 # Test XEP compliance
-docker-compose exec prosody prosodyctl check connectivity yourdomain.com
+docker-compose exec prosody prosodyctl check connectivity atl.chat
 
 # Validate configuration
 docker-compose exec prosody prosodyctl check config

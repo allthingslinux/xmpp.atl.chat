@@ -11,15 +11,15 @@ For most administrative tasks, use the **unified CLI tool**:
 ./scripts/prosody-manager help
 
 # User management
-./scripts/prosody-manager prosodyctl adduser alice@example.com
-./scripts/prosody-manager prosodyctl passwd alice@example.com
+./scripts/prosody-manager prosodyctl adduser alice@atl.chat
+./scripts/prosody-manager prosodyctl passwd alice@atl.chat
 
 # Health monitoring
 ./scripts/prosody-manager health all
 
 # Certificate management
-./scripts/prosody-manager cert check example.com
-./scripts/prosody-manager cert install example.com
+./scripts/prosody-manager cert check atl.chat
+./scripts/prosody-manager cert install atl.chat
 
 # Backup operations
 ./scripts/prosody-manager backup create

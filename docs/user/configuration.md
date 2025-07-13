@@ -17,10 +17,10 @@ nano .env  # Edit with your preferred editor
 
 ```bash
 # Your XMPP domain (REQUIRED - change this!)
-PROSODY_DOMAIN=chat.example.com
+PROSODY_DOMAIN=atl.chat
 
 # Administrator JIDs (comma-separated)
-PROSODY_ADMINS=admin@chat.example.com
+PROSODY_ADMINS=admin@atl.chat
 ```
 
 ### Database Configuration (Required)
@@ -204,8 +204,8 @@ Here's a complete `.env` file example for a production deployment:
 # ============================================================================
 # DOMAIN CONFIGURATION (REQUIRED)
 # ============================================================================
-PROSODY_DOMAIN=chat.example.com
-PROSODY_ADMINS=admin@chat.example.com
+PROSODY_DOMAIN=atl.chat
+PROSODY_ADMINS=admin@atl.chat
 
 # ============================================================================
 # DATABASE CONFIGURATION (REQUIRED)
@@ -276,17 +276,17 @@ docker-compose restart prosody
 docker-compose exec prosody prosodyctl check config
 
 # Test connectivity
-docker-compose exec prosody prosodyctl check connectivity chat.example.com
+docker-compose exec prosody prosodyctl check connectivity atl.chat
 ```
 
 ### Verify Service Access
 
 ```bash
 # Check if admin panel is accessible
-curl -k https://chat.example.com:5281/admin
+curl -k https://xmpp.atl.chat:5281/admin
 
 # Check if file upload is working
-curl -k https://chat.example.com:5281/upload
+curl -k https://xmpp.atl.chat:5281/upload
 
 # Check metrics endpoint
 curl http://localhost:9090/metrics

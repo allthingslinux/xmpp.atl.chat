@@ -78,7 +78,7 @@ Advanced module management with:
 ```lua
 -- Example usage
 local loader = require("config.tools.core.module-loader")
-loader.load_module_set({"mam", "carbons", "smacks"}, "example.com")
+loader.load_module_set({"mam", "carbons", "smacks"}, "atl.chat")
 loader.generate_compliance_report()
 ```
 

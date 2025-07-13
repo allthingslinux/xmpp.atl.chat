@@ -786,9 +786,9 @@ show_help() {
     echo -e "    ${GREEN}version${NC}         Show version information"
     echo
     echo -e "${BOLD}EXAMPLES:${NC}"
-    echo "    prosody-manager prosodyctl adduser alice@example.com"
+    echo "    prosody-manager prosodyctl adduser alice@atl.chat"
     echo "    prosody-manager health all"
-    echo "    prosody-manager cert check example.com"
+    echo "    prosody-manager cert check atl.chat"
     echo "    prosody-manager backup create"
     echo "    prosody-manager deploy up full"
     echo "    prosody-manager deploy logs prosody"

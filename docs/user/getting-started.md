@@ -7,7 +7,7 @@ Deploy a professional Prosody XMPP server in 5 minutes using Docker Compose. Thi
 ### 1. Prerequisites
 
 - **Docker** 20.10+ and **Docker Compose** 2.0+
-- **Domain name** with DNS control (e.g., `chat.example.com`)
+- **Domain name** with DNS control (e.g., `atl.chat`)
 - **2GB RAM** minimum (4GB+ recommended)
 
 ### 2. Clone and Configure
@@ -28,8 +28,8 @@ Edit `.env` file with your domain:
 
 ```bash
 # Required settings
-PROSODY_DOMAIN=chat.example.com
-PROSODY_ADMINS=admin@chat.example.com
+PROSODY_DOMAIN=atl.chat
+PROSODY_ADMINS=admin@atl.chat
 PROSODY_DB_PASSWORD=ChangeMe123!
 ```
 
@@ -47,20 +47,20 @@ docker-compose logs -f prosody
 
 ```bash
 # Create admin user
-docker-compose exec prosody prosodyctl adduser admin@chat.example.com
+docker-compose exec prosody prosodyctl adduser admin@atl.chat
 
 # Create regular users
-docker-compose exec prosody prosodyctl adduser alice@chat.example.com
-docker-compose exec prosody prosodyctl adduser bob@chat.example.com
+docker-compose exec prosody prosodyctl adduser alice@atl.chat
+docker-compose exec prosody prosodyctl adduser bob@atl.chat
 ```
 
 ### 6. Connect
 
 Your XMPP server is ready! Connect with any XMPP client using:
 
-- **Server**: `chat.example.com`
+- **Server**: `atl.chat`
 - **Port**: `5222` (STARTTLS) or `5223` (Direct TLS)
-- **Username**: `alice@chat.example.com`
+- **Username**: `alice@atl.chat`
 - **Password**: (what you set when creating the user)
 
 ## 🌐 DNS Setup
@@ -71,15 +71,15 @@ Add these DNS records for your domain:
 
 ```
 # SRV records for client discovery
-_xmpp-client._tcp.chat.example.com.  3600  IN  SRV  5 0 5222 chat.example.com.
-_xmpps-client._tcp.chat.example.com. 3600  IN  SRV  5 0 5223 chat.example.com.
+_xmpp-client._tcp.atl.chat.  3600  IN  SRV  5 0 5222 xmpp.atl.chat.
+_xmpps-client._tcp.atl.chat. 3600  IN  SRV  5 0 5223 xmpp.atl.chat.
 
 # SRV records for server-to-server
-_xmpp-server._tcp.chat.example.com.  3600  IN  SRV  5 0 5269 chat.example.com.
-_xmpps-server._tcp.chat.example.com. 3600  IN  SRV  5 0 5270 chat.example.com.
+_xmpp-server._tcp.atl.chat.  3600  IN  SRV  5 0 5269 xmpp.atl.chat.
+_xmpps-server._tcp.atl.chat. 3600  IN  SRV  5 0 5270 xmpp.atl.chat.
 
 # A record pointing to your server
-chat.example.com.                    3600  IN  A    YOUR.SERVER.IP.ADDRESS
+xmpp.atl.chat.               3600  IN  A    YOUR.SERVER.IP.ADDRESS
 ```
 
 ## 🔒 SSL Certificates
@@ -91,11 +91,11 @@ chat.example.com.                    3600  IN  A    YOUR.SERVER.IP.ADDRESS
 sudo apt install certbot
 
 # Get certificate
-sudo certbot certonly --standalone -d chat.example.com
+sudo certbot certonly --standalone -d atl.chat
 
 # Copy certificates to prosody
-sudo cp /etc/letsencrypt/live/chat.example.com/fullchain.pem /path/to/prosody/certs/
-sudo cp /etc/letsencrypt/live/chat.example.com/privkey.pem /path/to/prosody/certs/
+sudo cp /etc/letsencrypt/live/atl.chat/fullchain.pem /path/to/prosody/certs/
+sudo cp /etc/letsencrypt/live/atl.chat/privkey.pem /path/to/prosody/certs/
 sudo chown prosody:prosody /path/to/prosody/certs/*
 ```
 
@@ -103,8 +103,8 @@ sudo chown prosody:prosody /path/to/prosody/certs/*
 
 ```bash
 # Copy your certificates
-cp your-cert.pem /path/to/prosody/certs/chat.example.com.crt
-cp your-key.pem /path/to/prosody/certs/chat.example.com.key
+cp your-cert.pem /path/to/prosody/certs/atl.chat.crt
+cp your-key.pem /path/to/prosody/certs/atl.chat.key
 
 # Set permissions
 sudo chown prosody:prosody /path/to/prosody/certs/*
@@ -128,9 +128,9 @@ sudo chmod 600 /path/to/prosody/certs/*.key
 All clients use these settings:
 
 ```
-Server: chat.example.com
+Server: atl.chat
 Port: 5222 (STARTTLS) or 5223 (Direct TLS)
-Username: alice@chat.example.com
+Username: alice@atl.chat
 Password: [your password]
 ```
 
@@ -140,21 +140,21 @@ Password: [your password]
 
 Access the web admin panel at:
 
-- **URL**: `https://chat.example.com:5281/admin`
-- **Username**: `admin@chat.example.com`
+- **URL**: `https://xmpp.atl.chat:5281/admin`
+- **Username**: `admin@atl.chat`
 - **Password**: [admin password]
 
 ### File Upload
 
 Users can upload files at:
 
-- **URL**: `https://chat.example.com:5281/upload`
+- **URL**: `https://xmpp.atl.chat:5281/upload`
 
 ### WebSocket (for web clients)
 
 Web clients can connect via WebSocket:
 
-- **URL**: `wss://chat.example.com:5281/xmpp-websocket`
+- **URL**: `wss://xmpp.atl.chat:5281/xmpp-websocket`
 
 ## 🔧 Additional Services
 
@@ -188,7 +188,7 @@ docker-compose up -d
 docker-compose exec prosody prosodyctl status
 
 # Test connectivity
-docker-compose exec prosody prosodyctl check connectivity chat.example.com
+docker-compose exec prosody prosodyctl check connectivity atl.chat
 
 # Check configuration
 docker-compose exec prosody prosodyctl check config
@@ -209,13 +209,13 @@ Visit [XMPP Compliance Tester](https://compliance.conversations.im/) and enter y
 
 ```bash
 # List users
-docker-compose exec prosody prosodyctl list users chat.example.com
+docker-compose exec prosody prosodyctl list users atl.chat
 
 # Change password
-docker-compose exec prosody prosodyctl passwd alice@chat.example.com
+docker-compose exec prosody prosodyctl passwd alice@atl.chat
 
 # Delete user
-docker-compose exec prosody prosodyctl deluser bob@chat.example.com
+docker-compose exec prosody prosodyctl deluser bob@atl.chat
 ```
 
 ### Server Management
@@ -256,7 +256,7 @@ docker-compose pull && docker-compose up -d
 ### Get Help
 
 - **Logs**: `docker-compose logs prosody`
-- **Test connectivity**: `prosodyctl check connectivity yourdomain.com`
+- **Test connectivity**: `prosodyctl check connectivity atl.chat`
 - **Configuration test**: `prosodyctl check config`
 - **Issues**: [GitHub Issues](https://github.com/allthingslinux/xmpp.atl.chat/issues)
 

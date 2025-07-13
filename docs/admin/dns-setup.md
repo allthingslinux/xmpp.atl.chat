@@ -69,7 +69,7 @@ For MUC (Multi-User Chat) and other components:
 
 ```dns
 ; MUC service delegation
-_xmpp-server._tcp.conference.atl.chat.  3600  IN  SRV  0  5  5269  xmpp.atl.chat.
+_xmpp-server._tcp.muc.atl.chat.         3600  IN  SRV  0  5  5269  xmpp.atl.chat.
 
 ; Upload service (if using separate subdomain)
 _xmpp-server._tcp.upload.atl.chat.      3600  IN  SRV  0  5  5269  xmpp.atl.chat.

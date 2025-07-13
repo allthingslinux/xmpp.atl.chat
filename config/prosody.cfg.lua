@@ -502,10 +502,10 @@ ssl = {
 	certificate = "certs/" .. (os.getenv("PROSODY_DOMAIN") or "localhost") .. ".crt",
 }
 
--- Conference/MUC domain
-Component("conference." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
+-- MUC (Multi-User Chat) domain
+Component("muc." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
 name = "Multi-User Chat"
-description = "Group chat and conference rooms"
+description = "Multi-User Chat rooms"
 
 -- Enhanced MUC configuration
 max_history_messages = 50

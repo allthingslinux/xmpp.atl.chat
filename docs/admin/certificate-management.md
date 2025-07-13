@@ -32,10 +32,10 @@ Prosody automatically searches for certificates in this order:
 prosodyctl check certs
 
 # Generate self-signed certificate
-prosodyctl cert generate example.com
+prosodyctl cert generate atl.chat
 
 # Generate certificate signing request
-prosodyctl cert request example.com
+prosodyctl cert request atl.chat
 
 # Import certificate from external source
 prosodyctl --root cert import /path/to/certificates

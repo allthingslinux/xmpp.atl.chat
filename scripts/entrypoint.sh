@@ -158,7 +158,7 @@ setup_certificates() {
     # Generate certificate with proper Subject Alternative Names
     openssl req -new -x509 -key "$key_file" -out "$cert_file" -days 365 \
         -subj "/CN=${PROSODY_DOMAIN}" \
-        -addext "subjectAltName=DNS:${PROSODY_DOMAIN},DNS:*.${PROSODY_DOMAIN},DNS:conference.${PROSODY_DOMAIN},DNS:upload.${PROSODY_DOMAIN}" \
+        -addext "subjectAltName=DNS:${PROSODY_DOMAIN},DNS:*.${PROSODY_DOMAIN},DNS:muc.${PROSODY_DOMAIN},DNS:upload.${PROSODY_DOMAIN}" \
         2>/dev/null
 
     # Set proper permissions
