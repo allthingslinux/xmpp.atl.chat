@@ -630,6 +630,9 @@ disco_items = {
 	-- File transfer proxy (XEP-0065)
 	{ "proxy." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "SOCKS5 File Transfer Proxy" },
 
+	-- Pastebin service (automatic for long messages)
+	{ os.getenv("PROSODY_DOMAIN") or "localhost", "Pastebin Service" },
+
 	-- Optional: External services that can be discovered
 	-- Add custom services here via environment variables
 }
@@ -658,6 +661,11 @@ disco_expose_admins = (os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true") -- De
 Component("muc." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
 name = "Multi-User Chat"
 description = "Multi-User Chat rooms"
+
+-- MUC-specific modules (must be loaded on MUC component)
+modules_enabled = {
+	"pastebin", -- Automatic pastebin for long messages
+}
 
 -- Enhanced MUC configuration
 max_history_messages = 50
@@ -757,6 +765,44 @@ muc_archive_policy = os.getenv("PROSODY_MUC_ARCHIVE_POLICY") or "all"
 -- Helps with privacy compliance (GDPR, etc.)
 -- Default: true (recommended for transparency)
 muc_log_notification = (os.getenv("PROSODY_MUC_LOG_NOTIFICATION") ~= "false")
+
+-- ===============================================
+-- MUC PASTEBIN CONFIGURATION
+-- ===============================================
+
+-- Maximum message length before pastebin conversion (characters)
+-- Messages longer than this will be automatically converted to pastebin URLs
+-- Default: 500 characters, Production: 800-1000 for better UX
+pastebin_threshold = tonumber(os.getenv("PROSODY_PASTEBIN_THRESHOLD")) or 800
+
+-- Maximum number of lines before pastebin conversion
+-- Messages with more lines than this will be converted to pastebin
+-- Default: 4 lines, Production: 6-8 lines for better tolerance
+pastebin_line_threshold = tonumber(os.getenv("PROSODY_PASTEBIN_LINE_THRESHOLD")) or 6
+
+-- Trigger string to force pastebin (optional)
+-- If a message starts with this string, it's always sent to pastebin
+-- Useful for intentionally sharing code/logs regardless of length
+-- Default: not set, Example: "!paste" or "```"
+local pastebin_trigger_env = os.getenv("PROSODY_PASTEBIN_TRIGGER")
+if pastebin_trigger_env then
+	pastebin_trigger = pastebin_trigger_env
+end
+
+-- Pastebin expiry time (hours)
+-- How long pastes are stored before automatic deletion
+-- Default: 24 hours, Production: 168 hours (1 week) for better UX
+-- Set to 0 for permanent storage (not recommended)
+pastebin_expire_after = tonumber(os.getenv("PROSODY_PASTEBIN_EXPIRE_AFTER")) or 168
+
+-- Pastebin URL path customization
+-- Customize the URL path for pastebin service
+-- Default: "/pastebin/", Custom: "/$host-paste/" or "/paste/"
+local pastebin_path_env = os.getenv("PROSODY_PASTEBIN_PATH")
+if pastebin_path_env then
+	http_paths = http_paths or {}
+	http_paths.pastebin = pastebin_path_env
+end
 
 -- File upload domain
 Component("upload." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "http_file_share")
