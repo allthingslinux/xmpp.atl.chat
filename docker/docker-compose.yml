@@ -265,57 +265,7 @@ services:
           memory: 64M
           cpus: '0.25'
 
-  # ============================================================================
-  # PROMETHEUS - METRICS COLLECTION
-  # ============================================================================
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prosody-prometheus
-    restart: unless-stopped
-    
-    ports:
-      - '${PROMETHEUS_PORT:-9090}:9090'
-    
-    volumes:
-      - prometheus_data:/prometheus
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./monitoring/rules:/etc/prometheus/rules:ro
-    
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-      - '--web.enable-admin-api'
-    
-    networks:
-      - prosody_network
 
-  # ============================================================================
-  # NODE EXPORTER - SYSTEM METRICS
-  # ============================================================================
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: prosody-node-exporter
-    restart: unless-stopped
-    
-    ports:
-      - '${NODE_EXPORTER_PORT:-9100}:9100'
-    
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    
-    networks:
-      - prosody_network
 
   # ============================================================================
   # CERTIFICATE MANAGEMENT SERVICES
@@ -370,8 +320,6 @@ volumes:
   postgres_data:
     driver: local
   coturn_data:
-    driver: local
-  prometheus_data:
     driver: local
 
 # ============================================================================
