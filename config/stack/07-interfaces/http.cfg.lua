@@ -52,8 +52,8 @@ local http_server_config = {
 
 	-- SSL/TLS configuration for HTTPS
 	https_ssl = {
-		key = "/etc/prosody/certs/localhost.key",
-		certificate = "/etc/prosody/certs/localhost.crt",
+		key = "certs/localhost.key",
+		certificate = "certs/localhost.crt",
 	},
 
 	-- Security headers

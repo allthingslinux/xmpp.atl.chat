@@ -19,7 +19,7 @@ local core_config = {
 		"presence", -- RFC 6121: Presence subscription and notification
 		"message", -- RFC 6121: Message stanza handling
 		"iq", -- RFC 6120: Info/Query stanza processing
-		"roster_versioning", -- XEP-0237: Roster Versioning
+		-- "roster_versioning", -- DOESN'T EXIST: Built into mod_roster
 	},
 
 	-- Essential Protocol Extensions
@@ -35,27 +35,27 @@ local core_config = {
 	-- Essential service discovery functionality
 	disco_core = {
 		"disco", -- XEP-0030: Service Discovery
-		"caps", -- XEP-0115: Entity Capabilities
-		"disco_forms", -- XEP-0128: Service Discovery Extensions
+		-- "caps", -- DOESN'T EXIST: Built into mod_disco
+		-- "disco_forms", -- DOESN'T EXIST: Built into mod_disco
 		"server_info", -- XEP-0157: Contact Addresses for XMPP Services
 	},
 
 	-- Stream Features
 	-- Core stream feature negotiation
 	stream_features = {
-		"starttls", -- RFC 6120: STARTTLS negotiation
-		"sasl", -- RFC 6120: SASL mechanism negotiation
-		"bind", -- RFC 6120: Resource binding
-		"session", -- RFC 3921: Session establishment (legacy)
+		-- "starttls", -- DOESN'T EXIST: Built into core stream processing
+		-- "sasl", -- DOESN'T EXIST: Built into core stream processing
+		-- "bind", -- DOESN'T EXIST: Built into core stream processing
+		-- "session", -- DOESN'T EXIST: Built into core stream processing (legacy)
 	},
 
 	-- Error Handling
 	-- Core error processing and reporting
 	error_handling = {
-		"error_routing", -- Error stanza routing
-		"stanza_error", -- Standard error conditions
-		"stream_error", -- Stream error handling
-		"connection_error", -- Connection error management
+		-- "error_routing", -- DOESN'T EXIST: Built into core stanza routing
+		-- "stanza_error", -- DOESN'T EXIST: Built into core stanza processing
+		-- "stream_error", -- DOESN'T EXIST: Built into core stream handling
+		-- "connection_error", -- DOESN'T EXIST: Built into core connection handling
 	},
 
 	-- Core Utilities

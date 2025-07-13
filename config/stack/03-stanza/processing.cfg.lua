@@ -29,7 +29,7 @@ local processing_config = {
 	-- Processing Enhancement
 	-- Stanza enhancement and transformation
 	enhancement = {
-		"delay", -- XEP-0203: Delayed Delivery
+		-- "delay", -- DOESN'T EXIST: XEP-0203 delayed delivery is automatic in core
 		"time", -- XEP-0202: Entity Time
 		"version", -- XEP-0092: Software Version
 	},

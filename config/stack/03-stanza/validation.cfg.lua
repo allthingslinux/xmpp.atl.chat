@@ -7,7 +7,6 @@ local validation_config = {
 	-- Essential validation and compliance checking
 	core_validation = {
 		"disco", -- Service discovery validation
-		"caps", -- Entity capabilities validation
 		"time", -- XEP-0202: Entity Time
 		"version", -- XEP-0092: Software Version
 	},

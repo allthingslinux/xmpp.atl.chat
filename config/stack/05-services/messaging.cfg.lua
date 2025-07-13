@@ -23,7 +23,7 @@ local messaging_config = {
 	-- Message Enhancement Services
 	-- Advanced messaging features
 	enhancement_services = {
-		"delay", -- XEP-0203: Delayed Delivery
+		-- "delay", -- DOESN'T EXIST: XEP-0203 delayed delivery is automatic in core
 		-- Note: chatstates, receipts, replace, attention are client-side features
 		-- They work automatically without server modules
 	},
