@@ -194,9 +194,10 @@ dont_archive_namespaces = {
 }
 
 -- Optional: Add custom namespaces to exclude
-if os.getenv("PROSODY_ARCHIVE_EXCLUDE_NAMESPACES") then
+local archive_exclude_env = os.getenv("PROSODY_ARCHIVE_EXCLUDE_NAMESPACES")
+if archive_exclude_env then
 	local custom_namespaces = {}
-	for ns in string.gmatch(os.getenv("PROSODY_ARCHIVE_EXCLUDE_NAMESPACES"), "([^,]+)") do
+	for ns in string.gmatch(archive_exclude_env, "([^,]+)") do
 		table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$")) -- trim whitespace
 	end
 	-- Merge with default exclusions
@@ -365,9 +366,10 @@ if os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") then
 end
 
 -- Optional: Allowed file types restriction
-if os.getenv("PROSODY_UPLOAD_ALLOWED_TYPES") then
+local upload_types_env = os.getenv("PROSODY_UPLOAD_ALLOWED_TYPES")
+if upload_types_env then
 	local types = {}
-	for type in string.gmatch(os.getenv("PROSODY_UPLOAD_ALLOWED_TYPES"), "([^,]+)") do
+	for type in string.gmatch(upload_types_env, "([^,]+)") do
 		table.insert(types, type:match("^%s*(.-)%s*$")) -- trim whitespace
 	end
 	http_file_share_allowed_file_types = types
@@ -424,9 +426,10 @@ openmetrics_allow_ips = {
 }
 
 -- Optional: Allow specific IP addresses for monitoring
-if os.getenv("PROSODY_METRICS_ALLOW_IPS") then
+local metrics_ips_env = os.getenv("PROSODY_METRICS_ALLOW_IPS")
+if metrics_ips_env then
 	local custom_ips = {}
-	for ip in string.gmatch(os.getenv("PROSODY_METRICS_ALLOW_IPS"), "([^,]+)") do
+	for ip in string.gmatch(metrics_ips_env, "([^,]+)") do
 		table.insert(custom_ips, ip:match("^%s*(.-)%s*$")) -- trim whitespace
 	end
 	-- Merge with default IPs
@@ -633,9 +636,10 @@ disco_items = {
 
 -- Optional: Additional disco items from environment variable
 -- Format: PROSODY_DISCO_ITEMS="jid1,name1;jid2,name2"
-if os.getenv("PROSODY_DISCO_ITEMS") then
+local disco_items_env = os.getenv("PROSODY_DISCO_ITEMS")
+if disco_items_env then
 	local custom_items = {}
-	for item in string.gmatch(os.getenv("PROSODY_DISCO_ITEMS"), "([^;]+)") do
+	for item in string.gmatch(disco_items_env, "([^;]+)") do
 		local jid, name = item:match("([^,]+),(.+)")
 		if jid and name then
 			table.insert(custom_items, { jid:match("^%s*(.-)%s*$"), name:match("^%s*(.-)%s*$") })
@@ -730,9 +734,10 @@ muc_dont_archive_namespaces = {
 }
 
 -- Optional: Add custom namespaces to exclude from MUC archiving
-if os.getenv("PROSODY_MUC_ARCHIVE_EXCLUDE_NAMESPACES") then
+local muc_exclude_env = os.getenv("PROSODY_MUC_ARCHIVE_EXCLUDE_NAMESPACES")
+if muc_exclude_env then
 	local custom_namespaces = {}
-	for ns in string.gmatch(os.getenv("PROSODY_MUC_ARCHIVE_EXCLUDE_NAMESPACES"), "([^,]+)") do
+	for ns in string.gmatch(muc_exclude_env, "([^,]+)") do
 		table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$")) -- trim whitespace
 	end
 	-- Merge with default exclusions
