@@ -25,14 +25,15 @@ admins = { os.getenv("PROSODY_ADMIN_JID") or "admin@localhost" }
 -- ===============================================
 
 -- Standard XMPP ports (RFC 6120/6121)
-c2s_ports = { 5222 } -- Client-to-server (STARTTLS)
-legacy_ssl_ports = { 5223 } -- Direct TLS (legacy support)
-s2s_ports = { 5269 } -- Server-to-server
+c2s_ports = { tonumber(os.getenv("PROSODY_C2S_PORT")) or 5222 } -- Client-to-server (STARTTLS)
+legacy_ssl_ports = { tonumber(os.getenv("PROSODY_C2S_DIRECT_TLS_PORT")) or 5223 } -- Direct TLS (legacy support)
+s2s_ports = { tonumber(os.getenv("PROSODY_S2S_PORT")) or 5269 } -- Server-to-server
+s2s_direct_tls_ports = { tonumber(os.getenv("PROSODY_S2S_DIRECT_TLS_PORT")) or 5270 } -- Server-to-server Direct TLS
 component_ports = { 5347 } -- External components
 
 -- HTTP services
-http_ports = { 5280 } -- HTTP (BOSH, file upload, admin)
-https_ports = { 5281 } -- HTTPS (secure services)
+http_ports = { tonumber(os.getenv("PROSODY_HTTP_PORT")) or 5280 } -- HTTP (BOSH, file upload, admin)
+https_ports = { tonumber(os.getenv("PROSODY_HTTPS_PORT")) or 5281 } -- HTTPS (secure services)
 
 -- Interface bindings
 interfaces = { "*" }
@@ -206,18 +207,17 @@ limits = {
 }
 
 -- Connection limits per IP
-max_connections_per_ip = 5
+max_connections_per_ip = tonumber(os.getenv("PROSODY_MAX_CONNECTIONS_PER_IP")) or 5
 
 -- Registration limits (production security)
-allow_registration = false -- Disabled for public servers
-registration_throttle_max = 3
-registration_throttle_period = 3600 -- 1 hour
+allow_registration = os.getenv("PROSODY_ALLOW_REGISTRATION") == "true"
+registration_throttle_max = tonumber(os.getenv("PROSODY_REGISTRATION_THROTTLE_MAX")) or 3
+registration_throttle_period = tonumber(os.getenv("PROSODY_REGISTRATION_THROTTLE_PERIOD")) or 3600 -- 1 hour
 
 -- ===============================================
 -- MOBILE AND CLIENT OPTIMIZATIONS
 -- ===============================================
 
--- Mobile client detection patterns (from management.cfg.lua)
 mobile_client_patterns = {
 	"Conversations",
 	"ChatSecure",
@@ -299,7 +299,7 @@ http_headers = {
 }
 
 -- File upload configuration (XEP-0363)
-http_file_share_size_limit = 100 * 1024 * 1024 -- 100MB
+http_file_share_size_limit = tonumber(os.getenv("PROSODY_UPLOAD_SIZE_LIMIT")) or (100 * 1024 * 1024) -- Configurable size limit
 http_file_share_daily_quota = 1024 * 1024 * 1024 -- 1GB per day
 http_file_share_expire_after = 30 * 24 * 3600 -- 30 days
 http_file_share_path = "/var/lib/prosody/http_file_share"
@@ -325,8 +325,12 @@ websocket_max_frame_size = 1024 * 1024 -- 1MB
 
 -- Production logging with rotation
 log = {
-	{ levels = { min = "info" }, to = "console" },
-	{ levels = { min = "info" }, to = "file", filename = "/var/log/prosody/prosody.log" },
+	{ levels = { min = os.getenv("PROSODY_LOG_LEVEL") or "info" }, to = "console" },
+	{
+		levels = { min = os.getenv("PROSODY_LOG_LEVEL") or "info" },
+		to = "file",
+		filename = "/var/log/prosody/prosody.log",
+	},
 	{ levels = { min = "warn" }, to = "file", filename = "/var/log/prosody/prosody.err" },
 	{ levels = { "warn", "error" }, to = "file", filename = "/var/log/prosody/security.log" },
 }
@@ -566,13 +570,13 @@ firewall_scripts = {
     BOUNCE: policy-violation (Stanza too large)
     ]],
 
-	-- Block registration attempts (since registration is disabled)
-	[[
-    KIND: iq
-    TYPE: set
-    PAYLOAD: jabber:iq:register
-    BOUNCE: registration-required (Registration is disabled)
-    ]],
+	-- Allow registration attempts (registration is enabled)
+	-- [[
+	-- KIND: iq
+	-- TYPE: set
+	-- PAYLOAD: jabber:iq:register
+	-- BOUNCE: registration-required (Registration is disabled)
+	-- ]],
 }
 
 -- ===============================================
