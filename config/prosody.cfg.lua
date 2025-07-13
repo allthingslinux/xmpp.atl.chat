@@ -535,6 +535,44 @@ ssl = {
 	certificate = "certs/" .. (os.getenv("PROSODY_DOMAIN") or "localhost") .. ".crt",
 }
 
+-- ===============================================
+-- SERVICE DISCOVERY CONFIGURATION (XEP-0030)
+-- ===============================================
+
+-- Service discovery items - clients can discover these services automatically
+disco_items = {
+	-- Multi-User Chat service
+	{ "muc." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "Multi-User Chat Rooms" },
+
+	-- File upload service (XEP-0363)
+	{ "upload." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "HTTP File Upload" },
+
+	-- File transfer proxy (XEP-0065)
+	{ "proxy." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "SOCKS5 File Transfer Proxy" },
+
+	-- Optional: External services that can be discovered
+	-- Add custom services here via environment variables
+}
+
+-- Optional: Additional disco items from environment variable
+-- Format: PROSODY_DISCO_ITEMS="jid1,name1;jid2,name2"
+if os.getenv("PROSODY_DISCO_ITEMS") then
+	local custom_items = {}
+	for item in string.gmatch(os.getenv("PROSODY_DISCO_ITEMS"), "([^;]+)") do
+		local jid, name = item:match("([^,]+),(.+)")
+		if jid and name then
+			table.insert(custom_items, { jid:match("^%s*(.-)%s*$"), name:match("^%s*(.-)%s*$") })
+		end
+	end
+	-- Merge custom items with default disco_items
+	for _, item in ipairs(custom_items) do
+		table.insert(disco_items, item)
+	end
+end
+
+-- Admin discovery settings
+disco_expose_admins = (os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true") -- Default: false for privacy
+
 -- MUC (Multi-User Chat) domain
 Component("muc." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
 name = "Multi-User Chat"
