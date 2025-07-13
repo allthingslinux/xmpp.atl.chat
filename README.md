@@ -25,6 +25,7 @@ cd xmpp.atl.chat
 # Configure your environment
 cp examples/env.example .env
 # Edit .env with your domain and database password
+# All configuration is done via environment variables in .env
 
 # Generate SSL certificate (choose one method)
 docker compose --profile letsencrypt run --rm certbot  # Let's Encrypt

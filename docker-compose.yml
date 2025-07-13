@@ -17,45 +17,13 @@ services:
     hostname: prosody
     restart: unless-stopped
 
-    # Essential environment configuration only
+    # Environment variables loaded from .env file
+    # Create a .env file in the same directory as docker-compose.yml
+    # All PROSODY_* variables will be automatically loaded
     environment:
-      # Domain settings (required)
-      - PROSODY_DOMAIN=${PROSODY_DOMAIN:-localhost}
-      - PROSODY_ADMINS=${PROSODY_ADMINS:-admin@localhost}
-
-      # Database configuration (production default: PostgreSQL)
-      - PROSODY_STORAGE=sql
-      - PROSODY_DB_DRIVER=PostgreSQL
-      - PROSODY_DB_NAME=${PROSODY_DB_NAME:-prosody}
-      - PROSODY_DB_USER=${PROSODY_DB_USER:-prosody}
-      - PROSODY_DB_PASSWORD=${PROSODY_DB_PASSWORD:-prosody}
+      # Fixed database connection (container-to-container)
       - PROSODY_DB_HOST=db
       - PROSODY_DB_PORT=5432
-
-      # Security credentials (optional, for enhanced security)
-      - PROSODY_LDAP_PASSWORD=${PROSODY_LDAP_PASSWORD:-}
-      - PROSODY_OAUTH_CLIENT_SECRET=${PROSODY_OAUTH_CLIENT_SECRET:-}
-      - TURN_SECRET=${TURN_SECRET:-changeme}
-
-      # Optional overrides (production defaults used if not set)
-      - PROSODY_LOG_LEVEL=${PROSODY_LOG_LEVEL:-info}
-      - PROSODY_ALLOW_REGISTRATION=${PROSODY_ALLOW_REGISTRATION:-false}
-      - PROSODY_UPLOAD_SIZE_LIMIT=${PROSODY_UPLOAD_SIZE_LIMIT:-50485760}
-      
-      # File upload configuration (XEP-0363)
-      - PROSODY_UPLOAD_DAILY_QUOTA=${PROSODY_UPLOAD_DAILY_QUOTA:-}
-      - PROSODY_UPLOAD_EXPIRE_AFTER=${PROSODY_UPLOAD_EXPIRE_AFTER:-}
-      - PROSODY_UPLOAD_GLOBAL_QUOTA=${PROSODY_UPLOAD_GLOBAL_QUOTA:-}
-      - PROSODY_UPLOAD_ALLOWED_TYPES=${PROSODY_UPLOAD_ALLOWED_TYPES:-}
-      - PROSODY_UPLOAD_PATH=${PROSODY_UPLOAD_PATH:-}
-      
-      # Port configuration (optional, defaults are usually fine)
-      - PROSODY_C2S_PORT=${PROSODY_C2S_PORT:-5222}
-      - PROSODY_S2S_PORT=${PROSODY_S2S_PORT:-5269}
-      - PROSODY_C2S_DIRECT_TLS_PORT=${PROSODY_C2S_DIRECT_TLS_PORT:-5223}
-      - PROSODY_S2S_DIRECT_TLS_PORT=${PROSODY_S2S_DIRECT_TLS_PORT:-5270}
-      - PROSODY_HTTP_PORT=${PROSODY_HTTP_PORT:-5280}
-      - PROSODY_HTTPS_PORT=${PROSODY_HTTPS_PORT:-5281}
 
     # Port mappings
     ports:
@@ -150,10 +118,8 @@ services:
     container_name: prosody-db
     restart: unless-stopped
 
+    # Environment variables automatically loaded from .env file
     environment:
-      - POSTGRES_DB=${PROSODY_DB_NAME:-prosody}
-      - POSTGRES_USER=${PROSODY_DB_USER:-prosody}
-      - POSTGRES_PASSWORD=${PROSODY_DB_PASSWORD:-prosody}
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
 
     volumes:
@@ -192,7 +158,7 @@ services:
 
     # Health check
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${PROSODY_DB_USER:-prosody}']
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-prosody}']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -211,7 +177,7 @@ services:
     restart: unless-stopped
     
     ports:
-      # STUN/TURN ports
+      # STUN/TURN ports (environment variables loaded from .env)
       - '${TURN_PORT:-3478}:3478'
       - '${TURN_PORT:-3478}:3478/udp'
       - '${TURNS_PORT:-5349}:5349'
@@ -219,23 +185,15 @@ services:
       # Relay ports range
       - '${TURN_MIN_PORT:-49152}-${TURN_MAX_PORT:-65535}:49152-65535/udp'
     
+    # Environment variables automatically loaded from .env file
     environment:
-      # Basic configuration
-      - TURN_DOMAIN=${PROSODY_DOMAIN:-localhost}
-      - TURN_REALM=${PROSODY_DOMAIN:-localhost}
-      
-      # Authentication
-      - TURN_USERNAME=${TURN_USERNAME:-prosody}
-      - TURN_PASSWORD=${TURN_PASSWORD:-changeme}
-      - TURN_SECRET=${TURN_SECRET:-changeme}
-      
-      # Security settings
+      # Fixed security settings
       - TURN_NO_LOOPBACK_PEERS=true
       - TURN_NO_MULTICAST_PEERS=true
       - TURN_STALE_NONCE=true
       - TURN_SECURE_STUN=true
       
-      # Logging
+      # Fixed logging
       - TURN_LOG_FILE=stdout
       - TURN_VERBOSE=false
     
@@ -248,12 +206,12 @@ services:
         --tls-listening-port=5349
         --min-port=49152
         --max-port=65535
-        --realm=${TURN_REALM:-localhost}
-        --server-name=${TURN_DOMAIN:-localhost}
+        --realm=$${TURN_REALM:-localhost}
+        --server-name=$${TURN_DOMAIN:-localhost}
         --lt-cred-mech
-        --user=${TURN_USERNAME:-prosody}:${TURN_PASSWORD:-changeme}
+        --user=$${TURN_USERNAME:-prosody}:$${TURN_PASSWORD:-changeme}
         --use-auth-secret
-        --static-auth-secret=${TURN_SECRET:-changeme}
+        --static-auth-secret=$${TURN_SECRET:-changeme}
         --no-loopback-peers
         --no-multicast-peers
         --mobility
@@ -296,8 +254,7 @@ services:
     volumes:
       - ./certs:/etc/letsencrypt
       - ./letsencrypt-webroot:/var/www/certbot
-    environment:
-      - PROSODY_DOMAIN=${PROSODY_DOMAIN:-atl.chat}
+    # Environment variables automatically loaded from .env file
     command: >
       certonly
       --webroot
