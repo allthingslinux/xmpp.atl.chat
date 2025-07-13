@@ -173,7 +173,7 @@ services:
   # REDIS CACHE (OPTIONAL - FOR PERFORMANCE)
   # ============================================================================
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: prosody-redis
     restart: unless-stopped
 
