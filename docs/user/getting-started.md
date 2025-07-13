@@ -169,7 +169,7 @@ docker-compose up -d prosody db coturn
 
 ```bash
 # Deploy with monitoring stack
-docker-compose up -d prosody db prometheus grafana
+docker-compose up -d prosody db prometheus
 ```
 
 ### Full Deployment

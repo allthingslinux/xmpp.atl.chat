@@ -106,7 +106,7 @@ docker-compose up -d prosody db
 docker-compose up -d
 
 # Custom service selection
-docker-compose up -d prosody db prometheus grafana
+docker-compose up -d prosody db prometheus
 ```
 
 ## 🔍 Finding What You Need

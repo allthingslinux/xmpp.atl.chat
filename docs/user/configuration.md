@@ -117,11 +117,7 @@ PROSODY_LOG_LEVEL=info
 ```bash
 # Monitoring service ports
 PROMETHEUS_PORT=9090               # Prometheus metrics
-GRAFANA_PORT=3000                  # Grafana dashboards
 NODE_EXPORTER_PORT=9100            # System metrics
-
-# Grafana admin password
-GRAFANA_ADMIN_PASSWORD=ChangeMe123!
 ```
 
 ## 🚀 Deployment Modes
@@ -144,7 +140,7 @@ docker-compose up -d
 
 ```bash
 # XMPP + Database + Monitoring
-docker-compose up -d prosody db prometheus grafana
+docker-compose up -d prosody db prometheus
 
 # XMPP + Database + TURN server
 docker-compose up -d prosody db coturn
@@ -175,9 +171,6 @@ https://${PROSODY_DOMAIN}:${PROSODY_HTTPS_PORT}/http-bind
 ```bash
 # Prometheus metrics
 http://localhost:${PROMETHEUS_PORT}
-
-# Grafana dashboards
-http://localhost:${GRAFANA_PORT}
 
 # Node Exporter metrics
 http://localhost:${NODE_EXPORTER_PORT}
@@ -249,9 +242,7 @@ TURN_SECRET=TurnSecret123!
 # MONITORING
 # ============================================================================
 PROMETHEUS_PORT=9090
-GRAFANA_PORT=3000
 NODE_EXPORTER_PORT=9100
-GRAFANA_ADMIN_PASSWORD=GrafanaAdmin123!
 ```
 
 ## 🔄 Apply Configuration Changes

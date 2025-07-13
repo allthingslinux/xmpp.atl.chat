@@ -83,12 +83,12 @@ This project follows a **single, opinionated configuration** philosophy:
 └─────────────────────────────────────────────────────────────┘
                                 │
                    ┌────────────┼────────────┐
-                   ▼            ▼            ▼
-┌──────────────────────┐ ┌─────────────┐ ┌─────────────────┐
-│    Coturn Server     │ │ Prometheus  │ │   Grafana       │
-│  TURN/STUN for A/V   │ │  Metrics    │ │  Dashboards     │
-│  Ports 3478/5349     │ │ Port 9090   │ │  Port 3000      │
-└──────────────────────┘ └─────────────┘ └─────────────────┘
+                   ▼            ▼            
+┌──────────────────────┐ ┌─────────────┐ 
+│    Coturn Server     │ │ Prometheus  │ 
+│  TURN/STUN for A/V   │ │  Metrics    │ 
+│  Ports 3478/5349     │ │ Port 9090   │ 
+└──────────────────────┘ └─────────────┘
 ```
 
 ## 📁 Project Structure
@@ -192,11 +192,11 @@ config/prosody.cfg.lua (685 lines)
 
 ### 4. Monitoring Stack
 
-**Optional Containers**: `prometheus`, `grafana`, `node-exporter`
+**Optional Containers**: `prometheus`, `node-exporter`
 
 - **Purpose**: Server monitoring and metrics collection
 - **Integration**: Native Prosody metrics + system monitoring
-- **Access**: Grafana dashboards on port 3000
+- **Access**: Prometheus metrics on port 9090
 
 ## 🌐 Service Communication
 
@@ -219,7 +219,7 @@ networks:
 prosody → depends_on → db (PostgreSQL)
 prosody → discovers → coturn (via XEP-0215)
 prometheus → scrapes → prosody, node-exporter
-grafana → queries → prometheus
+prometheus → scrapes → prosody/node-exporter
 ```
 
 ### Port Mapping
@@ -233,7 +233,7 @@ grafana → queries → prometheus
 | prosody | 5281 | 5281 | HTTPS services |
 | coturn | 3478 | 3478 | STUN/TURN |
 | coturn | 5349 | 5349 | TURN over TLS |
-| grafana | 3000 | 3000 | Monitoring dashboards |
+
 | prometheus | 9090 | 9090 | Metrics collection |
 
 ## 🔒 Security Architecture
@@ -309,7 +309,7 @@ Local Server → DNS SRV Lookup → Remote Server Connection → TLS Verificatio
 ### Monitoring & Observability
 
 - **Prometheus metrics** - Native Prosody metrics integration
-- **Grafana dashboards** - Pre-built monitoring dashboards
+- **Prometheus metrics** - Comprehensive monitoring and alerting
 - **Health checks** - Comprehensive service health monitoring
 - **Log aggregation** - Structured logging with JSON format
 - **Alert manager** - Real-time notification system

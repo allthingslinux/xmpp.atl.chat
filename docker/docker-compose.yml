@@ -294,33 +294,6 @@ services:
       - prosody_network
 
   # ============================================================================
-  # GRAFANA - VISUALIZATION
-  # ============================================================================
-  grafana:
-    image: grafana/grafana:latest
-    container_name: prosody-grafana
-    restart: unless-stopped
-    
-    ports:
-      - '${GRAFANA_PORT:-3000}:3000'
-    
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_INSTALL_PLUGINS=redis-datasource,grafana-piechart-panel
-    
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    
-    depends_on:
-      - prometheus
-    
-    networks:
-      - prosody_network
-
-  # ============================================================================
   # NODE EXPORTER - SYSTEM METRICS
   # ============================================================================
   node-exporter:
@@ -424,8 +397,6 @@ volumes:
   coturn_data:
     driver: local
   prometheus_data:
-    driver: local
-  grafana_data:
     driver: local
 
 # ============================================================================

@@ -131,7 +131,7 @@ docker-compose up -d
 docker-compose up -d prosody db coturn
 
 # Add monitoring
-docker-compose up -d prosody db coturn prometheus grafana
+docker-compose up -d prosody db coturn prometheus
 ```
 
 ### Step 4: Verify Deployment
@@ -181,7 +181,6 @@ docker-compose up -d prosody db coturn prometheus grafana
 |---------|---------|------|---------|
 | `coturn` | TURN/STUN for voice/video | 3478, 5349 | Default |
 | `prometheus` | Metrics collection | 9090 | `monitoring` |
-| `grafana` | Dashboards | 3000 | `monitoring` |
 | `node-exporter` | System metrics | 9100 | `monitoring` |
 
 ### Certificate Services
@@ -230,11 +229,10 @@ deploy:
 1. **Enable monitoring stack**:
 
    ```bash
-   docker-compose --profile monitoring up -d prometheus grafana node-exporter
+   docker-compose --profile monitoring up -d prometheus node-exporter
    ```
 
 2. **Access dashboards**:
-   - Grafana: <http://localhost:3000> (admin/admin)
    - Prometheus: <http://localhost:9090>
 
 ### Log Management

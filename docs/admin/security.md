@@ -293,11 +293,11 @@ PROSODY_METRICS_SECURITY=true
 PROSODY_METRICS_PORT=9090
 ```
 
-**Grafana Dashboards:**
+**Prometheus Metrics:**
 
-- Security event dashboard
+- Security event metrics
 - Authentication monitoring
-- Network security overview
+- Network security metrics
 - Compliance reporting
 
 ## 🔄 Incident Response
