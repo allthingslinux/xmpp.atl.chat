@@ -16,6 +16,7 @@ This directory contains comprehensive documentation for the Professional Prosody
 - **[Deployment Guide](admin/deployment.md)** - Production deployment strategies
 - **[Security Hardening](admin/security.md)** - Security best practices
 - **[Certificate Management](admin/certificate-management.md)** - SSL/TLS certificate handling
+- **[Prosodyctl Management](admin/prosodyctl-management.md)** - Enhanced server management with prosodyctl
 - **[WebSocket Configuration](admin/websocket-configuration.md)** - WebSocket setup and reverse proxy configuration
 - **[Monitoring & Logging](admin/monitoring.md)** - Observability and metrics
 - **[Backup & Recovery](admin/backup.md)** - Data protection strategies

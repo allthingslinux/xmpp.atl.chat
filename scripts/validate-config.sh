@@ -328,12 +328,34 @@ validate_prosody_config() {
         fi
         ((TOTAL_CHECKS++))
 
-        # Check for prosody modules
-        if prosodyctl check 2>/dev/null; then
-            log_success "Prosody dependency check passed"
+        # Check for prosody features (comprehensive check)
+        if prosodyctl check features 2>/dev/null; then
+            log_success "Prosody features check passed"
             ((PASSED_CHECKS++))
         else
-            log_warning "Prosody dependency check failed (modules may be missing)"
+            log_warning "Some Prosody features may be missing or unconfigured"
+            ((WARNING_CHECKS++))
+        fi
+        ((TOTAL_CHECKS++))
+
+        # Check DNS configuration if domain is set
+        if [[ -n "${PROSODY_DOMAIN:-}" ]]; then
+            if prosodyctl check dns 2>/dev/null; then
+                log_success "Prosody DNS check passed for ${PROSODY_DOMAIN}"
+                ((PASSED_CHECKS++))
+            else
+                log_warning "Prosody DNS configuration issues detected for ${PROSODY_DOMAIN}"
+                ((WARNING_CHECKS++))
+            fi
+            ((TOTAL_CHECKS++))
+        fi
+
+        # Check for disabled components
+        if prosodyctl check disabled 2>/dev/null; then
+            log_success "No disabled Prosody components found"
+            ((PASSED_CHECKS++))
+        else
+            log_warning "Some Prosody components are disabled (may be intentional)"
             ((WARNING_CHECKS++))
         fi
         ((TOTAL_CHECKS++))
@@ -349,14 +371,38 @@ validate_prosody_config() {
         ((TOTAL_CHECKS++))
 
         # Check connectivity if domain is set
-        if [[ -n "${PROSODY_DOMAIN:-}" ]] && prosodyctl check connectivity "${PROSODY_DOMAIN}" 2>/dev/null; then
-            log_success "Prosody connectivity check passed for ${PROSODY_DOMAIN}"
-            ((PASSED_CHECKS++))
-        else
-            log_warning "Prosody connectivity check failed (network/DNS issues may exist)"
-            ((WARNING_CHECKS++))
+        if [[ -n "${PROSODY_DOMAIN:-}" ]]; then
+            if prosodyctl check connectivity 2>/dev/null; then
+                log_success "Prosody connectivity check passed for ${PROSODY_DOMAIN}"
+                ((PASSED_CHECKS++))
+            else
+                log_warning "Prosody connectivity check failed (network/DNS issues may exist)"
+                ((WARNING_CHECKS++))
+            fi
+            ((TOTAL_CHECKS++))
         fi
-        ((TOTAL_CHECKS++))
+
+        # Check TURN configuration if enabled
+        if [[ "${PROSODY_ENABLE_TURN:-false}" == "true" ]]; then
+            if [[ -n "${STUN_SERVER:-}" ]]; then
+                if prosodyctl check turn --ping="$STUN_SERVER" 2>/dev/null; then
+                    log_success "Prosody TURN configuration check passed with $STUN_SERVER"
+                    ((PASSED_CHECKS++))
+                else
+                    log_warning "Prosody TURN configuration issues detected"
+                    ((WARNING_CHECKS++))
+                fi
+            else
+                if prosodyctl check turn 2>/dev/null; then
+                    log_success "Prosody TURN configuration check passed"
+                    ((PASSED_CHECKS++))
+                else
+                    log_warning "Prosody TURN configuration issues detected"
+                    ((WARNING_CHECKS++))
+                fi
+            fi
+            ((TOTAL_CHECKS++))
+        fi
     else
         log_warning "prosodyctl not available - skipping Prosody validation"
         ((WARNING_CHECKS++))

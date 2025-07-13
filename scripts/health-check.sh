@@ -21,13 +21,26 @@ readonly EXIT_FAILURE=1
 # HEALTH CHECK FUNCTIONS
 # ============================================================================
 
-# Check if prosody process is running
+# Check if prosody process is running using prosodyctl status
 check_process() {
-    if pgrep -f "prosody" >/dev/null 2>&1; then
-        return 0
+    # Use prosodyctl status if available (more reliable)
+    if command -v prosodyctl >/dev/null 2>&1; then
+        if prosodyctl status >/dev/null 2>&1; then
+            echo "INFO: Prosody is running (prosodyctl status)"
+            return 0
+        else
+            echo "ERROR: Prosody process not running (prosodyctl status)"
+            return 1
+        fi
     else
-        echo "ERROR: Prosody process not running"
-        return 1
+        # Fallback to process check
+        if pgrep -f "prosody" >/dev/null 2>&1; then
+            echo "INFO: Prosody process found (pgrep fallback)"
+            return 0
+        else
+            echo "ERROR: Prosody process not running (pgrep fallback)"
+            return 1
+        fi
     fi
 }
 
@@ -51,14 +64,40 @@ check_ports() {
     return $failed
 }
 
-# Check prosody configuration
+# Check prosody configuration with enhanced prosodyctl checks
 check_config() {
     if [[ -f "${PROSODY_CONFIG_DIR}/prosody.cfg.lua" ]]; then
-        if prosodyctl check config >/dev/null 2>&1; then
-            return 0
+        if command -v prosodyctl >/dev/null 2>&1; then
+            # Run comprehensive prosodyctl checks
+            local failed_checks=0
+
+            # Configuration check (critical)
+            if ! prosodyctl check config >/dev/null 2>&1; then
+                echo "ERROR: Prosody configuration validation failed"
+                ((failed_checks++))
+            fi
+
+            # Features check (non-critical)
+            if ! prosodyctl check features >/dev/null 2>&1; then
+                echo "WARN: Some Prosody features may be missing or unconfigured"
+            fi
+
+            # Certificate check (if certificates exist)
+            if ! prosodyctl check certs >/dev/null 2>&1; then
+                echo "WARN: Certificate issues detected"
+            fi
+
+            # DNS check (if domain is configured)
+            if [[ -n "${PROSODY_DOMAIN:-}" ]]; then
+                if ! prosodyctl check dns >/dev/null 2>&1; then
+                    echo "WARN: DNS configuration issues for ${PROSODY_DOMAIN}"
+                fi
+            fi
+
+            return $failed_checks
         else
-            echo "ERROR: Prosody configuration invalid"
-            return 1
+            echo "WARN: prosodyctl not available - basic config validation skipped"
+            return 0
         fi
     else
         echo "ERROR: Prosody configuration file not found"
