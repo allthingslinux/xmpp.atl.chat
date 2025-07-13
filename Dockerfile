@@ -11,7 +11,7 @@
 # Build stage - Community modules and dependencies
 FROM debian:bookworm-slim AS builder
 
-# Install build dependencies
+# Install build dependencies and Prosody
 RUN apt-get update && apt-get install -y \
     build-essential \
     lua5.4-dev \
@@ -43,187 +43,174 @@ RUN find . -name "*.c" -exec gcc -shared -fPIC -I/usr/include/lua5.4 {} -o {}.so
 # Runtime stage - Optimized for production
 FROM debian:bookworm-slim AS runtime
 
-# Metadata
-LABEL maintainer="XMPP Admin <admin@domain.com>"
-LABEL description="Professional Prosody XMPP Server"
-LABEL version="1.0.0"
-
-# Install runtime dependencies based on Prosody documentation
-# Reference: https://prosody.im/doc/depends
-#
-# REQUIRED DEPENDENCIES:
-# - lua5.4: Runtime for majority of Prosody code (Lua 5.4 recommended)
-# - lua-sec: SSL/TLS support (version 0.7+)
-# - lua-socket: Network connections (version 3.x)
-# - lua-filesystem: Data store management (version 1.6.2+)
-# - lua-expat: XML/XMPP stream parsing (version 1.2.x+, 1.4.x+ recommended)
-#
-# RECOMMENDED DEPENDENCIES:
-# - lua-unbound: Secure asynchronous DNS lookups (version 0.5+)
-# - lua-readline: Console history and editing capabilities
-# - lua-event: Efficient scaling for hundreds+ concurrent connections
-# - luarocks: Plugin installer (version 2.x, 3.x recommended)
-#
-# OPTIONAL DEPENDENCIES:
-# - lua-dbi-*: SQL database support (version 0.6+)
-# - lua-sql-sqlite3: Alternative SQLite3 support to LuaDBI
-# - lua-bitop: Bit manipulation (for mod_websocket)
-# - lua-zlib: Compression support
-RUN apt-get update && apt-get install -y
-# Core Prosody and Lua
-prosody \
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
     lua5.4 \
-    liblua5.4-0
-# Required dependencies for XMPP functionality
-lua-sec \
-    lua-socket \
-    lua-filesystem \
-    lua-expat
-# Database drivers (Optional but recommended for SQL storage)
-lua-dbi-postgresql \
-    lua-dbi-mysql \
-    lua-dbi-sqlite3
-# SQLite3 support (alternative to LuaDBI for SQLite)
-lua-sqlite3
-# Recommended dependencies for enhanced functionality
-lua-unbound \
-    lua-readline \
-    lua-event \
-    lua-bitop \
-    lua-zlib
-# Redis support for caching
-lua-redis
-# Plugin management
-luarocks
-# System utilities
-ca-certificates \
-    openssl \
+    libssl3 \
+    libexpat1 \
+    libidn2-0 \
+    libicu72 \
+    libunbound8 \
+    libevent-2.1-7 \
+    libreadline8 \
+    libsqlite3-0 \
+    libpq5 \
+    libmariadb3 \
+    ca-certificates \
     curl \
-    dnsutils
-# Process management
-tini
-# Monitoring tools
-procps &&
-    rm -rf /var/lib/apt/lists/* &&
-    apt-get clean
-
-# Verify critical dependencies are installed with proper versions
-RUN echo "Verifying Prosody dependencies..." &&
-    lua5.4 -e "print('Lua ' .. _VERSION .. ' - OK')" &&
-    lua5.4 -e "require('socket'); print('LuaSocket - OK')" &&
-    lua5.4 -e "require('ssl'); print('LuaSec - OK')" &&
-    lua5.4 -e "require('lfs'); print('LuaFileSystem - OK')" &&
-    lua5.4 -e "require('lxp'); print('LuaExpat - OK')" &&
-    lua5.4 -e "pcall(require, 'unbound') and print('LuaUnbound - OK') or print('LuaUnbound - Not available but optional')" &&
-    lua5.4 -e "pcall(require, 'readline') and print('LuaReadline - OK') or print('LuaReadline - Not available but optional')" &&
-    lua5.4 -e "pcall(require, 'event') and print('LuaEvent - OK') or print('LuaEvent - Not available but optional')" &&
-    lua5.4 -e "pcall(require, 'bit') and print('BitOp - OK') or print('BitOp - Not available but optional')" &&
-    lua5.4 -e "pcall(require, 'redis') and print('Redis - OK') or print('Redis - Not available but optional')" &&
-    prosody --version
-
-# Configure LuaRocks for Prosody plugin management
-RUN luarocks config lua_version 5.4 &&
-    luarocks config variables.LUA_INCDIR /usr/include/lua5.4 &&
-    luarocks config variables.LUA_LIBDIR /usr/lib/x86_64-linux-gnu
-
-# Copy community modules from builder
-COPY --from=builder /opt/prosody-modules /opt/prosody-modules
+    dumb-init \
+    gosu &&
+    rm -rf /var/lib/apt/lists/*
 
 # Create prosody user and directories
-RUN groupadd -r prosody && useradd -r -g prosody -d /var/lib/prosody -s /bin/false prosody
+RUN groupadd -r prosody && useradd -r -g prosody prosody &&
+    mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody &&
+    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody
 
-# Create directory structure
-RUN mkdir -p \
-    /etc/prosody/conf.d \
-    /etc/prosody/modules.d \
-    /etc/prosody/firewall \
-    /etc/prosody/templates \
-    /etc/prosody/certs \
-    /var/lib/prosody/data \
-    /var/lib/prosody/uploads \
-    /var/log/prosody \
-    /opt/prosody/scripts &&
-    chown -R prosody:prosody \
-        /etc/prosody \
-        /var/lib/prosody \
-        /var/log/prosody
+# Download and install latest Prosody
+RUN PROSODY_VERSION=$(curl -s https://api.github.com/repos/bjc/prosody/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4) &&
+    curl -L "https://github.com/bjc/prosody/archive/${PROSODY_VERSION}.tar.gz" | tar -xz &&
+    cd prosody-* &&
+    ./configure \
+        --prefix=/usr/local \
+        --sysconfdir=/etc/prosody \
+        --datadir=/var/lib/prosody \
+        --with-lua=/usr \
+        --runwith=lua5.4 \
+        --no-example-certs &&
+    make &&
+    make install &&
+    cd .. &&
+    rm -rf prosody-*
 
-# Setup community modules
-RUN mkdir -p /usr/lib/prosody/community-modules &&
-    cp -r /opt/prosody-modules/* /usr/lib/prosody/community-modules/ 2>/dev/null || true &&
-    # Create symlinks for specific modules that are stable
-    for module in /opt/prosody-modules/mod_*; do
-        if [[ -f "$module" ]]; then
-            ln -sf "$module" /usr/lib/prosody/modules/ 2>/dev/null || true
+# Copy community modules from builder stage
+COPY --from=builder /opt/prosody-modules /opt/prosody-modules
+
+# Install community modules
+RUN cd /opt/prosody-modules &&
+    for module in \
+        mod_pastebin \
+        mod_http_openmetrics \
+        mod_cloud_notify \
+        mod_smacks \
+        mod_csi_simple \
+        mod_csi_battery_saver \
+        mod_filter_chatstates \
+        mod_spam_reporting \
+        mod_measure_client_connections \
+        mod_measure_stanza_counts \
+        mod_measure_message_e2ee \
+        mod_stanza_counter \
+        mod_watchregistrations \
+        mod_tombstones \
+        mod_server_contact_info \
+        mod_register_limits \
+        mod_flags \
+        mod_s2s_auth_dane_in \
+        mod_user_account_management \
+        mod_account_activity \
+        mod_extdisco \
+        mod_turncredentials \
+        mod_external_services \
+        mod_http_altconnect \
+        mod_compression \
+        mod_bookmarks \
+        mod_vcard4 \
+        mod_vcard_legacy \
+        mod_http_file_share \
+        mod_proxy65 \
+        mod_muc_mam \
+        mod_muc_unique \
+        mod_addressing \
+        mod_receipts \
+        mod_blocklist \
+        mod_privacy \
+        mod_limits \
+        mod_firewall \
+        mod_admin_web \
+        mod_statistics \
+        mod_watchdog \
+        mod_uptime \
+        mod_posix \
+        mod_register_ibr; do
+        if [ -d "$module" ]; then
+            cp -r "$module" /usr/local/lib/prosody/modules/ || true
         fi
-    done &&
-    # Set proper permissions
-    chown -R prosody:prosody /usr/lib/prosody/community-modules/ 2>/dev/null || true
+    done
+
+# Create necessary directories and set permissions
+RUN mkdir -p \
+    /etc/prosody \
+    /var/lib/prosody \
+    /var/log/prosody \
+    /var/run/prosody \
+    /var/www/certbot/.well-known/acme-challenge \
+    /certs &&
+    chown -R prosody:prosody \
+        /var/lib/prosody \
+        /var/log/prosody \
+        /var/run/prosody \
+        /certs &&
+    chmod 755 /var/www/certbot/.well-known/acme-challenge
 
 # Copy configuration files
-COPY config/ /etc/prosody/config/
-
-# Copy scripts
-COPY scripts/entrypoint.sh /opt/prosody/scripts/
-COPY scripts/health-check.sh /opt/prosody/scripts/
+COPY config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua
+COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/health-check.sh /usr/local/bin/health-check.sh
+COPY scripts/prosody-manager /usr/local/bin/prosody-manager
 
 # Make scripts executable
-RUN chmod +x /opt/prosody/scripts/*.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    /usr/local/bin/health-check.sh \
+    /usr/local/bin/prosody-manager
 
-# Set proper permissions
-RUN chown -R prosody:prosody /etc/prosody /var/lib/prosody /var/log/prosody
-
-# Create log files with proper permissions
-RUN touch /var/log/prosody/prosody.log /var/log/prosody/error.log &&
-    chown prosody:prosody /var/log/prosody/*.log
+# Set ownership for configuration
+RUN chown root:prosody /etc/prosody/prosody.cfg.lua &&
+    chmod 640 /etc/prosody/prosody.cfg.lua
 
 # Expose ports
-EXPOSE 5222/tcp # Client connections (C2S)
-EXPOSE 5269/tcp # Server connections (S2S)
-EXPOSE 5280/tcp # HTTP (BOSH, WebSocket, file upload)
-EXPOSE 5281/tcp # HTTPS (secure HTTP services)
+EXPOSE 5222 5223 5269 5270 5280 5281 5347
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD /opt/prosody/scripts/health-check.sh
+    CMD /usr/local/bin/health-check.sh
 
-# Volume mounts for persistent data
-VOLUME ["/etc/prosody/certs", "/var/lib/prosody/data", "/var/log/prosody"]
+# Volume mounts
+VOLUME ["/var/lib/prosody", "/var/log/prosody", "/certs"]
 
-# Switch to prosody user
+# Switch to prosody user for security
 USER prosody
 
-# Use tini for proper signal handling
-ENTRYPOINT ["/usr/bin/tini", "--"]
+# Set working directory
+WORKDIR /var/lib/prosody
 
-# Production optimizations and security hardening
-RUN echo "session required pam_limits.so" >>/etc/pam.d/common-session &&
-    echo "prosody soft nofile 65536" >>/etc/security/limits.conf &&
-    echo "prosody hard nofile 65536" >>/etc/security/limits.conf &&
-    echo "prosody soft nproc 32768" >>/etc/security/limits.conf &&
-    echo "prosody hard nproc 32768" >>/etc/security/limits.conf
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["/usr/local/bin/entrypoint.sh"]
 
-# Set security and performance sysctls (requires privileged mode or host networking)
-# These would typically be set at the host level:
-# net.core.somaxconn = 65535
-# net.core.netdev_max_backlog = 5000
-# net.ipv4.tcp_max_syn_backlog = 8192
-# net.ipv4.tcp_keepalive_time = 600
-# net.ipv4.tcp_keepalive_intvl = 30
-# net.ipv4.tcp_keepalive_probes = 3
+# Build metadata
+LABEL maintainer="XMPP Server Admin" \
+    description="Production-ready Prosody XMPP server with modern features" \
+    version="1.0.0" \
+    org.opencontainers.image.title="Prosody XMPP Server" \
+    org.opencontainers.image.description="Modern XMPP server with comprehensive features" \
+    org.opencontainers.image.vendor="All Things Linux" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.source="https://github.com/allthingslinux/xmpp.atl.chat"
 
-# Default command
-CMD ["/opt/prosody/scripts/entrypoint.sh"]
+# Production optimizations
+ENV PROSODY_LOG_LEVEL=info \
+    PROSODY_STORAGE=sql \
+    PROSODY_DB_DRIVER=PostgreSQL \
+    LUA_PATH="/usr/local/lib/prosody/?.lua;/usr/local/lib/prosody/?/init.lua;;" \
+    LUA_CPATH="/usr/local/lib/prosody/?.so;;"
 
-# Multi-architecture support
-FROM runtime AS amd64
-# AMD64 specific optimizations if needed
+# Security hardening
+RUN echo "prosody:x:999:999::/var/lib/prosody:/usr/sbin/nologin" >>/etc/passwd
 
-FROM runtime AS arm64
-# ARM64 specific optimizations if needed
+# Performance tuning
+ENV LUA_GC_STEP=13 \
+    LUA_GC_PAUSE=110
 
-FROM runtime AS armv7
-# ARMv7 specific optimizations if needed
-
-# Default to runtime stage
-FROM runtime
+# Final security check - ensure no root processes
+USER prosody
