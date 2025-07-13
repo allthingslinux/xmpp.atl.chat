@@ -42,16 +42,19 @@ local websocket_server_config = {
 	websocket_pong_timeout = 10, -- Wait 10 seconds for pong response
 	websocket_close_timeout = 5, -- Wait 5 seconds for close confirmation
 
-	-- Security settings
+	-- Security settings (per official Prosody WebSocket documentation)
+	-- Reference: https://prosody.im/doc/websocket
 	consider_websocket_secure = false, -- Set to true if behind HTTPS proxy
 	websocket_origin_check = true, -- Enable origin checking for security
 
 	-- Cross-domain settings (security consideration)
-	cross_domain_websocket = false, -- Disable by default for security
+	-- Disabled by default for security - only enable if needed
+	cross_domain_websocket = false, -- Legacy setting (use http_cors_override instead)
 	allowed_origins = {
-		-- Add allowed origins for cross-domain requests
-		-- "https://example.com",
-		-- "https://app.example.com",
+		-- Add allowed origins for cross-domain requests (production examples):
+		-- "https://webclient.yourdomain.com",
+		-- "https://app.yourdomain.com",
+		-- "https://yourdomain.com",
 	},
 
 	-- Response text for HTTP GET requests
@@ -218,17 +221,57 @@ local websocket_monitoring = {
 	},
 }
 
+-- WebSocket VirtualHost Configuration
+-- Essential for multi-domain setups per official documentation
+-- Reference: https://prosody.im/doc/websocket (VirtualHost mapping section)
+local websocket_virtualhost_config = {
+	-- VirtualHost mapping relies on HTTP Host header forwarding
+	-- Proxy MUST forward Host header for proper domain routing
+
+	-- Example VirtualHost configurations
+	virtualhost_examples = {
+		-- Primary domain
+		["example.com"] = {
+			http_host = "example.com",
+			http_external_url = "https://example.com/",
+			websocket_url = "wss://example.com/xmpp-websocket",
+		},
+
+		-- Additional domains
+		["chat.example.com"] = {
+			http_host = "chat.example.com",
+			http_external_url = "https://chat.example.com/",
+			websocket_url = "wss://chat.example.com/xmpp-websocket",
+		},
+	},
+
+	-- Proxy requirements for VirtualHost mapping
+	proxy_requirements = {
+		-- Nginx: proxy_set_header Host $host;
+		-- Apache: ProxyPreserveHost On
+		-- Essential headers for proper routing
+		required_headers = {
+			"Host", -- For VirtualHost mapping (CRITICAL)
+			"X-Forwarded-For", -- For real IP detection
+			"X-Forwarded-Proto", -- For protocol detection
+		},
+	},
+}
+
 -- WebSocket Utilities
 -- Helper functions for WebSocket management
 local websocket_utilities = {
-	-- Configure WebSocket for virtual host
-	configure_websocket_host = function(host, ssl_enabled)
+	-- Configure WebSocket for virtual host (enhanced)
+	configure_websocket_host = function(host, ssl_enabled, custom_path)
 		local base_url = ssl_enabled and "wss://" or "ws://"
 		local port = ssl_enabled and "5281" or "5280"
+		local path = custom_path or "/xmpp-websocket"
 
 		return {
-			websocket_url = base_url .. host .. ":" .. port .. "/xmpp-websocket",
+			websocket_url = base_url .. host .. ":" .. port .. path,
 			consider_websocket_secure = ssl_enabled,
+			http_host = host,
+			http_external_url = (ssl_enabled and "https://" or "http://") .. host .. "/",
 		}
 	end,
 
@@ -280,5 +323,6 @@ return {
 	security = websocket_security,
 	client_support = websocket_client_support,
 	monitoring = websocket_monitoring,
+	virtualhost = websocket_virtualhost_config,
 	utilities = websocket_utilities,
 }

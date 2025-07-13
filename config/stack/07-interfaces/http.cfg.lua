@@ -73,12 +73,18 @@ local http_server_config = {
 	-- http_external_url = "https://example.com/",
 
 	-- Trusted reverse proxies (for X-Forwarded-For headers)
-	-- Add your reverse proxy IPs here
+	-- Essential for WebSocket and BOSH proxy setups per official documentation
+	-- The X-Forwarded-For header lets Prosody know the real client IP
+	-- Reference: https://prosody.im/doc/websocket (proxy configuration)
 	trusted_proxies = {
-		"127.0.0.1",
-		"::1",
-		-- "192.168.1.0/24", -- Example CIDR notation (0.12+)
-		-- "10.0.0.0/8",
+		"127.0.0.1", -- Local host (required)
+		"::1", -- Local host IPv6 (required)
+		-- Production examples (uncomment and adjust for your setup):
+		-- "192.168.1.0/24", -- Local network CIDR (Prosody 0.12+)
+		-- "10.0.0.0/8",     -- Private network range
+		-- "172.16.0.0/12",  -- Private network range
+		-- "203.0.113.5",    -- Specific proxy server IP
+		-- Add your reverse proxy/load balancer IPs here
 	},
 
 	-- Request limits
