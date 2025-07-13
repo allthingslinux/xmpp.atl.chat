@@ -26,8 +26,7 @@ local routing_config = {
 	-- User privacy controls and blocking
 	privacy_routing = {
 		"privacy", -- XEP-0016: Privacy Lists (legacy)
-		"blocking", -- XEP-0191: Blocking Command (modern)
-		"blocklist", -- Simple blocking implementation
+		"blocklist", -- XEP-0191: Blocking Command (core)
 		"filter_chatstates", -- Filter chat state notifications
 	},
 

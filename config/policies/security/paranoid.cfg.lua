@@ -50,7 +50,7 @@ local paranoid_security_modules = {
 	"smacks_noerror", -- Secure stream management
 	"filter_chatstates", -- Filter chat states
 	"privacy_lists", -- Enhanced privacy
-	"blocking", -- User blocking
+	"blocklist", -- User blocking (core)
 }
 
 for _, module in ipairs(paranoid_security_modules) do

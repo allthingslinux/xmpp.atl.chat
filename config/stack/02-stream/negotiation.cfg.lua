@@ -41,7 +41,7 @@ local negotiation_config = {
 	-- Advanced Features
 	-- Modern XMPP extensions and capabilities
 	advanced_features = {
-		"blocking", -- XEP-0191: Blocking Command
+		"blocklist", -- XEP-0191: Blocking Command (core)
 		"bookmarks", -- XEP-0048/XEP-0402: Bookmarks
 		"ping", -- XEP-0199: XMPP Ping
 		"time", -- XEP-0202: Entity Time

@@ -25,7 +25,7 @@ primary_domain_features = {
 
 	-- Privacy and security
 	"privacy", -- XEP-0016: Privacy Lists
-	"blocking", -- XEP-0191: Blocking Command
+	"blocklist", -- XEP-0191: Blocking Command (core)
 	"limits", -- Rate limiting
 
 	-- File sharing

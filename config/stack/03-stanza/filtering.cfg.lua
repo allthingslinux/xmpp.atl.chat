@@ -15,8 +15,7 @@ local filtering_config = {
 	-- User privacy controls and blocking
 	privacy_controls = {
 		"privacy", -- XEP-0016: Privacy Lists (deprecated but supported)
-		"blocking", -- XEP-0191: Blocking Command
-		"blocklist", -- Simple blocklist implementation
+		"blocklist", -- XEP-0191: Blocking Command (core)
 	},
 
 	-- Anti-Spam and Security
