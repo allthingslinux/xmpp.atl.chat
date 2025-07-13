@@ -29,7 +29,7 @@ primary_domain_features = {
 	"limits", -- Rate limiting
 
 	-- File sharing
-	"http_upload", -- XEP-0363: HTTP File Upload
+	"http_file_share", -- XEP-0363: HTTP File Upload (core, recommended)
 
 	-- Administration
 	"admin_adhoc", -- Administrative commands
@@ -45,7 +45,7 @@ end
 -- Domain-specific settings
 archive_expires_after = "1y" -- Keep messages for 1 year
 max_archive_query_results = 1000
-http_upload_file_size_limit = 50 * 1024 * 1024 -- 50MB
-http_upload_expire_after = 60 * 60 * 24 * 7 -- 7 days
+http_file_share_size_limit = 50 * 1024 * 1024 -- 50MB
+http_file_share_expire_after = 60 * 60 * 24 * 7 -- 7 days
 
 print("Primary domain features configured: " .. #primary_domain_features .. " modules")

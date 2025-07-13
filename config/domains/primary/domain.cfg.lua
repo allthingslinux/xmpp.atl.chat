@@ -30,8 +30,8 @@ ssl = ssl_config or {
 }
 
 -- HTTP file upload limits (from interfaces layer)
-http_file_share_size_limit = http_upload_file_size_limit or 50 * 1024 * 1024 -- 50MB
-http_file_share_expire_after = http_upload_expire_after or 60 * 60 * 24 * 7 -- 1 week
+http_file_share_size_limit = 50 * 1024 * 1024 -- 50MB
+http_file_share_expire_after = 60 * 60 * 24 * 7 -- 1 week
 
 -- User registration settings (from stream layer)
 allow_registration = allow_user_registration or false
@@ -79,9 +79,9 @@ storage = {
 -- HTTP Upload Component
 -- Provides file upload and sharing
 Component("upload." .. domain)("http_file_share")
-http_file_share_size_limit = http_upload_file_size_limit or 50 * 1024 * 1024 -- 50MB
-http_file_share_expire_after = http_upload_expire_after or 60 * 60 * 24 * 7 -- 1 week
-http_file_share_daily_quota = http_upload_daily_quota or 500 * 1024 * 1024 -- 500MB per day
+http_file_share_size_limit = 50 * 1024 * 1024 -- 50MB
+http_file_share_expire_after = 60 * 60 * 24 * 7 -- 1 week
+http_file_share_daily_quota = 500 * 1024 * 1024 -- 500MB per day
 
 -- Storage for uploaded files
 http_file_share_path = "/var/lib/prosody/upload"
