@@ -63,6 +63,9 @@ services:
       # SSL certificates
       - prosody_certs:/etc/prosody/certs
 
+      # Scripts (for certificate management)
+      - ./scripts:/opt/prosody/scripts:ro
+
       # Logs
       - prosody_logs:/var/log/prosody
 
@@ -338,6 +341,69 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     
+    networks:
+      - prosody_network
+
+  # ============================================================================
+  # CERTIFICATE MANAGEMENT SERVICES
+  # ============================================================================
+  
+  # Certificate generation service (run manually)
+  cert-generator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: prosody-cert-generator
+    volumes:
+      - prosody_certs:/etc/prosody/certs
+      - ./scripts:/scripts:ro
+    environment:
+      - PROSODY_DOMAIN=${PROSODY_DOMAIN:-atl.chat}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - DO_AUTH_TOKEN=${DO_AUTH_TOKEN:-}
+    entrypoint: ["/scripts/generate-wildcard-cert.sh"]
+    profiles:
+      - certificates
+    networks:
+      - prosody_network
+
+  # Let's Encrypt certificate management
+  certbot:
+    image: certbot/certbot:latest
+    container_name: prosody-certbot
+    volumes:
+      - prosody_certs:/etc/letsencrypt
+      - ./letsencrypt-webroot:/var/www/certbot
+    environment:
+      - PROSODY_DOMAIN=${PROSODY_DOMAIN:-atl.chat}
+    command: >
+      certonly
+      --webroot
+      --webroot-path=/var/www/certbot
+      --email admin@${PROSODY_DOMAIN:-atl.chat}
+      --agree-tos
+      --no-eff-email
+      --expand
+      --non-interactive
+      -d ${PROSODY_DOMAIN:-atl.chat}
+      -d "*.${PROSODY_DOMAIN:-atl.chat}"
+    profiles:
+      - letsencrypt
+    networks:
+      - prosody_network
+
+  # Certificate renewal service
+  certbot-renew:
+    image: certbot/certbot:latest
+    container_name: prosody-certbot-renew
+    volumes:
+      - prosody_certs:/etc/letsencrypt
+      - ./letsencrypt-webroot:/var/www/certbot
+    command: renew --quiet
+    profiles:
+      - renewal
     networks:
       - prosody_network
 

@@ -1,0 +1,438 @@
+# Docker Deployment Guide
+
+Complete guide for deploying the Professional Prosody XMPP Server using Docker.
+
+## Quick Start
+
+### 1. Prerequisites
+
+- Docker and Docker Compose installed
+- Domain name configured (e.g., `atl.chat`)
+- DNS records set up (see [DNS Setup Guide](dns-setup.md))
+- SSL certificate (wildcard recommended)
+
+### 2. Basic Deployment
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd xmpp.atl.chat
+
+# Copy and configure environment
+cp examples/env.example .env
+# Edit .env with your domain and credentials
+
+# Start the basic services
+docker-compose up -d prosody db
+```
+
+## Complete Deployment Process
+
+### Step 1: Environment Configuration
+
+1. **Copy the environment template**:
+
+   ```bash
+   cp examples/env.example .env
+   ```
+
+2. **Configure your domain**:
+
+   ```bash
+   # Edit .env file
+   PROSODY_DOMAIN=atl.chat
+   PROSODY_ADMINS=admin@atl.chat
+   ```
+
+3. **Set database credentials**:
+
+   ```bash
+   PROSODY_DB_PASSWORD=YourSecurePassword123!
+   ```
+
+### Step 2: SSL Certificate Setup
+
+Choose one of the following methods:
+
+#### Option A: Automated Wildcard Certificate (Recommended)
+
+1. **Configure DNS provider credentials** in `.env`:
+
+   ```bash
+   # For Cloudflare
+   CLOUDFLARE_API_TOKEN=your_api_token
+   
+   # For AWS Route53
+   AWS_ACCESS_KEY_ID=your_access_key
+   AWS_SECRET_ACCESS_KEY=your_secret_key
+   
+   # For DigitalOcean
+   DO_AUTH_TOKEN=your_do_token
+   ```
+
+2. **Generate certificate**:
+
+   ```bash
+   docker-compose --profile certificates run --rm cert-generator
+   ```
+
+#### Option B: Let's Encrypt Certificate
+
+1. **Set up webroot directory**:
+
+   ```bash
+   mkdir -p letsencrypt-webroot
+   ```
+
+2. **Generate certificate**:
+
+   ```bash
+   docker-compose --profile letsencrypt run --rm certbot
+   ```
+
+#### Option C: Manual Certificate
+
+1. **Copy existing certificates**:
+
+   ```bash
+   # Create temporary container
+   docker create --name temp-cert -v prosody_certs:/certs debian:bookworm-slim
+   
+   # Copy certificates
+   docker cp your-wildcard.crt temp-cert:/certs/atl.chat.crt
+   docker cp your-wildcard.key temp-cert:/certs/atl.chat.key
+   
+   # Set permissions
+   docker run --rm -v prosody_certs:/certs debian:bookworm-slim \
+     bash -c "chown 999:999 /certs/* && chmod 600 /certs/*.key"
+   
+   # Clean up
+   docker rm temp-cert
+   ```
+
+### Step 3: Deploy Services
+
+#### Minimal Deployment (XMPP + Database)
+
+```bash
+docker-compose up -d prosody db
+```
+
+#### Full Deployment (All Services)
+
+```bash
+docker-compose up -d
+```
+
+#### Custom Service Selection
+
+```bash
+# XMPP with voice/video support
+docker-compose up -d prosody db coturn
+
+# Add monitoring
+docker-compose up -d prosody db coturn prometheus grafana
+```
+
+### Step 4: Verify Deployment
+
+1. **Check service status**:
+
+   ```bash
+   docker-compose ps
+   ```
+
+2. **Check logs**:
+
+   ```bash
+   docker logs prosody
+   docker logs prosody-db
+   ```
+
+3. **Test connectivity**:
+
+   ```bash
+   # Test XMPP ports
+   telnet xmpp.atl.chat 5222
+   telnet xmpp.atl.chat 5269
+   
+   # Test HTTP services
+   curl https://xmpp.atl.chat:5281/admin
+   ```
+
+4. **Health check**:
+
+   ```bash
+   docker exec prosody /opt/prosody/scripts/health-check.sh
+   ```
+
+## Service Architecture
+
+### Core Services
+
+| Service | Purpose | Port | Health Check |
+|---------|---------|------|--------------|
+| `prosody` | XMPP Server | 5222, 5269, 5280, 5281 | ✅ Built-in |
+| `db` | PostgreSQL Database | 5432 | ✅ Built-in |
+
+### Optional Services
+
+| Service | Purpose | Port | Profile |
+|---------|---------|------|---------|
+| `coturn` | TURN/STUN for voice/video | 3478, 5349 | Default |
+| `prometheus` | Metrics collection | 9090 | `monitoring` |
+| `grafana` | Dashboards | 3000 | `monitoring` |
+| `node-exporter` | System metrics | 9100 | `monitoring` |
+
+### Certificate Services
+
+| Service | Purpose | Profile | Usage |
+|---------|---------|---------|-------|
+| `cert-generator` | Wildcard certificate generation | `certificates` | One-time |
+| `certbot` | Let's Encrypt certificate | `letsencrypt` | One-time |
+| `certbot-renew` | Certificate renewal | `renewal` | Scheduled |
+
+## Production Configuration
+
+### Resource Limits
+
+The Docker Compose includes production-ready resource limits:
+
+```yaml
+deploy:
+  resources:
+    limits:
+      memory: 1G
+      cpus: '2.0'
+    reservations:
+      memory: 256M
+      cpus: '0.5'
+```
+
+### Security Settings
+
+- **Non-privileged containers**: `no-new-privileges:true`
+- **AppArmor profiles**: `apparmor:docker-default`
+- **User isolation**: Runs as `prosody` user (UID 999)
+- **Read-only mounts**: Configuration mounted read-only
+
+### Performance Optimization
+
+- **Sysctls**: Optimized for high concurrency
+- **Ulimits**: Increased file descriptor limits
+- **PostgreSQL**: Production-tuned parameters
+- **Logging**: Compressed log rotation
+
+## Monitoring and Maintenance
+
+### Service Monitoring
+
+1. **Enable monitoring stack**:
+
+   ```bash
+   docker-compose --profile monitoring up -d prometheus grafana node-exporter
+   ```
+
+2. **Access dashboards**:
+   - Grafana: <http://localhost:3000> (admin/admin)
+   - Prometheus: <http://localhost:9090>
+
+### Log Management
+
+1. **View logs**:
+
+   ```bash
+   # All services
+   docker-compose logs -f
+   
+   # Specific service
+   docker logs -f prosody
+   ```
+
+2. **Log rotation**: Configured automatically with compression
+
+### Certificate Renewal
+
+1. **Automated renewal** (for Let's Encrypt):
+
+   ```bash
+   # Add to crontab
+   0 3 * * * cd /path/to/xmpp.atl.chat && docker-compose --profile renewal up certbot-renew
+   ```
+
+2. **Manual renewal**:
+
+   ```bash
+   docker-compose --profile certificates run --rm cert-generator
+   docker-compose restart prosody
+   ```
+
+### Backup Strategy
+
+1. **Database backup**:
+
+   ```bash
+   docker exec prosody-db pg_dump -U prosody prosody > backup.sql
+   ```
+
+2. **Volume backup**:
+
+   ```bash
+   docker run --rm -v prosody_data:/data -v $(pwd):/backup debian:bookworm-slim \
+     tar czf /backup/prosody-data.tar.gz /data
+   ```
+
+3. **Certificate backup**:
+
+   ```bash
+   docker run --rm -v prosody_certs:/certs -v $(pwd):/backup debian:bookworm-slim \
+     tar czf /backup/prosody-certs.tar.gz /certs
+   ```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Certificate errors**:
+
+   ```bash
+   # Check certificate status
+   docker run --rm -v prosody_certs:/certs debian:bookworm-slim \
+     openssl x509 -in /certs/atl.chat.crt -text -noout
+   ```
+
+2. **Database connection issues**:
+
+   ```bash
+   # Test database connection
+   docker exec prosody-db psql -U prosody -d prosody -c "SELECT version();"
+   ```
+
+3. **Port conflicts**:
+
+   ```bash
+   # Check port usage
+   netstat -tulpn | grep -E ":(5222|5269|5280|5281)"
+   ```
+
+4. **Permission issues**:
+
+   ```bash
+   # Fix volume permissions
+   docker run --rm -v prosody_data:/data debian:bookworm-slim \
+     chown -R 999:999 /data
+   ```
+
+### Health Checks
+
+All services include health checks:
+
+```bash
+# Check all service health
+docker-compose ps
+
+# Manual health check
+docker exec prosody /opt/prosody/scripts/health-check.sh
+```
+
+### Performance Tuning
+
+1. **Increase file limits** (if needed):
+
+   ```bash
+   # Add to docker-compose.yml
+   ulimits:
+     nofile:
+       soft: 65536
+       hard: 65536
+   ```
+
+2. **Database optimization**:
+
+   ```bash
+   # Increase shared_buffers for more memory
+   command: postgres -c shared_buffers=512MB
+   ```
+
+## Scaling and High Availability
+
+### Horizontal Scaling
+
+1. **Multiple Prosody instances**:
+
+   ```bash
+   docker-compose up -d --scale prosody=3
+   ```
+
+2. **Load balancer configuration** (Nginx):
+
+   ```nginx
+   upstream prosody_backend {
+       server prosody_1:5280;
+       server prosody_2:5280;
+       server prosody_3:5280;
+   }
+   ```
+
+### Database High Availability
+
+1. **PostgreSQL clustering**: Use external PostgreSQL cluster
+2. **Backup database**: Configure automated backups
+3. **Read replicas**: For improved performance
+
+### Certificate Management at Scale
+
+1. **Centralized certificate storage**: Use external volume or NFS
+2. **Automated renewal**: Set up proper renewal workflows
+3. **Certificate monitoring**: Monitor expiration dates
+
+## Integration Examples
+
+### Reverse Proxy (Nginx)
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name xmpp.atl.chat;
+    
+    ssl_certificate /etc/nginx/certs/atl.chat.crt;
+    ssl_certificate_key /etc/nginx/certs/atl.chat.key;
+    
+    location / {
+        proxy_pass http://prosody:5280;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    location /xmpp-websocket {
+        proxy_pass http://prosody:5280;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+### CI/CD Integration
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy XMPP Server
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to production
+        run: |
+          docker-compose pull
+          docker-compose up -d --remove-orphans
+          docker system prune -f
+```
+
+This guide provides a complete foundation for deploying and managing your Prosody XMPP server with Docker, including proper certificate management, monitoring, and production best practices.

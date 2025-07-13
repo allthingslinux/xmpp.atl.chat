@@ -46,7 +46,43 @@ prosodyctl reload
 
 ## 🏗️ Certificate Sources
 
-### 1. Let's Encrypt (Recommended for Production)
+### 1. Wildcard Certificate Script (Recommended)
+
+The project includes a comprehensive script for generating Let's Encrypt wildcard certificates:
+
+```bash
+# Generate wildcard certificate with manual DNS validation
+sudo ./scripts/generate-wildcard-cert.sh create -e admin@atl.chat
+
+# Generate certificate with Cloudflare DNS automation
+sudo ./scripts/generate-wildcard-cert.sh create -e admin@atl.chat -p cloudflare
+
+# Check certificate status
+sudo ./scripts/generate-wildcard-cert.sh check
+
+# Renew certificate
+sudo ./scripts/generate-wildcard-cert.sh renew
+
+# Install existing certificate to Prosody directory
+sudo ./scripts/generate-wildcard-cert.sh install
+```
+
+**Benefits of wildcard certificates:**
+
+- ✅ Covers `atl.chat`, `muc.atl.chat`, `upload.atl.chat`, etc.
+- ✅ Single certificate for all subdomains
+- ✅ Automatic installation to Prosody directory
+- ✅ Supports multiple DNS providers for automation
+- ✅ Handles certificate renewal automatically
+
+**Supported DNS providers:**
+
+- **Manual**: Add TXT records manually during validation
+- **Cloudflare**: Automatic DNS validation with API token
+- **AWS Route53**: Automatic DNS validation with AWS credentials
+- **DigitalOcean**: Automatic DNS validation with API token
+
+### 2. Let's Encrypt (Manual Setup)
 
 #### Automatic Setup with Certbot
 

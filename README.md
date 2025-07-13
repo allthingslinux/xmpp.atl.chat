@@ -26,12 +26,18 @@ cd xmpp.atl.chat
 cp examples/env.example .env
 # Edit .env with your domain and database password
 
+# Generate SSL certificate (choose one method)
+docker-compose --profile certificates run --rm cert-generator  # Automated
+# OR copy your existing wildcard certificate to the volume
+
 # Deploy the server
-docker-compose up -d
+docker-compose up -d prosody db
 
 # Check status
 docker-compose logs -f prosody
 ```
+
+📖 **Complete Setup Guide**: [Docker Deployment Guide](docs/admin/docker-deployment.md)
 
 ### 2. Create Users
 
@@ -199,6 +205,7 @@ The **`prosody-manager`** script provides comprehensive server management:
 
 - **`scripts/entrypoint.sh`** - Docker container initialization
 - **`scripts/generate-dhparam.sh`** - DH parameter generation for TLS
+- **`scripts/generate-wildcard-cert.sh`** - Wildcard certificate generation and management
 - **`scripts/init-db.sql`** - PostgreSQL database initialization
 
 ## 🤝 Contributing
