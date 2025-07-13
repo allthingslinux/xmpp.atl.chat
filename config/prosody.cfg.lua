@@ -460,6 +460,13 @@ modules_enabled = {
 	-- ===============================================
 	"user_account_management", -- Enhanced account management
 	"account_activity", -- Last login/logout tracking (13.0+)
+
+	-- ===============================================
+	-- PRODUCTION-SPECIFIC MODULES
+	-- ===============================================
+	"watchregistrations", -- Monitor registrations
+	"tombstones", -- User deletion handling
+	"server_contact_info", -- Server contact information
 	"register_limits", -- Registration rate limiting
 	"register_ibr", -- In-band registration support
 
@@ -584,18 +591,37 @@ compression = {
 -- ===============================================
 
 external_services = {
+	-- Public STUN server (fallback)
+	{
+		type = "stun",
+		host = os.getenv("PROSODY_STUN_HOST") or "stun.l.google.com",
+		port = 19302,
+	},
+	-- Production STUN server
 	{
 		type = "stun",
 		transport = "udp",
 		host = "stun." .. (os.getenv("PROSODY_DOMAIN") or "localhost"),
 		port = 3478,
 	},
+	-- TURN server (UDP)
 	{
 		type = "turn",
 		transport = "udp",
 		host = "turn." .. (os.getenv("PROSODY_DOMAIN") or "localhost"),
 		port = 3478,
-		secret = os.getenv("TURN_SECRET") or "changeme",
+		username = "prosody",
+		password = os.getenv("TURN_PASSWORD") or "changeme",
+		restricted = true,
+	},
+	-- TURN server (TCP)
+	{
+		type = "turn",
+		transport = "tcp",
+		host = "turn." .. (os.getenv("PROSODY_DOMAIN") or "localhost"),
+		port = 3478,
+		username = "prosody",
+		password = os.getenv("TURN_PASSWORD") or "changeme",
 		restricted = true,
 	},
 }
