@@ -1,107 +1,64 @@
 # 🚀 Professional Prosody XMPP Server
 
-> **Enterprise-grade XMPP server with layer-based configuration, extensive XEP compliance, and production-ready security**
+> **Production-ready XMPP server with comprehensive feature set, extensive XEP compliance, and enterprise security**
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](./docker/docker-compose.yml)
 [![Security](https://img.shields.io/badge/Security-Hardened-green)](#security-features)
-[![XEP Compliance](https://img.shields.io/badge/XEP-30%2B%20Supported-purple)](#xep-compliance)
-[![Prosody](https://img.shields.io/badge/Prosody-13.0.0-orange)](https://prosody.im/)
+[![XEP Compliance](https://img.shields.io/badge/XEP-45%2B%20Supported-purple)](#xep-compliance)
+[![Prosody](https://img.shields.io/badge/Prosody-13.0%2B-orange)](https://prosody.im/)
 
 ## 🌟 Overview
 
-This is a **professional-grade Prosody XMPP server** featuring a revolutionary **layer-based configuration architecture** that organizes settings by XMPP protocol stack layers. Built from extensive research and analysis of real-world XMPP deployments, this setup provides enterprise-level features with exceptional maintainability.
+This is a **professional-grade Prosody XMPP server** featuring a **single, opinionated configuration** designed for public/professional deployment. Built from extensive research and analysis of real-world XMPP deployments, this setup provides enterprise-level features with all modern XMPP capabilities enabled by default.
 
-### 🏗️ Layer-Based Architecture
+### 🎯 Opinionated Production Design
 
-Our configuration system is organized by **XMPP protocol stack layers**, making it intuitive for XMPP experts and excellent for troubleshooting:
+**Single Configuration Philosophy**: No complex layers, environments, or policies - just one comprehensive, production-ready configuration that works out of the box:
 
 ```
-XMPP Protocol Stack (8 Layers × 4 Configuration Files = 32 Total)
+📁 config/
+├── prosody.cfg.lua     # Complete production configuration (685 lines)
+└── README.md          # Configuration documentation
 
-01-transport/     → Network & TLS foundations
-├── ports.cfg.lua       # Port bindings (c2s:5222, s2s:5269, HTTP:5280/5281)
-├── tls.cfg.lua         # Modern TLS 1.3, PFS, OCSP, security hardening
-├── compression.cfg.lua # XEP-0138 stream compression with security
-└── connections.cfg.lua # Connection management, rate limiting, QoS
-
-02-stream/        → Authentication & session management
-├── authentication.cfg.lua # SASL 2.0, SCRAM-SHA-256, MFA, enterprise backends
-├── encryption.cfg.lua     # OMEMO, OpenPGP, encryption policies
-├── management.cfg.lua     # XEP-0198 Stream Management, mobile optimizations
-└── negotiation.cfg.lua    # Service Discovery, Entity Capabilities, roster
-
-03-stanza/        → Message processing & routing
-├── routing.cfg.lua     # BOSH, WebSocket, message delivery, XMPP Ping
-├── filtering.cfg.lua   # Advanced firewall, anti-spam, content filtering
-├── validation.cfg.lua  # XML schema, security validation, compliance
-└── processing.cfg.lua  # Message processing, forwarding, pipelines
-
-04-protocol/      → Core XMPP features
-├── core.cfg.lua        # RFC 6120/6121 core features, JID validation
-├── extensions.cfg.lua  # Modern XEPs (MAM, Carbons, MUC, file transfer)
-├── legacy.cfg.lua      # Backwards compatibility with security warnings
-└── experimental.cfg.lua # Cutting-edge features, alpha modules
-
-05-services/      → Communication services
-├── messaging.cfg.lua   # Message handling, delivery, archiving
-├── presence.cfg.lua    # Presence, status, availability management
-├── groupchat.cfg.lua   # MUC, group chat, conference features
-└── pubsub.cfg.lua      # PubSub, XEP-0060, real-time publishing
-
-06-storage/       → Data persistence
-├── backends.cfg.lua    # Database drivers, connection pooling
-├── archiving.cfg.lua   # Message archiving, retention policies
-├── caching.cfg.lua     # Performance caching, memory optimization
-└── migration.cfg.lua   # Database migrations, schema management
-
-07-interfaces/    → External interfaces
-├── http.cfg.lua        # HTTP server, file upload, web admin
-├── websocket.cfg.lua   # WebSocket, real-time web connections
-├── bosh.cfg.lua        # BOSH, HTTP binding for web clients
-└── components.cfg.lua  # External components, gateways
-
-08-integration/   → External systems
-├── ldap.cfg.lua        # LDAP authentication, directory services
-├── oauth.cfg.lua       # OAuth 2.0, modern authentication
-├── webhooks.cfg.lua    # HTTP webhooks, external notifications
-└── apis.cfg.lua        # REST APIs, external integrations
+🐳 docker/
+├── docker-compose.yml          # Production-ready deployment
+├── docker-compose.monitoring.yml  # Optional: Prometheus + Grafana
+├── docker-compose.turn.yml       # Optional: TURN/STUN for voice/video
+└── Dockerfile                   # Optimized container build
 ```
 
-## ✨ Key Features
+### ✨ What's Included
 
-### 🎯 Layer-Based Configuration
+**🔒 Enterprise Security** (Default Enabled)
 
-- **Protocol Stack Organization** - Mirrors XMPP architecture
-- **32 Focused Files** - Each handles specific functionality
-- **Expert-Friendly** - Intuitive for XMPP protocol experts
-- **Troubleshooting** - Easy to locate and debug issues
-- **Maintainability** - Clean separation of concerns
+- TLS 1.3 with perfect forward secrecy
+- SCRAM-SHA-256 authentication
+- Comprehensive firewall and anti-spam
+- Certificate validation and OCSP stapling
 
-### 🔒 Enterprise Security
+**📱 Modern XMPP Features** (Default Enabled)
 
-- **TLS 1.3 + Perfect Forward Secrecy** - State-of-the-art encryption
-- **Multi-Factor Authentication** - SASL 2.0, SCRAM-SHA-256, token auth
-- **Anti-Spam Protection** - DNS blocklists, rate limiting, quarantine
-- **Firewall Integration** - Advanced stanza filtering and abuse prevention
-- **Compliance Ready** - GDPR, audit logging capabilities
+- Message Archive Management (MAM) - XEP-0313
+- Message Carbons - XEP-0280  
+- Stream Management (SMACKS) - XEP-0198
+- Client State Indication (CSI) - XEP-0352
+- HTTP File Upload - XEP-0363
+- Push Notifications - XEP-0357
 
-### 🌐 Modern XMPP Features (30+ XEPs)
+**🚀 Mobile Optimizations** (Default Enabled)
 
-- **Message Archive Management (XEP-0313)** - Searchable message history
-- **Message Carbons (XEP-0280)** - Multi-device synchronization
-- **Stream Management (XEP-0198)** - Connection resilience
-- **HTTP File Upload (XEP-0363)** - Secure file sharing
-- **Push Notifications (XEP-0357)** - Mobile push support
-- **OMEMO Support (XEP-0384)** - End-to-end encryption
-- **WebSocket (RFC 7395)** - Modern web client support
+- Battery-saving CSI configuration
+- Mobile presence deduplication
+- Optimized offline message handling
+- WebSocket and BOSH support
 
-### 🚀 Production Ready
+**💼 Professional Features** (Default Enabled)
 
-- **Multi-Architecture Docker** - AMD64, ARM64, ARM support
-- **Database Flexibility** - SQLite, PostgreSQL, MySQL support
-- **Monitoring & Metrics** - Prometheus, Grafana integration
-- **Health Checks** - Comprehensive monitoring and validation
-- **Backup & Recovery** - Automated backup systems
+- Multi-User Chat (MUC) - XEP-0045
+- Publish-Subscribe (PubSub) - XEP-0060
+- External Service Discovery - XEP-0215
+- TURN/STUN integration for voice/video
+- Web admin interface and monitoring
 
 ## 🚀 Quick Start
 
@@ -114,9 +71,9 @@ cd xmpp.atl.chat
 
 # Configure your environment
 cp examples/env.example .env
-# Edit .env with your domain and preferences
+# Edit .env with your domain and database password
 
-# Deploy the server
+# Deploy the server (production-ready by default)
 docker-compose up -d
 
 # Check status
@@ -130,7 +87,7 @@ docker-compose logs -f prosody
 # Create admin user
 docker-compose exec prosody prosodyctl adduser admin@yourdomain.com
 
-# Create regular users
+# Create regular users  
 docker-compose exec prosody prosodyctl adduser user@yourdomain.com
 ```
 
@@ -138,52 +95,62 @@ docker-compose exec prosody prosodyctl adduser user@yourdomain.com
 
 Connect with any XMPP client:
 
-- **Server**: `yourdomain.com`
+- **Server**: `yourdomain.com`  
 - **Ports**: 5222 (STARTTLS), 5223 (Direct TLS)
-- **Web Access**: `https://yourdomain.com:5281/` (admin interface)
+- **Web Admin**: `https://yourdomain.com:5281/admin`
+- **File Upload**: `https://yourdomain.com:5281/upload`
+- **WebSocket**: `wss://yourdomain.com:5281/xmpp-websocket`
 
-## 🔧 Configuration Profiles
+## 🔧 Optional Services
 
-### 💻 Development Setup
+### 📊 Monitoring Stack (Optional)
 
-```bash
-# Minimal resources, core features only
-PROSODY_ENABLE_BETA=false
-PROSODY_ENABLE_ALPHA=false
-PROSODY_STORAGE=sqlite
-```
-
-- **Resources**: 64-128MB RAM, 1 CPU core
-- **Features**: Core XMPP features, essential security
-- **Database**: SQLite (file-based)
-
-### 🏢 Production Server
+Add Prometheus and Grafana monitoring:
 
 ```bash
-# Full feature set with monitoring
-PROSODY_ENABLE_BETA=true
-PROSODY_ENABLE_ALPHA=false
-PROSODY_STORAGE=postgresql
-PROSODY_MONITORING=true
+# Deploy with monitoring
+docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+
+# Access Grafana dashboard
+open http://localhost:3000
+# Default login: admin / (see GRAFANA_ADMIN_PASSWORD in .env)
 ```
 
-- **Resources**: 512MB-2GB RAM, 2-4 CPU cores
-- **Features**: All stable modules, comprehensive monitoring
-- **Database**: PostgreSQL with connection pooling
+### 📞 TURN/STUN Server (Optional)
 
-### 🌐 Enterprise Deployment
+Add voice/video call support:
 
 ```bash
-# Maximum features, compliance, monitoring
-PROSODY_ENABLE_BETA=true
-PROSODY_ENABLE_ALPHA=true
-PROSODY_COMPLIANCE_MODE=enterprise
-PROSODY_MONITORING=prometheus
+# Deploy with TURN server
+docker-compose -f docker-compose.yml -f docker-compose.turn.yml up -d
+
+# TURN server will be available at turn.yourdomain.com:3478
 ```
 
-- **Resources**: 1GB+ RAM, 4+ CPU cores
-- **Features**: All modules, compliance logging, audit trails
-- **Database**: PostgreSQL cluster with replication
+### 🔄 Full Deployment
+
+Deploy everything at once:
+
+```bash
+# All services: XMPP + Database + Monitoring + TURN
+docker-compose \
+  -f docker-compose.yml \
+  -f docker-compose.monitoring.yml \
+  -f docker-compose.turn.yml \
+  up -d
+```
+
+## 🎯 Configuration Philosophy
+
+This server uses a **single, opinionated configuration** designed for professional use:
+
+- **🚀 Production Ready**: All essential features enabled by default
+- **🔒 Security First**: Enterprise-grade security settings
+- **📱 Mobile Optimized**: Battery-saving and mobile-friendly features  
+- **🌐 Modern XMPP**: Latest XEPs and Prosody 13.0+ features
+- **💼 Professional**: No registration by default, admin-controlled
+
+**No complex profiles or environments** - just copy `.env.example` to `.env`, set your domain, and deploy!
 
 ## 📊 XEP Compliance
 
