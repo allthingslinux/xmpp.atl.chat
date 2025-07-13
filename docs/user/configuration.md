@@ -112,12 +112,12 @@ TURN_SECRET=ChangeMe123!
 PROSODY_LOG_LEVEL=info
 ```
 
-### Monitoring Ports
+### Monitoring Integration
 
 ```bash
-# Monitoring service ports
-PROMETHEUS_PORT=9090               # Prometheus metrics
-NODE_EXPORTER_PORT=9100            # System metrics
+# External monitoring - no local ports needed
+# Prosody metrics available at: http://your-domain:5280/metrics
+# Configure your external Prometheus to scrape this endpoint
 ```
 
 ## 🚀 Deployment Modes
@@ -139,8 +139,8 @@ docker compose up -d
 ### Custom Service Selection
 
 ```bash
-# XMPP + Database + Monitoring
-docker compose up -d prosody db prometheus
+# XMPP + Database (monitoring is external)
+docker compose up -d prosody db
 
 # XMPP + Database + TURN server
 docker compose up -d prosody db coturn
@@ -169,11 +169,11 @@ https://${PROSODY_DOMAIN}:${PROSODY_HTTPS_PORT}/http-bind
 ### Monitoring Services
 
 ```bash
-# Prometheus metrics
-http://localhost:${PROMETHEUS_PORT}
+# Prosody metrics (for external Prometheus)
+http://your-domain:5280/metrics
 
-# Node Exporter metrics
-http://localhost:${NODE_EXPORTER_PORT}
+# Configure external Prometheus to scrape this endpoint
+# See examples/prometheus-scrape-config.yml for configuration
 ```
 
 ### TURN/STUN Services
@@ -239,10 +239,10 @@ TURN_PASSWORD=TurnPassword123!
 TURN_SECRET=TurnSecret123!
 
 # ============================================================================
-# MONITORING
+# MONITORING (external)
 # ============================================================================
-PROMETHEUS_PORT=9090
-NODE_EXPORTER_PORT=9100
+# No local monitoring ports - use external Prometheus/Grafana
+# Prosody metrics available at: http://your-domain:5280/metrics
 ```
 
 ## 🔄 Apply Configuration Changes

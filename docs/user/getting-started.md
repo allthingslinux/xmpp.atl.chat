@@ -165,11 +165,12 @@ Web clients can connect via WebSocket:
 docker compose up -d prosody db coturn
 ```
 
-### Add Monitoring
+### External Monitoring
 
 ```bash
-# Deploy with monitoring stack
-docker compose up -d prosody db prometheus
+# This deployment is designed for external monitoring
+# Prosody metrics available at: http://your-domain:5280/metrics
+# See examples/prometheus-scrape-config.yml for Prometheus configuration
 ```
 
 ### Full Deployment

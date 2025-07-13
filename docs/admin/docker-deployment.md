@@ -108,8 +108,8 @@ docker compose up -d
 # XMPP with voice/video support
 docker compose up -d prosody db coturn
 
-# Add monitoring
-docker compose up -d prosody db coturn prometheus
+# Add TURN/STUN server for voice/video calls
+docker compose up -d prosody db coturn
 ```
 
 ### Step 4: Verify Deployment
@@ -158,8 +158,8 @@ docker compose up -d prosody db coturn prometheus
 | Service | Purpose | Port | Profile |
 |---------|---------|------|---------|
 | `coturn` | TURN/STUN for voice/video | 3478, 5349 | Default |
-| `prometheus` | Metrics collection | 9090 | `monitoring` |
-| `node-exporter` | System metrics | 9100 | `monitoring` |
+| ~~`prometheus`~~ | ~~Metrics collection~~ | ~~9090~~ | ~~External monitoring~~ |
+| ~~`node-exporter`~~ | ~~System metrics~~ | ~~9100~~ | ~~External monitoring~~ |
 
 ### Certificate Services
 
@@ -203,14 +203,11 @@ deploy:
 
 ### Service Monitoring
 
-1. **Enable monitoring stack**:
+1. **Use external monitoring**: This deployment is designed for centralized monitoring
 
-   ```bash
-   docker compose --profile monitoring up -d prometheus node-exporter
-   ```
-
-2. **Access dashboards**:
-   - Prometheus: <http://localhost:9090>
+2. **Prosody metrics available at**:
+   - Metrics endpoint: `http://your-domain:5280/metrics`
+   - Add to your external Prometheus configuration (see `examples/prometheus-scrape-config.yml`)
 
 ### Log Management
 

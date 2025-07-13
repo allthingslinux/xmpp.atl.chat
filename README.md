@@ -104,9 +104,9 @@ This deployment includes multiple services for a complete XMPP solution:
 | **Prosody** | XMPP server with PostgreSQL | 5222, 5223, 5269, 5280, 5281 | Core |
 | **PostgreSQL** | Database backend | 5432 (internal) | Core |
 | **Coturn** | TURN/STUN server for voice/video | 3478, 5349, 49152-65535 | Optional |
-| **Prometheus** | Metrics collection | 9090 | Optional |
-| **Grafana** | Monitoring dashboards | 3000 | Optional |
-| **Node Exporter** | System metrics | 9100 | Optional |
+| ~~**Prometheus**~~ | ~~Metrics collection~~ | ~~9090~~ | ~~External~~ |
+| ~~**Grafana**~~ | ~~Monitoring dashboards~~ | ~~3000~~ | ~~External~~ |
+| ~~**Node Exporter**~~ | ~~System metrics~~ | ~~9100~~ | ~~External~~ |
 
 ### Deployment Options
 

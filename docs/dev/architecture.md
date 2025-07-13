@@ -190,13 +190,13 @@ config/prosody.cfg.lua (685 lines)
 - **Integration**: Automatic discovery via XEP-0215
 - **Ports**: 3478 (TURN), 5349 (TURNS), 49152-65535 (RTP relay)
 
-### 4. Monitoring Stack
+### 4. Monitoring Integration
 
-**Optional Containers**: `prometheus`, `node-exporter`
+**External Monitoring**: Designed for centralized monitoring
 
-- **Purpose**: Server monitoring and metrics collection
-- **Integration**: Native Prosody metrics + system monitoring
-- **Access**: Prometheus metrics on port 9090
+- **Purpose**: Prosody metrics export for external Prometheus
+- **Integration**: Native Prosody metrics endpoint at `/metrics`
+- **Configuration**: See `examples/prometheus-scrape-config.yml`
 
 ## 🌐 Service Communication
 
@@ -218,8 +218,8 @@ networks:
 ```text
 prosody → depends_on → db (PostgreSQL)
 prosody → discovers → coturn (via XEP-0215)
-prometheus → scrapes → prosody, node-exporter
-prometheus → scrapes → prosody/node-exporter
+external-prometheus → scrapes → prosody:5280/metrics
+external-prometheus → scrapes → system-node-exporter:9100/metrics
 ```
 
 ### Port Mapping
@@ -234,7 +234,7 @@ prometheus → scrapes → prosody/node-exporter
 | coturn | 3478 | 3478 | STUN/TURN |
 | coturn | 5349 | 5349 | TURN over TLS |
 
-| prometheus | 9090 | 9090 | Metrics collection |
+| ~~prometheus~~ | ~~9090~~ | ~~9090~~ | ~~External monitoring~~ |
 
 ## 🔒 Security Architecture
 
@@ -308,8 +308,8 @@ Local Server → DNS SRV Lookup → Remote Server Connection → TLS Verificatio
 
 ### Monitoring & Observability
 
-- **Prometheus metrics** - Native Prosody metrics integration
-- **Prometheus metrics** - Comprehensive monitoring and alerting
+- **Metrics export** - Native Prosody metrics endpoint for external monitoring
+- **External monitoring** - Designed for centralized Prometheus/Grafana
 - **Health checks** - Comprehensive service health monitoring
 - **Log aggregation** - Structured logging with JSON format
 - **Alert manager** - Real-time notification system

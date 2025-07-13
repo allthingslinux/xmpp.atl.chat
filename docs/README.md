@@ -102,11 +102,11 @@ This server supports multiple deployment configurations:
 # Minimal deployment (XMPP + Database only)
 docker compose up -d prosody db
 
-# Full deployment (includes monitoring and TURN/STUN)
+# Full deployment (includes TURN/STUN for voice/video)
 docker compose up -d
 
-# Custom service selection
-docker compose up -d prosody db prometheus
+# Minimal deployment (XMPP + Database only)
+docker compose up -d prosody db
 ```
 
 ## 🔍 Finding What You Need

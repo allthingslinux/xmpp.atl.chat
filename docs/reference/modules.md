@@ -221,9 +221,8 @@ modules_enabled = {
     "watchdog";             -- Service monitoring
 }
 
--- Prometheus Settings
-prometheus_port = 9090;
-prometheus_interface = "*";
+-- Prosody metrics available at /metrics endpoint on HTTP port
+-- Configure external Prometheus to scrape: http://your-domain:5280/metrics
 ```
 
 ### Health Monitoring
