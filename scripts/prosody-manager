@@ -746,61 +746,59 @@ deploy_status() {
 # ============================================================================
 
 show_help() {
-    cat <<EOF
-${BOLD}Prosody Manager v${VERSION}${NC}
-Unified CLI tool for Prosody XMPP Server management
-
-${BOLD}USAGE:${NC}
-    prosody-manager <command> [subcommand] [options]
-
-${BOLD}COMMANDS:${NC}
-    ${GREEN}prosodyctl${NC}     Prosody control commands
-        adduser <user@domain> [password]    Add user account
-        deluser <user@domain>               Delete user account  
-        passwd <user@domain> [password]     Change user password
-        status                              Show Prosody status
-        reload                              Reload configuration
-        restart                             Restart Prosody service
-        cert <list|import|generate>         Certificate management
-
-    ${GREEN}health${NC}          Health monitoring
-        [process|ports|config|certs|all]    Run health checks
-
-    ${GREEN}cert${NC}            Certificate management
-        check <domain>                      Check certificate status
-        install <domain> [cert_path]        Install certificate
-        renew <domain>                      Renew certificate
-
-    ${GREEN}backup${NC}          Backup management
-        create [name]                       Create backup
-        restore <backup_file>               Restore from backup
-        list                                List available backups
-
-    ${GREEN}deploy${NC}          Deployment management
-        up [minimal|full]                   Start services
-        down                                Stop services
-        restart [service]                   Restart services
-        logs [service]                      View logs
-        status                              Show service status
-
-    ${GREEN}help${NC}            Show this help message
-    ${GREEN}version${NC}         Show version information
-
-${BOLD}EXAMPLES:${NC}
-    prosody-manager prosodyctl adduser alice@example.com
-    prosody-manager health all
-    prosody-manager cert check example.com
-    prosody-manager backup create
-    prosody-manager deploy up full
-    prosody-manager deploy logs prosody
-
-${BOLD}ENVIRONMENT VARIABLES:${NC}
-    DEBUG=true                              Enable debug output
-    PROSODY_DOMAIN                          Default domain for operations
-    BACKUP_DIR                              Custom backup directory
-
-For more information, visit: https://github.com/allthingslinux/xmpp.atl.chat
-EOF
+    echo -e "${BOLD}Prosody Manager v${VERSION}${NC}"
+    echo "Unified CLI tool for Prosody XMPP Server management"
+    echo
+    echo -e "${BOLD}USAGE:${NC}"
+    echo "    prosody-manager <command> [subcommand] [options]"
+    echo
+    echo -e "${BOLD}COMMANDS:${NC}"
+    echo -e "    ${GREEN}prosodyctl${NC}     Prosody control commands"
+    echo "        adduser <user@domain> [password]    Add user account"
+    echo "        deluser <user@domain>               Delete user account"
+    echo "        passwd <user@domain> [password]     Change user password"
+    echo "        status                              Show Prosody status"
+    echo "        reload                              Reload configuration"
+    echo "        restart                             Restart Prosody service"
+    echo "        cert <list|import|generate>         Certificate management"
+    echo
+    echo -e "    ${GREEN}health${NC}          Health monitoring"
+    echo "        [process|ports|config|certs|all]    Run health checks"
+    echo
+    echo -e "    ${GREEN}cert${NC}            Certificate management"
+    echo "        check <domain>                      Check certificate status"
+    echo "        install <domain> [cert_path]        Install certificate"
+    echo "        renew <domain>                      Renew certificate"
+    echo
+    echo -e "    ${GREEN}backup${NC}          Backup management"
+    echo "        create [name]                       Create backup"
+    echo "        restore <backup_file>               Restore from backup"
+    echo "        list                                List available backups"
+    echo
+    echo -e "    ${GREEN}deploy${NC}          Deployment management"
+    echo "        up [minimal|full]                   Start services"
+    echo "        down                                Stop services"
+    echo "        restart [service]                   Restart services"
+    echo "        logs [service]                      View logs"
+    echo "        status                              Show service status"
+    echo
+    echo -e "    ${GREEN}help${NC}            Show this help message"
+    echo -e "    ${GREEN}version${NC}         Show version information"
+    echo
+    echo -e "${BOLD}EXAMPLES:${NC}"
+    echo "    prosody-manager prosodyctl adduser alice@example.com"
+    echo "    prosody-manager health all"
+    echo "    prosody-manager cert check example.com"
+    echo "    prosody-manager backup create"
+    echo "    prosody-manager deploy up full"
+    echo "    prosody-manager deploy logs prosody"
+    echo
+    echo -e "${BOLD}ENVIRONMENT VARIABLES:${NC}"
+    echo "    DEBUG=true                              Enable debug output"
+    echo "    PROSODY_DOMAIN                          Default domain for operations"
+    echo "    BACKUP_DIR                              Custom backup directory"
+    echo
+    echo "For more information, visit: https://github.com/allthingslinux/xmpp.atl.chat"
 }
 
 show_version() {
