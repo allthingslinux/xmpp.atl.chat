@@ -359,9 +359,41 @@ log = {
 	{ levels = { "warn", "error" }, to = "file", filename = "/var/log/prosody/security.log" },
 }
 
--- Statistics for monitoring
+-- ===============================================
+-- MONITORING AND METRICS CONFIGURATION
+-- ===============================================
+
+-- Statistics provider (required for metrics collection)
 statistics = "internal"
-statistics_interval = 300 -- 5 minutes
+
+-- Statistics collection interval
+-- Use "manual" for single Prometheus instance (optimal performance)
+-- Use scrape interval (e.g., 30) for multiple Prometheus instances
+statistics_interval = os.getenv("PROSODY_STATISTICS_INTERVAL") or "manual"
+
+-- OpenMetrics (Prometheus) configuration
+-- Access control for /metrics endpoint (security critical)
+openmetrics_allow_ips = {
+	"127.0.0.1", -- Local access
+	"::1", -- Local IPv6 access
+}
+
+-- Optional: Allow specific IP addresses for monitoring
+if os.getenv("PROSODY_METRICS_ALLOW_IPS") then
+	local custom_ips = {}
+	for ip in string.gmatch(os.getenv("PROSODY_METRICS_ALLOW_IPS"), "([^,]+)") do
+		table.insert(custom_ips, ip:match("^%s*(.-)%s*$")) -- trim whitespace
+	end
+	-- Merge with default IPs
+	for _, ip in ipairs(custom_ips) do
+		table.insert(openmetrics_allow_ips, ip)
+	end
+end
+
+-- Optional: Allow CIDR ranges for monitoring networks
+if os.getenv("PROSODY_METRICS_ALLOW_CIDR") then
+	openmetrics_allow_cidr = os.getenv("PROSODY_METRICS_ALLOW_CIDR")
+end
 
 -- ===============================================
 -- COMPREHENSIVE MODULE CONFIGURATION
