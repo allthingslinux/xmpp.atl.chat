@@ -23,7 +23,7 @@ local http_config = {
 	-- Web-based administration interfaces
 	web_admin = {
 		"admin_web", -- Web administration interface (community)
-		-- "admin_rest", -- REST API for administration (community)
+		"admin_rest", -- REST API for administration (community)
 	},
 
 	-- BOSH and WebSocket
@@ -312,9 +312,9 @@ for _, module in ipairs(http_config.additional_services) do
 end
 
 -- Commented out web admin modules (enable as needed)
--- for _, module in ipairs(http_config.web_admin) do
--- 	table.insert(modules_enabled, module)
--- end
+for _, module in ipairs(http_config.web_admin) do
+	table.insert(modules_enabled, module)
+end
 
 -- Export configuration utilities
 return {
