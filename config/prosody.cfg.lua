@@ -155,14 +155,59 @@ storage = {
 	carbons = "memory",
 }
 
--- Archive settings with enhanced configuration
-archive_expires_after = "1 year"
-default_archive_policy = "roster"
-max_archive_query_results = 250
+-- ===============================================
+-- MESSAGE ARCHIVE MANAGEMENT (MAM) CONFIGURATION
+-- ===============================================
 
--- Archive compression and cleanup (from archiving.cfg.lua)
-archive_compression = true -- Compress archived messages
-archive_cleanup_interval = 86400 -- Daily cleanup (seconds)
+-- Message archive expiry (how long messages are stored)
+-- Supports: "1d", "1w", "1m", "1y", "never", or seconds as number
+-- Default: "1w" (1 week), Production: "1y" (1 year) for compliance
+archive_expires_after = os.getenv("PROSODY_ARCHIVE_EXPIRES_AFTER") or "1y"
+
+-- Archive policy: who gets messages archived by default
+-- "false" = no archiving, "roster" = contacts only, "true" = all messages
+-- Default: "true", but "roster" is more privacy-friendly
+default_archive_policy = os.getenv("PROSODY_ARCHIVE_POLICY") or "roster"
+
+-- Maximum messages returned per query (pagination)
+-- Too low = many queries, too high = resource intensive
+-- Default: 50, Production: 250 for better UX
+max_archive_query_results = tonumber(os.getenv("PROSODY_ARCHIVE_MAX_QUERY_RESULTS")) or 250
+
+-- Archive cleanup interval (how often to remove expired messages)
+-- Default: 4*60*60 (4 hours), Production: 86400 (daily) for efficiency
+archive_cleanup_interval = tonumber(os.getenv("PROSODY_ARCHIVE_CLEANUP_INTERVAL")) or 86400
+
+-- Archive store name (usually should not be changed)
+-- Default: "archive", Legacy: "archive2" for old installations
+archive_store = os.getenv("PROSODY_ARCHIVE_STORE") or "archive"
+
+-- Smart archiving: only enable for users who actually use MAM
+-- Default: false (archive for all), true = only after first MAM query
+mam_smart_enable = (os.getenv("PROSODY_MAM_SMART_ENABLE") == "true")
+
+-- Namespaces to exclude from archiving (reduce storage)
+-- Default excludes chat state notifications (typing indicators)
+dont_archive_namespaces = {
+	"http://jabber.org/protocol/chatstates", -- Typing indicators
+	"urn:xmpp:jingle-message:0", -- Jingle messages (calls)
+}
+
+-- Optional: Add custom namespaces to exclude
+if os.getenv("PROSODY_ARCHIVE_EXCLUDE_NAMESPACES") then
+	local custom_namespaces = {}
+	for ns in string.gmatch(os.getenv("PROSODY_ARCHIVE_EXCLUDE_NAMESPACES"), "([^,]+)") do
+		table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$")) -- trim whitespace
+	end
+	-- Merge with default exclusions
+	for _, ns in ipairs(custom_namespaces) do
+		table.insert(dont_archive_namespaces, ns)
+	end
+end
+
+-- Archive compression (save storage space)
+-- Default: true for production efficiency
+archive_compression = (os.getenv("PROSODY_ARCHIVE_COMPRESSION") ~= "false")
 
 -- ===============================================
 -- PROSODY 13.0+ FEATURES
