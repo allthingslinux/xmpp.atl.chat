@@ -670,6 +670,89 @@ muc_room_default_persistent = true
 muc_room_default_language = "en"
 muc_room_default_change_subject = true
 
+-- ===============================================
+-- MUC MESSAGE ARCHIVE MANAGEMENT (MAM) CONFIGURATION
+-- ===============================================
+
+-- MUC archiving enabled by default for new rooms
+-- When true, all new rooms will have archiving enabled by default
+-- When false, room admins must manually enable archiving per room
+-- Default: true (recommended for compliance and user experience)
+muc_log_by_default = (os.getenv("PROSODY_MUC_LOG_BY_DEFAULT") ~= "false")
+
+-- Archive presence information (joins/parts/status changes)
+-- Useful for web interfaces and room activity tracking
+-- Can increase storage usage significantly in busy rooms
+-- Default: false (presence changes are frequent and less important)
+muc_log_presences = (os.getenv("PROSODY_MUC_LOG_PRESENCES") == "true")
+
+-- Force archiving for all rooms (disables room-level configuration)
+-- When true, all rooms are archived regardless of room settings
+-- When false, rooms can individually enable/disable archiving
+-- Default: false (allows room-level control)
+log_all_rooms = (os.getenv("PROSODY_MUC_LOG_ALL_ROOMS") == "true")
+
+-- MUC archive expiry (how long room messages are stored)
+-- Supports: "1d", "1w", "1m", "1y", "never", or seconds as number
+-- Default: "1w" (1 week), Production: "1y" (1 year) for compliance
+-- Note: This is separate from personal MAM expiry settings
+muc_log_expires_after = os.getenv("PROSODY_MUC_LOG_EXPIRES_AFTER") or "1y"
+
+-- MUC archive cleanup interval (how often to remove expired messages)
+-- Default: 4*60*60 (4 hours), Production: 86400 (daily) for efficiency
+-- Frequent cleanup reduces storage but increases CPU usage
+muc_log_cleanup_interval = tonumber(os.getenv("PROSODY_MUC_LOG_CLEANUP_INTERVAL")) or 86400
+
+-- Maximum messages returned per MUC MAM query (pagination)
+-- Too low = many queries, too high = resource intensive
+-- Default: 50, Production: 100-250 for better UX
+muc_max_archive_query_results = tonumber(os.getenv("PROSODY_MUC_MAX_ARCHIVE_QUERY_RESULTS")) or 100
+
+-- MUC archive store name (usually should not be changed)
+-- Default: "muc_log", Legacy: "muc_archive" for old installations
+muc_log_store = os.getenv("PROSODY_MUC_LOG_STORE") or "muc_log"
+
+-- Archive compression for MUC messages (save storage space)
+-- Default: true for production efficiency
+muc_log_compression = (os.getenv("PROSODY_MUC_LOG_COMPRESSION") ~= "false")
+
+-- Smart MUC archiving: only enable for rooms that actually use MAM
+-- Default: false (archive for all configured rooms)
+-- true = only start archiving after first MAM query in the room
+muc_mam_smart_enable = (os.getenv("PROSODY_MUC_MAM_SMART_ENABLE") == "true")
+
+-- MUC-specific namespaces to exclude from archiving
+-- Reduces storage overhead by excluding less important stanzas
+muc_dont_archive_namespaces = {
+	"http://jabber.org/protocol/chatstates", -- Typing indicators
+	"urn:xmpp:jingle-message:0", -- Jingle messages (calls)
+	"http://jabber.org/protocol/muc#user", -- MUC status codes (optional)
+}
+
+-- Optional: Add custom namespaces to exclude from MUC archiving
+if os.getenv("PROSODY_MUC_ARCHIVE_EXCLUDE_NAMESPACES") then
+	local custom_namespaces = {}
+	for ns in string.gmatch(os.getenv("PROSODY_MUC_ARCHIVE_EXCLUDE_NAMESPACES"), "([^,]+)") do
+		table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$")) -- trim whitespace
+	end
+	-- Merge with default exclusions
+	for _, ns in ipairs(custom_namespaces) do
+		table.insert(muc_dont_archive_namespaces, ns)
+	end
+end
+
+-- Archive policy for MUC rooms
+-- Controls which messages get archived by default
+-- "all" = archive all messages, "none" = archive nothing by default
+-- Default: "all" (recommended for group chat compliance)
+muc_archive_policy = os.getenv("PROSODY_MUC_ARCHIVE_POLICY") or "all"
+
+-- Room archiving notification
+-- Notify users when they join a room that has archiving enabled
+-- Helps with privacy compliance (GDPR, etc.)
+-- Default: true (recommended for transparency)
+muc_log_notification = (os.getenv("PROSODY_MUC_LOG_NOTIFICATION") ~= "false")
+
 -- File upload domain
 Component("upload." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "http_file_share")
 name = "File Upload Service"
