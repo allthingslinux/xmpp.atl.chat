@@ -1,166 +1,88 @@
-# Quick Start Guide
+# 🚀 Getting Started
 
-## Overview
+Deploy a professional Prosody XMPP server in 5 minutes using Docker Compose. This guide covers everything from initial setup to connecting your first client.
 
-This guide will help you deploy a professional Prosody XMPP server in minutes using Docker Compose. The setup includes security-first configuration, modern XMPP features, and enterprise-grade monitoring.
+## ⚡ Quick Deploy
 
-## Prerequisites
+### 1. Prerequisites
 
-### System Requirements
+- **Docker** 20.10+ and **Docker Compose** 2.0+
+- **Domain name** with DNS control (e.g., `chat.example.com`)
+- **2GB RAM** minimum (4GB+ recommended)
 
-**Minimum (Personal Server - 1-50 users):**
-
-- 1 CPU core
-- 128MB RAM
-- 1GB disk space
-- Linux/macOS/Windows with Docker support
-
-**Recommended (Community Server - 50-500 users):**
-
-- 2 CPU cores
-- 512MB RAM
-- 5GB disk space
-- Linux server with Docker support
-
-**Enterprise (500+ users):**
-
-- 4+ CPU cores
-- 1GB+ RAM
-- 20GB+ disk space
-- Linux server with Docker support
-
-### Software Requirements
-
-- Docker 20.10+
-- Docker Compose 2.0+
-- Domain name with DNS access
-- SSL certificates (Let's Encrypt recommended)
-
-### Installation
+### 2. Clone and Configure
 
 ```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install docker.io docker-compose-plugin
+# Clone the repository
+git clone https://github.com/allthingslinux/xmpp.atl.chat
+cd xmpp.atl.chat
 
-# CentOS/RHEL
-sudo yum install docker docker-compose
-
-# macOS (using Homebrew)
-brew install docker docker-compose
-
-# Enable and start Docker
-sudo systemctl enable docker
-sudo systemctl start docker
-```
-
-## Quick Deployment
-
-### 1. Download and Setup
-
-```bash
-# Clone or download the setup
-git clone <repository-url>
-cd final
-
-# Or download and extract
-wget <download-url>
-tar -xzf professional-prosody.tar.gz
-cd professional-prosody
-```
-
-### 2. Configure Environment
-
-```bash
-# Copy environment template
+# Copy and edit configuration
 cp examples/env.example .env
-
-# Edit configuration (minimum required)
-nano .env
+nano .env  # Edit with your settings
 ```
 
-**Essential Configuration:**
+### 3. Set Your Domain
+
+Edit `.env` file with your domain:
 
 ```bash
-# Your domain (REQUIRED)
-PROSODY_DOMAIN=your-domain.com
-
-# Admin accounts (REQUIRED)
-PROSODY_ADMINS=admin@your-domain.com
-
-# Enable features as needed
-PROSODY_ENABLE_HTTP=true
-PROSODY_ENABLE_ADMIN=true
+# Required settings
+PROSODY_DOMAIN=chat.example.com
+PROSODY_ADMINS=admin@chat.example.com
+PROSODY_DB_PASSWORD=ChangeMe123!
 ```
 
-### 3. Deploy Server
+### 4. Deploy
 
 ```bash
-# Run automated deployment
-./scripts/deploy.sh
+# Start the server (minimal deployment)
+docker-compose up -d prosody db
 
-# Or manual deployment
-docker-compose up -d
+# Check status
+docker-compose logs -f prosody
 ```
 
-### 4. Verify Deployment
+### 5. Create Users
 
 ```bash
-# Check service status
-docker-compose ps
+# Create admin user
+docker-compose exec prosody prosodyctl adduser admin@chat.example.com
 
-# Check logs
-docker-compose logs prosody
-
-# Test connectivity
-telnet your-domain.com 5222
+# Create regular users
+docker-compose exec prosody prosodyctl adduser alice@chat.example.com
+docker-compose exec prosody prosodyctl adduser bob@chat.example.com
 ```
 
-## Configuration Profiles
+### 6. Connect
 
-### Personal Server (SQLite)
+Your XMPP server is ready! Connect with any XMPP client using:
 
-```bash
-# .env configuration
-PROSODY_DOMAIN=your-domain.com
-PROSODY_ADMINS=admin@your-domain.com
-PROSODY_STORAGE=sqlite
-PROSODY_ENABLE_SECURITY=true
-PROSODY_ENABLE_MODERN=true
-PROSODY_ENABLE_HTTP=false
+- **Server**: `chat.example.com`
+- **Port**: `5222` (STARTTLS) or `5223` (Direct TLS)
+- **Username**: `alice@chat.example.com`
+- **Password**: (what you set when creating the user)
+
+## 🌐 DNS Setup
+
+### Required DNS Records
+
+Add these DNS records for your domain:
+
+```
+# SRV records for client discovery
+_xmpp-client._tcp.chat.example.com.  3600  IN  SRV  5 0 5222 chat.example.com.
+_xmpps-client._tcp.chat.example.com. 3600  IN  SRV  5 0 5223 chat.example.com.
+
+# SRV records for server-to-server
+_xmpp-server._tcp.chat.example.com.  3600  IN  SRV  5 0 5269 chat.example.com.
+_xmpps-server._tcp.chat.example.com. 3600  IN  SRV  5 0 5270 chat.example.com.
+
+# A record pointing to your server
+chat.example.com.                    3600  IN  A    YOUR.SERVER.IP.ADDRESS
 ```
 
-### Community Server (PostgreSQL)
-
-```bash
-# .env configuration
-PROSODY_DOMAIN=your-domain.com
-PROSODY_ADMINS=admin@your-domain.com
-PROSODY_STORAGE=sql
-PROSODY_ENABLE_SECURITY=true
-PROSODY_ENABLE_MODERN=true
-PROSODY_ENABLE_HTTP=true
-PROSODY_ENABLE_ADMIN=true
-COMPOSE_PROFILES=sql
-```
-
-### Enterprise Server (Full Features)
-
-```bash
-# .env configuration
-PROSODY_DOMAIN=your-domain.com
-PROSODY_ADMINS=admin@your-domain.com
-PROSODY_STORAGE=sql
-PROSODY_ENABLE_SECURITY=true
-PROSODY_ENABLE_MODERN=true
-PROSODY_ENABLE_HTTP=true
-PROSODY_ENABLE_ADMIN=true
-PROSODY_ENABLE_ENTERPRISE=true
-PROSODY_LOG_FORMAT=json
-COMPOSE_PROFILES=sql,monitoring
-```
-
-## SSL Certificates
+## 🔒 SSL Certificates
 
 ### Option 1: Let's Encrypt (Recommended)
 
@@ -169,221 +91,182 @@ COMPOSE_PROFILES=sql,monitoring
 sudo apt install certbot
 
 # Get certificate
-sudo certbot certonly --standalone -d your-domain.com
+sudo certbot certonly --standalone -d chat.example.com
 
-# Copy certificates
-sudo cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ./certs/your-domain.com.crt
-sudo cp /etc/letsencrypt/live/your-domain.com/privkey.pem ./certs/your-domain.com.key
-sudo chown $USER:$USER ./certs/*
+# Copy certificates to prosody
+sudo cp /etc/letsencrypt/live/chat.example.com/fullchain.pem /path/to/prosody/certs/
+sudo cp /etc/letsencrypt/live/chat.example.com/privkey.pem /path/to/prosody/certs/
+sudo chown prosody:prosody /path/to/prosody/certs/*
 ```
 
-### Option 2: Self-Signed (Development)
+### Option 2: Existing Certificates
 
 ```bash
-# Generate self-signed certificate
-openssl req -x509 -newkey rsa:4096 -keyout ./certs/your-domain.com.key -out ./certs/your-domain.com.crt -days 365 -nodes -subj "/CN=your-domain.com"
+# Copy your certificates
+cp your-cert.pem /path/to/prosody/certs/chat.example.com.crt
+cp your-key.pem /path/to/prosody/certs/chat.example.com.key
+
+# Set permissions
+sudo chown prosody:prosody /path/to/prosody/certs/*
+sudo chmod 600 /path/to/prosody/certs/*.key
 ```
 
-## DNS Configuration
+## 📱 Connect XMPP Clients
 
-### Required DNS Records
+### Popular XMPP Clients
 
-```dns
-# A record for main domain
-your-domain.com.     IN A     YOUR_SERVER_IP
+| Platform | Client | Download |
+|----------|--------|----------|
+| **Android** | Conversations | [F-Droid](https://f-droid.org/packages/eu.siacs.conversations/) / [Play Store](https://play.google.com/store/apps/details?id=eu.siacs.conversations) |
+| **iOS** | Monal | [App Store](https://apps.apple.com/app/monal/id317711500) |
+| **Desktop** | Gajim | [gajim.org](https://gajim.org/) |
+| **Desktop** | Pidgin | [pidgin.im](https://pidgin.im/) |
+| **Web** | Converse.js | Built-in web client |
 
-# SRV records for XMPP services
-_xmpp-client._tcp.your-domain.com.  IN SRV 5 0 5222 your-domain.com.
-_xmpp-server._tcp.your-domain.com.  IN SRV 5 0 5269 your-domain.com.
+### Connection Settings
 
-# Optional: Subdomains for services
-conference.your-domain.com.         IN A     YOUR_SERVER_IP
-upload.your-domain.com.             IN A     YOUR_SERVER_IP
+All clients use these settings:
+
+```
+Server: chat.example.com
+Port: 5222 (STARTTLS) or 5223 (Direct TLS)
+Username: alice@chat.example.com
+Password: [your password]
 ```
 
-## Firewall Configuration
+## 🌐 Web Access
 
-### UFW (Ubuntu)
+### Admin Panel
+
+Access the web admin panel at:
+
+- **URL**: `https://chat.example.com:5281/admin`
+- **Username**: `admin@chat.example.com`
+- **Password**: [admin password]
+
+### File Upload
+
+Users can upload files at:
+
+- **URL**: `https://chat.example.com:5281/upload`
+
+### WebSocket (for web clients)
+
+Web clients can connect via WebSocket:
+
+- **URL**: `wss://chat.example.com:5281/xmpp-websocket`
+
+## 🔧 Additional Services
+
+### Add Voice/Video Support
 
 ```bash
-# Allow XMPP ports
-sudo ufw allow 5222/tcp  # Client connections
-sudo ufw allow 5269/tcp  # Server connections
-sudo ufw allow 5280/tcp  # HTTP (optional)
-sudo ufw allow 5281/tcp  # HTTPS (optional)
-
-# Enable firewall
-sudo ufw enable
+# Deploy with TURN/STUN server for voice/video calls
+docker-compose up -d prosody db coturn
 ```
 
-### iptables
+### Add Monitoring
 
 ```bash
-# Allow XMPP ports
-sudo iptables -A INPUT -p tcp --dport 5222 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 5269 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 5280 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 5281 -j ACCEPT
-
-# Save rules
-sudo iptables-save > /etc/iptables/rules.v4
+# Deploy with monitoring stack
+docker-compose up -d prosody db prometheus grafana
 ```
 
-## User Management
-
-### Create Admin User
+### Full Deployment
 
 ```bash
-# Create admin user
-docker-compose exec prosody prosodyctl adduser admin@your-domain.com
-
-# Set password
-docker-compose exec prosody prosodyctl passwd admin@your-domain.com
+# Deploy everything
+docker-compose up -d
 ```
 
-### Create Regular Users
+## ✅ Verify Your Setup
+
+### Check Server Status
 
 ```bash
-# Create user
-docker-compose exec prosody prosodyctl adduser user@your-domain.com
+# Check if prosody is running
+docker-compose exec prosody prosodyctl status
 
-# Set password
-docker-compose exec prosody prosodyctl passwd user@your-domain.com
-```
-
-### Enable User Registration
-
-```bash
-# Enable in .env
-PROSODY_ALLOW_REGISTRATION=true
-
-# Restart services
-docker-compose restart prosody
-```
-
-## Testing Connectivity
-
-### Command Line Testing
-
-```bash
-# Test C2S port
-telnet your-domain.com 5222
-
-# Test S2S port
-telnet your-domain.com 5269
-
-# Test HTTP services (if enabled)
-curl http://your-domain.com:5280/
-```
-
-### XMPP Client Testing
-
-**Recommended Clients:**
-
-- **Desktop:** Gajim, Dino, Conversations
-- **Mobile:** Conversations (Android), Siskin IM (iOS)
-- **Web:** Converse.js, JSXC
-
-**Connection Settings:**
-
-- **Server:** your-domain.com
-- **Port:** 5222
-- **Security:** Require encryption
-- **Username:** <user@your-domain.com>
-- **Password:** (as set above)
-
-## Monitoring and Maintenance
-
-### View Logs
-
-```bash
-# View all logs
-docker-compose logs
-
-# Follow logs
-docker-compose logs -f prosody
-
-# View specific service logs
-docker-compose logs db
-```
-
-### Health Check
-
-```bash
-# Manual health check
-docker-compose exec prosody /opt/prosody/scripts/health-check.sh
-
-# Check service status
-docker-compose ps
-```
-
-### Backup Data
-
-```bash
-# Create backup
-./scripts/backup.sh
-
-# List backups
-ls -la backups/
-
-# Restore backup
-./scripts/restore.sh backups/prosody_backup_YYYYMMDD_HHMMSS.tar.gz
-```
-
-## Common Issues
-
-### Services Won't Start
-
-```bash
-# Check logs
-docker-compose logs prosody
+# Test connectivity
+docker-compose exec prosody prosodyctl check connectivity chat.example.com
 
 # Check configuration
 docker-compose exec prosody prosodyctl check config
-
-# Restart services
-docker-compose restart
 ```
 
-### Connection Refused
+### Test External Connectivity
 
-1. Check firewall rules
-2. Verify DNS records
-3. Check SSL certificates
-4. Verify port bindings
+Visit [XMPP Compliance Tester](https://compliance.conversations.im/) and enter your domain to verify:
+
+- DNS SRV records
+- TLS certificate validity
+- XEP compliance
+- Security configuration
+
+## 🔄 Basic Management
+
+### User Management
 
 ```bash
-# Check port bindings
-docker-compose ps
-netstat -tlnp | grep :5222
+# List users
+docker-compose exec prosody prosodyctl list users chat.example.com
+
+# Change password
+docker-compose exec prosody prosodyctl passwd alice@chat.example.com
+
+# Delete user
+docker-compose exec prosody prosodyctl deluser bob@chat.example.com
 ```
 
-### Certificate Issues
+### Server Management
 
 ```bash
-# Check certificate validity
-openssl x509 -in certs/your-domain.com.crt -text -noout
+# Restart prosody
+docker-compose restart prosody
 
-# Verify certificate chain
-openssl verify -CApath /etc/ssl/certs certs/your-domain.com.crt
+# View logs
+docker-compose logs -f prosody
+
+# Update prosody
+docker-compose pull && docker-compose up -d
 ```
 
-## Next Steps
+## 🛟 Troubleshooting
 
-1. **Security Hardening:** Review [SECURITY.md](SECURITY.md)
-2. **Performance Tuning:** Review [PERFORMANCE.md](PERFORMANCE.md)
-3. **Monitoring Setup:** Review [MONITORING.md](MONITORING.md)
-4. **Backup Strategy:** Review [BACKUP.md](BACKUP.md)
-5. **Client Configuration:** Review [CLIENTS.md](CLIENTS.md)
+### Common Issues
 
-## Support
+**Can't connect to server:**
 
-- **Documentation:** [docs/](docs/)
-- **Configuration Reference:** [CONFIGURATION.md](CONFIGURATION.md)
-- **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- **Community:** XMPP MUC rooms
-- **Issues:** GitHub Issues
+- Check DNS records are correct
+- Verify firewall allows ports 5222, 5223, 5269
+- Check certificates are valid
 
-## Security Notice
+**Certificate errors:**
 
-🔒 **Important:** This setup includes security-first configuration, but additional hardening may be required for production environments. Review the security documentation before deploying to production.
+- Ensure certificate matches domain name
+- Check certificate hasn't expired
+- Verify proper file permissions
+
+**Can't create users:**
+
+- Ensure prosody container is running
+- Check database connection
+- Verify admin privileges
+
+### Get Help
+
+- **Logs**: `docker-compose logs prosody`
+- **Test connectivity**: `prosodyctl check connectivity yourdomain.com`
+- **Configuration test**: `prosodyctl check config`
+- **Issues**: [GitHub Issues](https://github.com/allthingslinux/xmpp.atl.chat/issues)
+
+## 🎯 Next Steps
+
+- **[Configuration Guide](configuration.md)** - Customize your server settings
+- **[Security Guide](../admin/security.md)** - Harden your deployment
+- **[Certificate Management](../admin/certificate-management.md)** - Automate SSL certificates
+- **[WebSocket Configuration](../admin/websocket-configuration.md)** - Set up reverse proxy
+
+---
+
+**🎉 Congratulations!** Your XMPP server is ready. Start chatting with modern, secure, federated messaging!

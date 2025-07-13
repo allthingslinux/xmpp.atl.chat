@@ -1,138 +1,105 @@
-# 📚 Documentation Index
+# 📚 Documentation
 
-This directory contains comprehensive documentation for the Professional Prosody XMPP Server. The documentation is organized by purpose and audience to make it easy to find what you need.
+Complete documentation for the Professional Prosody XMPP Server - a single, opinionated configuration designed for production deployment.
 
-## 🎯 Quick Navigation
+## 🚀 Quick Links
 
-### 👥 **For Users**
+- **[Getting Started](user/getting-started.md)** - Deploy your XMPP server in 5 minutes
+- **[Docker Deployment](admin/docker-deployment-guide.md)** - Production deployment with Docker
+- **[Certificate Management](admin/certificate-management.md)** - SSL/TLS setup and automation
+- **[Security Guide](admin/security.md)** - Security features and best practices
 
-- **[Getting Started](user/getting-started.md)** - Quick deployment guide
-- **[Configuration Guide](user/configuration.md)** - Environment variables and settings
-- **[Client Setup](user/client-setup.md)** - Connecting XMPP clients
-- **[Troubleshooting](user/troubleshooting.md)** - Common issues and solutions
+## 👥 For Users
 
-### 🛠️ **For Administrators**
+Get up and running quickly with these essential guides:
 
-- **[Deployment Guide](admin/deployment.md)** - Production deployment strategies
-- **[Security Hardening](admin/security.md)** - Security best practices
-- **[Certificate Management](admin/certificate-management.md)** - SSL/TLS certificate handling
-- **[Prosodyctl Management](admin/prosodyctl-management.md)** - Enhanced server management with prosodyctl
-- **[WebSocket Configuration](admin/websocket-configuration.md)** - WebSocket setup and reverse proxy configuration
-- **[Monitoring & Logging](admin/monitoring.md)** - Observability and metrics
-- **[Backup & Recovery](admin/backup.md)** - Data protection strategies
-- **[DNS & Network Setup](admin/dns-setup.md)** - DNS security and network configuration
+| Guide | Description |
+|-------|-------------|
+| **[Getting Started](user/getting-started.md)** | Complete deployment walkthrough |
+| **[Configuration](user/configuration.md)** | Environment variables and settings |
 
-### 💻 **For Developers**
+## 🛠️ For Administrators
 
-- **[Architecture Overview](dev/architecture.md)** - Layer-based configuration system
-- **[Module Development](dev/modules.md)** - Creating custom modules
-- **[API Reference](dev/api.md)** - REST APIs and webhooks
-- **[Contributing Guide](dev/contributing.md)** - Development workflow
+Production deployment and management guides:
 
-### 📖 **Technical Reference**
+| Guide | Description |
+|-------|-------------|
+| **[Docker Deployment](admin/docker-deployment-guide.md)** | Production Docker setup |
+| **[Certificate Management](admin/certificate-management.md)** | SSL/TLS certificates with Let's Encrypt |
+| **[Security Hardening](admin/security.md)** | Security features and best practices |
+| **[WebSocket Configuration](admin/websocket-configuration.md)** | Reverse proxy and WebSocket setup |
+| **[Prosodyctl Management](admin/prosodyctl-management.md)** | Server management with prosodyctl |
+| **[Port Configuration](admin/port-configuration-guide.md)** | Network ports and firewall setup |
+| **[DNS Setup](admin/dns-setup.md)** | DNS records and domain configuration |
 
-- **[XEP Compliance](reference/xep-compliance.md)** - Supported XMPP extensions
-- **[Module Reference](reference/modules.md)** - Complete module documentation
-- **[Configuration Reference](reference/configuration.md)** - All configuration options
-- **[Security Reference](reference/security.md)** - Security features and policies
+## 💻 For Developers
 
-## 📂 Directory Structure
+Technical documentation and architecture:
+
+| Guide | Description |
+|-------|-------------|
+| **[Architecture](dev/architecture.md)** | System design and components |
+| **[Modern XMPP Features](dev/prosody-modern-features.md)** | Advanced XMPP capabilities |
+
+## 📖 Reference
+
+Technical specifications and compliance:
+
+| Reference | Description |
+|-----------|-------------|
+| **[XEP Compliance](reference/xep-compliance.md)** | Supported XMPP Extension Protocols |
+| **[Module Reference](reference/modules.md)** | Enabled modules and features |
+
+## 🎯 Documentation Philosophy
+
+This documentation follows the same **single, opinionated approach** as the server configuration:
+
+- **Production-focused** - Guides assume production deployment
+- **Docker-first** - All examples use Docker Compose
+- **Security by default** - Security considerations built into every guide
+- **No complex layers** - Simple, direct configuration approach
+
+## 📋 What You Need
+
+Before diving into the documentation:
+
+- **Docker** 20.10+ with Docker Compose 2.0+
+- **Domain name** with DNS control
+- **Basic command line** familiarity
+- **2GB RAM minimum** (4GB+ recommended)
+
+## 🤝 Contributing
+
+Found an issue or want to improve the documentation?
+
+1. **[Open an issue](https://github.com/allthingslinux/xmpp.atl.chat/issues)** for bugs or suggestions
+2. **Submit a pull request** with improvements
+3. **Test all examples** before submitting changes
+
+## 📄 Structure
 
 ```
 docs/
-├── README.md                    # This file - documentation index
-├── user/                        # End-user documentation
-│   ├── getting-started.md       # Quick start guide
-│   ├── configuration.md         # Basic configuration
-│   ├── client-setup.md          # XMPP client setup
-│   └── troubleshooting.md       # Common issues
-├── admin/                       # Administrator documentation
-│   ├── deployment.md            # Production deployment
-│   ├── security.md              # Security hardening
-│   ├── certificate-management.md # SSL/TLS certificate management
-│   ├── monitoring.md            # Monitoring & logging
-│   ├── backup.md                # Backup & recovery
-│   └── dns-setup.md             # DNS & network setup
-├── dev/                         # Developer documentation
-│   ├── architecture.md          # System architecture
-│   ├── modules.md               # Module development
-│   ├── api.md                   # API documentation
-│   └── contributing.md          # Development workflow
-├── reference/                   # Technical reference
-│   ├── xep-compliance.md        # XEP compliance matrix
-│   ├── modules.md               # Module reference
-│   ├── configuration.md         # Configuration reference
-│   └── security.md              # Security reference
-└── assets/                      # Images and diagrams
-    ├── architecture/            # Architecture diagrams
-    ├── screenshots/             # UI screenshots
-    └── diagrams/                # Network diagrams
+├── README.md              # This overview
+├── user/                  # End-user guides
+│   ├── getting-started.md # Quick deployment guide
+│   └── configuration.md   # Environment configuration
+├── admin/                 # Administrator guides
+│   ├── docker-deployment-guide.md
+│   ├── certificate-management.md
+│   ├── security.md
+│   ├── websocket-configuration.md
+│   ├── prosodyctl-management.md
+│   ├── port-configuration-guide.md
+│   └── dns-setup.md
+├── dev/                   # Developer documentation
+│   ├── architecture.md
+│   └── prosody-modern-features.md
+└── reference/             # Technical reference
+    ├── xep-compliance.md
+    └── modules.md
 ```
-
-## 🔄 Documentation Lifecycle
-
-### 📝 **Writing Guidelines**
-
-- Use clear, concise language
-- Include practical examples
-- Keep sections focused and scannable
-- Update version compatibility information
-
-### 🔍 **Review Process**
-
-- Technical accuracy review
-- User experience testing
-- Security implications review
-- Version compatibility check
-
-### 📅 **Maintenance Schedule**
-
-- **Monthly**: Update compatibility information
-- **Quarterly**: Review and update configuration examples
-- **Annually**: Comprehensive documentation audit
-
-## 🎨 **Documentation Standards**
-
-### 📋 **Format Requirements**
-
-- **Markdown** format for all documentation
-- **Clear headings** with proper hierarchy
-- **Code blocks** with syntax highlighting
-- **Tables** for structured data
-- **Links** to external resources
-
-### 🎯 **Content Standards**
-
-- **Audience-focused** content
-- **Step-by-step** procedures
-- **Working examples** for all configurations
-- **Troubleshooting** sections where appropriate
-- **Version compatibility** information
-
-## 🤝 **Contributing to Documentation**
-
-### 📝 **How to Contribute**
-
-1. **Identify gaps** in existing documentation
-2. **Create or update** relevant documents
-3. **Test examples** to ensure they work
-4. **Submit pull request** with clear description
-5. **Review feedback** and iterate
-
-### 🎯 **Priority Areas**
-
-- User experience improvements
-- Configuration examples
-- Troubleshooting guides
-- Security best practices
-- Performance optimization
-
-## 📧 **Documentation Support**
-
-- **Issues**: Report documentation issues via GitHub Issues
-- **Questions**: Use GitHub Discussions for documentation questions
-- **Suggestions**: Submit improvement suggestions via pull requests
 
 ---
 
-*This documentation is maintained by AllThingsLinux. Last updated: 2024*
+**Need help?** Check the [Getting Started guide](user/getting-started.md) or [open an issue](https://github.com/allthingslinux/xmpp.atl.chat/issues).

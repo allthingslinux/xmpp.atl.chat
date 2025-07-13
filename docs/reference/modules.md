@@ -1,308 +1,334 @@
-# 📦 Module Reference Guide
+# 📦 Module Reference
 
-This comprehensive guide documents all modules used in the Professional Prosody XMPP Server, their stability levels, purposes, and configuration details.
+This document provides a comprehensive reference of all modules enabled in the Professional Prosody XMPP Server. Our single configuration includes **50+ modules** for maximum XMPP compatibility and modern features.
 
-## 📋 Module Categories
+## 🔧 Core Prosody Modules
 
-### 🟢 **Core Modules**
+These are the essential modules included with Prosody that provide basic XMPP functionality:
 
-- **Status**: Always enabled
-- **Risk**: Minimal - part of Prosody core
-- **Source**: Built into Prosody core
-- **Description**: Essential XMPP functionality required for basic operation
+### Connection & Authentication
 
-### ✅ **Official Modules**
+- **`roster`** - Contact list management (RFC 6121)
+- **`saslauth`** - SASL authentication mechanisms
+- **`tls`** - TLS encryption for secure connections
+- **`dialback`** - Server-to-server authentication (XEP-0220)
+- **`disco`** - Service Discovery (XEP-0030)
 
-- **Status**: Enabled by default
-- **Risk**: Low - official Prosody modules
-- **Source**: Distributed with Prosody
-- **Description**: Official modules maintained by Prosody team
+### Core Messaging
 
-### 🟢 **Community Stable Modules**
+- **`carbons`** - Message Carbons for multi-device sync (XEP-0280)
+- **`pep`** - Personal Eventing Protocol (XEP-0163)
+- **`private`** - Private XML Storage (XEP-0049)
+- **`blocklist`** - Block communication (XEP-0191)
+- **`vcard4`** - User profiles and avatars (XEP-0292)
+- **`vcard_legacy`** - Legacy vCard support (XEP-0054)
 
-- **Status**: Enabled by default
-- **Risk**: Low - production-ready community modules
-- **Source**: prosody-modules repository
-- **Description**: Well-tested modules with active maintenance and broad deployment
+### Advanced Features
 
-### 🟡 **Community Beta Modules**
+- **`mam`** - Message Archive Management (XEP-0313)
+- **`smacks`** - Stream Management for reliability (XEP-0198)
+- **`csi_simple`** - Client State Indication for mobile (XEP-0352)
+- **`cloud_notify`** - Push notifications (XEP-0357)
 
-- **Status**: Enabled by default (can be disabled)
-- **Risk**: Medium - mostly stable with some edge cases
-- **Source**: prosody-modules repository
-- **Description**: Mature modules that may have minor issues in specific scenarios
+## 🌐 Community Modules
 
-### 🟠 **Community Alpha Modules**
+These modules from the [Prosody Community Modules](https://modules.prosody.im/) project provide additional functionality:
 
-- **Status**: Disabled by default (explicit opt-in required)
-- **Risk**: High - experimental features
-- **Source**: prosody-modules repository
-- **Description**: Cutting-edge features that may have bugs or breaking changes
+### Security & Anti-Spam
 
-## 🏗️ Layer-Based Module Organization
+- **`mod_firewall`** - Advanced firewall and filtering
+- **`mod_spam_reporting`** - Report spam messages (XEP-0377)
+- **`mod_block_registrations`** - Block unwanted registrations
+- **`mod_watchregistrations`** - Monitor new user registrations
+- **`mod_welcome`** - Welcome messages for new users
 
-Our modules are organized by XMPP protocol stack layers:
+### Mobile & Modern Clients
 
-### 📡 **01-Transport Layer**
+- **`mod_smacks`** - Enhanced stream management
+- **`mod_csi_battery_saver`** - Optimize for mobile battery life
+- **`mod_cloud_notify_encrypted`** - Encrypted push notifications
+- **`mod_unified_push`** - UnifiedPush notification support
 
-Network foundations and connectivity
+### File Sharing & Media
 
-- **Core**: Network listeners, port management
-- **Security**: TLS, certificate validation
-- **Performance**: Compression, connection pooling
+- **`mod_http_upload`** - HTTP File Upload (XEP-0363)
+- **`mod_http_upload_external`** - External file upload services
+- **`mod_file_management`** - File management and cleanup
 
-### 🔐 **02-Stream Layer**
+### Multi-User Chat (MUC) Enhancements
 
-Authentication and session management
+- **`mod_muc_mam`** - Message archiving for group chats
+- **`mod_muc_limits`** - Room size and message limits
+- **`mod_muc_moderation`** - Message moderation (XEP-0425)
+- **`mod_muc_rtbl`** - Real-time blocklist for MUC
 
-- **Authentication**: SASL, SCRAM, enterprise backends
-- **Encryption**: OMEMO, OpenPGP policies
-- **Session Management**: Stream Management (XEP-0198)
+### Authentication & Integration
 
-### 📨 **03-Stanza Layer**
+- **`mod_auth_ldap`** - LDAP directory integration
+- **`mod_auth_external`** - External authentication scripts
+- **`mod_sasl2`** - SASL 2.0 support (XEP-0388)
+- **`mod_fast`** - Fast authentication (XEP-0484)
 
-Message processing and routing
+### WebSocket & Web Support
 
-- **Routing**: BOSH, WebSocket, message delivery
-- **Filtering**: Firewall, anti-spam, content filtering
-- **Validation**: XML schema, security validation
+- **`mod_websocket`** - WebSocket connections (RFC 7395)
+- **`mod_bosh`** - BOSH HTTP binding (XEP-0206)
+- **`mod_http_files`** - Static file serving
+- **`mod_admin_web`** - Web-based administration
 
-### 🎯 **04-Protocol Layer**
+### Voice/Video & Real-time
 
-Core XMPP features
+- **`mod_external_services`** - External service discovery (XEP-0215)
+- **`mod_turn_external`** - TURN/STUN server integration
+- **`mod_jingle_stats`** - Voice/video call statistics
 
-- **Core**: RFC 6120/6121 compliance
-- **Extensions**: Modern XEPs (MAM, Carbons, MUC)
-- **Legacy**: Backwards compatibility
+### Monitoring & Diagnostics
 
-### 🌐 **05-Services Layer**
+- **`mod_prometheus`** - Prometheus metrics export
+- **`mod_measure_memory`** - Memory usage monitoring
+- **`mod_http_status`** - HTTP health check endpoint
+- **`mod_watchdog`** - Service health monitoring
 
-Communication services
+## 🔐 Security Modules
 
-- **Messaging**: Message handling, delivery
-- **Presence**: Status, availability management
-- **Group Chat**: MUC, conference features
-
-### 💾 **06-Storage Layer**
-
-Data persistence
-
-- **Backends**: Database drivers, connection pooling
-- **Archiving**: Message archiving, retention
-- **Caching**: Performance optimization
-
-### 🔌 **07-Interfaces Layer**
-
-External interfaces
-
-- **HTTP**: Web server, file upload
-- **WebSocket**: Real-time web connections
-- **BOSH**: HTTP binding for web clients
-
-### 🔗 **08-Integration Layer**
-
-External systems
-
-- **Authentication**: LDAP, OAuth
-- **Webhooks**: External notifications
-- **APIs**: REST APIs, integrations
-
-## 📊 Module Stability Matrix
-
-### 🟢 Core Modules (Always Enabled)
-
-| Module | Layer | Purpose | XEP |
-|--------|--------|---------|-----|
-| `roster` | 04-Protocol | Contact list management | RFC 6121 |
-| `saslauth` | 02-Stream | Authentication framework | RFC 6120 |
-| `tls` | 01-Transport | TLS encryption | RFC 6120 |
-| `dialback` | 01-Transport | Server-to-server auth | XEP-0220 |
-| `disco` | 04-Protocol | Service discovery | XEP-0030 |
-| `carbons` | 05-Services | Multi-device sync | XEP-0280 |
-| `pep` | 05-Services | Personal eventing | XEP-0163 |
-| `private` | 06-Storage | Private XML storage | XEP-0049 |
-| `blocklist` | 03-Stanza | Blocking users | XEP-0191 |
-| `vcard4` | 04-Protocol | User profiles | XEP-0292 |
-| `vcard_legacy` | 04-Protocol | Legacy vCard support | XEP-0054 |
-| `mam` | 06-Storage | Message archiving | XEP-0313 |
-| `smacks` | 02-Stream | Stream management | XEP-0198 |
-
-### ✅ Official Modules (Enabled by Default)
-
-| Module | Layer | Purpose | XEP |
-|--------|--------|---------|-----|
-| `version` | 04-Protocol | Server version info | XEP-0092 |
-| `uptime` | 04-Protocol | Server uptime | XEP-0012 |
-| `time` | 04-Protocol | Server time | XEP-0202 |
-| `ping` | 03-Stanza | XMPP ping | XEP-0199 |
-| `register` | 02-Stream | User registration | XEP-0077 |
-| `admin_adhoc` | 08-Integration | Admin commands | XEP-0050 |
-| `admin_telnet` | 08-Integration | Telnet admin | - |
-| `bosh` | 07-Interfaces | HTTP binding | XEP-0124 |
-| `websocket` | 07-Interfaces | WebSocket support | RFC 7395 |
-| `http_files` | 07-Interfaces | Static file serving | - |
-| `http_file_share` | 07-Interfaces | File upload | XEP-0363 |
-
-### 🟢 Community Stable Modules
-
-| Module | Layer | Purpose | Stability |
-|--------|--------|---------|-----------|
-| `firewall` | 03-Stanza | Advanced filtering | Stable |
-| `spam_reporting` | 03-Stanza | Spam reporting | Stable |
-| `limits` | 01-Transport | Rate limiting | Stable |
-| `log_auth` | 08-Integration | Auth logging | Stable |
-| `stanza_counter` | 08-Integration | Stanza metrics | Stable |
-| `admin_web` | 07-Interfaces | Web admin | Stable |
-| `storage_xmlarchive` | 06-Storage | XML archive backend | Stable |
-| `turncredentials` | 04-Protocol | TURN credentials | Stable |
-| `external_services` | 04-Protocol | External services | Stable |
-
-### 🟡 Community Beta Modules
-
-| Module | Layer | Purpose | Stability |
-|--------|--------|---------|-----------|
-| `cloud_notify` | 05-Services | Push notifications | Beta |
-| `client_management` | 02-Stream | Client management | Beta |
-| `password_reset` | 02-Stream | Password reset | Beta |
-| `sasl2` | 02-Stream | SASL 2.0 | Beta |
-| `fast` | 02-Stream | Fast auth | Beta |
-| `compliance_2023` | 04-Protocol | Compliance suite | Beta |
-| `bookmarks` | 05-Services | Bookmarks | Beta |
-| `addressing` | 03-Stanza | Message addressing | Beta |
-| `extdisco` | 04-Protocol | External discovery | Beta |
-
-### 🟠 Community Alpha Modules
-
-| Module | Layer | Purpose | Stability |
-|--------|--------|---------|-----------|
-| `omemo_all_access` | 02-Stream | OMEMO management | Alpha |
-| `e2e_policy` | 02-Stream | E2E encryption policy | Alpha |
-| `filter_chatstates` | 03-Stanza | Filter chat states | Alpha |
-| `measure_stanza_counts` | 08-Integration | Stanza measurements | Alpha |
-| `anti_spam` | 03-Stanza | Anti-spam features | Alpha |
-| `audit` | 08-Integration | Audit logging | Alpha |
-| `json_logs` | 08-Integration | JSON log format | Alpha |
-
-## 🎛️ Module Control
-
-### Environment Variables
-
-Control module categories via environment variables:
-
-```bash
-# Core modules (always enabled)
-PROSODY_ENABLE_CORE=true
-
-# Official modules (enabled by default)
-PROSODY_ENABLE_OFFICIAL=true
-
-# Community stable modules (enabled by default)
-PROSODY_ENABLE_STABLE=true
-
-# Community beta modules (enabled by default, can disable)
-PROSODY_ENABLE_BETA=true
-
-# Community alpha modules (disabled by default)
-PROSODY_ENABLE_ALPHA=false
-```
-
-### Configuration Files
-
-Modules are configured in layer-specific files:
-
-```
-config/stack/
-├── 01-transport/
-│   ├── ports.cfg.lua       # Network listeners
-│   ├── tls.cfg.lua         # TLS configuration
-│   └── connections.cfg.lua # Connection management
-├── 02-stream/
-│   ├── authentication.cfg.lua # Auth modules
-│   ├── encryption.cfg.lua     # Encryption modules
-│   └── management.cfg.lua     # Session management
-└── ... (other layers)
-```
-
-## 🔧 Module Development
-
-### Creating Custom Modules
-
-1. **Choose appropriate layer** based on functionality
-2. **Follow module naming conventions**
-3. **Implement proper error handling**
-4. **Add configuration documentation**
-5. **Include XEP references where applicable**
-
-### Module Template
+### Transport Layer Security
 
 ```lua
--- mod_example.lua
--- Brief description of module functionality
--- XEP-XXXX: Reference if applicable
+-- TLS Configuration
+modules_enabled = {
+    "tls";                    -- TLS encryption
+}
 
-module:set_global();
-
-local log = module._log;
-
--- Module configuration
-local config = module:get_option("example_config", {});
-
--- Module initialization
-function module.load()
-    log("info", "Example module loaded");
-end
-
--- Module cleanup
-function module.unload()
-    log("info", "Example module unloaded");
-end
-
--- Export module API
-return {
-    version = "1.0.0",
-    dependencies = {"core_module"},
-    status = "stable"
-};
+ssl = {
+    protocol = "tlsv1_3+";    -- TLS 1.3 preferred
+    ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM";
+    curve = "P-256:P-384";
+    honor_cipher_order = true;
+}
 ```
 
-### Testing Modules
+### Authentication Security
+
+```lua
+-- SASL Configuration
+authentication = "internal_hashed";  -- Secure password storage
+sasl_mechanisms = {
+    "SCRAM-SHA-256";                 -- Secure authentication
+    "SCRAM-SHA-1";                   -- Fallback support
+}
+```
+
+### Anti-Spam & Firewall
+
+```lua
+-- Firewall Rules
+modules_enabled = {
+    "firewall";              -- Advanced filtering
+    "spam_reporting";        -- Report spam
+    "block_registrations";   -- Block unwanted signups
+}
+```
+
+## 📱 Mobile Optimization Modules
+
+### Battery Saving
+
+```lua
+-- Client State Indication
+modules_enabled = {
+    "csi_simple";            -- Basic CSI support
+    "csi_battery_saver";     -- Advanced battery optimization
+}
+
+-- Push Notifications
+modules_enabled = {
+    "cloud_notify";          -- XEP-0357 support
+    "cloud_notify_encrypted"; -- Encrypted notifications
+    "unified_push";          -- UnifiedPush support
+}
+```
+
+### Connection Reliability
+
+```lua
+-- Stream Management
+modules_enabled = {
+    "smacks";                -- XEP-0198 support
+}
+
+smacks_hibernation_time = 600;    -- 10 minutes
+smacks_max_hibernated_sessions = 10;
+smacks_max_old_sessions = 10;
+```
+
+## 🌐 HTTP & Web Modules
+
+### HTTP Services
+
+```lua
+-- HTTP Server Configuration
+modules_enabled = {
+    "http";                  -- HTTP server
+    "http_files";           -- Static file serving
+    "http_upload";          -- File upload (XEP-0363)
+    "websocket";            -- WebSocket support
+    "bosh";                 -- BOSH support
+    "admin_web";            -- Web admin interface
+}
+
+http_ports = { 5280 };
+https_ports = { 5281 };
+```
+
+### File Upload Configuration
+
+```lua
+-- HTTP Upload Settings
+http_upload_file_size_limit = 50 * 1024 * 1024;  -- 50MB
+http_upload_expire_after = 60 * 60 * 24 * 7;     -- 7 days
+http_upload_quota = 1024 * 1024 * 1024;          -- 1GB per user
+```
+
+## 💬 Multi-User Chat (MUC) Modules
+
+### MUC Configuration
+
+```lua
+-- MUC Component
+Component "conference." .. (ENV_DOMAIN or "localhost") "muc"
+    modules = {
+        "muc_mam";           -- Message archiving
+        "muc_limits";        -- Room limits
+        "muc_moderation";    -- Message moderation
+        "vcard_muc";         -- Room avatars
+    }
+
+muc_room_default_public = false;
+muc_room_default_members_only = false;
+muc_room_default_moderated = false;
+```
+
+## 📊 Monitoring & Metrics Modules
+
+### Prometheus Integration
+
+```lua
+-- Monitoring Configuration
+modules_enabled = {
+    "prometheus";            -- Metrics export
+    "measure_memory";        -- Memory monitoring
+    "http_status";          -- Health checks
+    "watchdog";             -- Service monitoring
+}
+
+-- Prometheus Settings
+prometheus_port = 9090;
+prometheus_interface = "*";
+```
+
+### Health Monitoring
+
+```lua
+-- Health Check Configuration
+http_paths = {
+    health = "/health";      -- Health check endpoint
+    metrics = "/metrics";    -- Prometheus metrics
+}
+```
+
+## 🗄️ Storage & Archive Modules
+
+### Message Archiving
+
+```lua
+-- MAM Configuration  
+modules_enabled = {
+    "mam";                   -- Message Archive Management
+    "muc_mam";              -- MUC archiving
+}
+
+archive_expires_after = "1y";     -- Keep messages for 1 year
+muc_log_expires_after = "1y";     -- MUC logs retention
+```
+
+### Database Configuration
+
+```lua
+-- PostgreSQL Storage
+storage = "sql";
+sql = {
+    driver = "PostgreSQL";
+    database = ENV_DB_NAME or "prosody";
+    username = ENV_DB_USER or "prosody";
+    password = ENV_DB_PASSWORD;
+    host = ENV_DB_HOST or "localhost";
+    port = ENV_DB_PORT or 5432;
+}
+```
+
+## 🔧 Module Configuration Examples
+
+### Enabling Custom Modules
+
+To add additional modules to your deployment:
+
+1. **Add to environment variables**:
 
 ```bash
-# Test module syntax
-prosodyctl check config
-
-# Test module loading
-prosodyctl about
-
-# Monitor module behavior
-tail -f /var/log/prosody/prosody.log
+# Add to .env file
+PROSODY_EXTRA_MODULES=mod_example,mod_another
 ```
 
-## 🔄 Module Updates
+2. **Mount custom modules**:
 
-### Update Process
+```yaml
+# In docker-compose.yml
+volumes:
+  - ./custom-modules:/usr/local/lib/prosody/modules
+```
 
-1. **Backup current configuration**
-2. **Update module files**
-3. **Test in development environment**
-4. **Deploy to production**
-5. **Monitor for issues**
+### Module Dependencies
 
-### Version Compatibility
+Some modules have dependencies on others:
 
-| Prosody Version | Module Compatibility |
-|----------------|---------------------|
-| 0.11.x | Legacy modules only |
-| 0.12.x | Core + Official + Stable |
-| 0.13.x | All modules supported |
+| Module | Dependencies |
+|--------|-------------|
+| `mod_mam` | `mod_disco`, storage backend |
+| `mod_cloud_notify` | `mod_smacks`, `mod_csi_simple` |
+| `mod_http_upload` | `mod_http`, storage backend |
+| `mod_admin_web` | `mod_http`, `mod_admin_adhoc` |
 
-## 📚 Additional Resources
+### Troubleshooting Modules
 
-- **[Prosody Module Documentation](https://prosody.im/doc/modules)**
-- **[Community Modules](https://modules.prosody.im/)**
-- **[XEP Specifications](https://xmpp.org/extensions/)**
-- **[Module Development Guide](https://prosody.im/doc/developers/modules)**
+```bash
+# Check module status
+docker-compose exec prosody prosodyctl check modules
+
+# List enabled modules
+docker-compose exec prosody prosodyctl list modules
+
+# Test specific module
+docker-compose exec prosody prosodyctl test mod_example
+```
+
+## 📚 Module Resources
+
+### Documentation Links
+
+- **[Prosody Modules](https://prosody.im/doc/modules)** - Official module documentation
+- **[Community Modules](https://modules.prosody.im/)** - Community module repository
+- **[XEP Documentation](https://xmpp.org/extensions/)** - XMPP protocol specifications
+
+### Security Considerations
+
+When adding new modules:
+
+1. **Verify source** - Only use trusted module sources
+2. **Review code** - Check module code for security issues
+3. **Test thoroughly** - Test in development before production
+4. **Monitor impact** - Watch for performance/security impacts
+5. **Keep updated** - Regularly update to latest versions
 
 ---
 
-*This module reference is maintained as part of the Professional Prosody XMPP Server documentation.*
+**💡 Pro Tip**: This configuration includes all essential modules for a modern XMPP server. The defaults are production-ready and secure. Only add additional modules if you have specific requirements not covered by the included set.

@@ -1,342 +1,373 @@
-# ⚙️ User Configuration Guide
+# ⚙️ Configuration Guide
 
-This guide covers the essential configuration options for end users who want to customize their Professional Prosody XMPP Server.
+This guide covers all configuration options for your Prosody XMPP server using the `.env` file approach. All settings are controlled through environment variables for maximum simplicity.
 
-## 🎯 Quick Configuration
+## 📋 Configuration File
 
-### Environment Variables
-
-The server is configured primarily through environment variables in your `.env` file:
+All configuration is done through the `.env` file in your project root. Copy from the example:
 
 ```bash
-# Copy the example environment file
 cp examples/env.example .env
-
-# Edit with your settings
-nano .env
+nano .env  # Edit with your preferred editor
 ```
 
-### Essential Settings
+## 🔧 Essential Settings
+
+### Domain Configuration (Required)
 
 ```bash
-# === DOMAIN CONFIGURATION ===
-PROSODY_DOMAIN=your-domain.com
-PROSODY_ADMINS=admin@your-domain.com,admin2@your-domain.com
-
-# === FEATURE CONTROL ===
-PROSODY_ENABLE_SECURITY=true      # Security features
-PROSODY_ENABLE_BETA=true          # Beta features
-PROSODY_ENABLE_ALPHA=false        # Experimental features
-
-# === REGISTRATION ===
-PROSODY_ALLOW_REGISTRATION=false  # Public registration
-PROSODY_INVITE_ONLY=true          # Invite-only registration
-
-# === STORAGE ===
-PROSODY_STORAGE=sqlite            # sqlite, postgresql, mysql
-PROSODY_ARCHIVE_RETENTION=1y      # Message archive retention
-```
-
-## 🔧 Common Configurations
-
-### 1. Personal Server (Friends & Family)
-
-```bash
-# Small server for personal use
-PROSODY_DOMAIN=chat.yourfamily.com
-PROSODY_ADMINS=admin@chat.yourfamily.com
-PROSODY_ALLOW_REGISTRATION=false
-PROSODY_INVITE_ONLY=true
-PROSODY_STORAGE=sqlite
-PROSODY_ENABLE_BETA=false
-PROSODY_MAX_CLIENTS=50
-```
-
-### 2. Community Server (Organization)
-
-```bash
-# Medium server for community/organization
-PROSODY_DOMAIN=chat.yourorg.com
-PROSODY_ADMINS=admin@chat.yourorg.com
-PROSODY_ALLOW_REGISTRATION=true
-PROSODY_INVITE_ONLY=false
-PROSODY_STORAGE=postgresql
-PROSODY_ENABLE_BETA=true
-PROSODY_MAX_CLIENTS=500
-```
-
-### 3. Public Server (Open Community)
-
-```bash
-# Large server for public use
+# Your XMPP domain (REQUIRED - change this!)
 PROSODY_DOMAIN=chat.example.com
+
+# Administrator JIDs (comma-separated)
 PROSODY_ADMINS=admin@chat.example.com
-PROSODY_ALLOW_REGISTRATION=true
-PROSODY_INVITE_ONLY=false
-PROSODY_STORAGE=postgresql
-PROSODY_ENABLE_BETA=true
-PROSODY_ENABLE_ALPHA=false
-PROSODY_MAX_CLIENTS=5000
 ```
 
-## 🛡️ Security Settings
-
-### TLS Configuration
+### Database Configuration (Required)
 
 ```bash
-# TLS settings
-PROSODY_TLS_CERT_PATH=/etc/prosody/certs/
-PROSODY_REQUIRE_ENCRYPTION=true
-PROSODY_TLS_VERSION=1.3
-
-# Certificate settings
-PROSODY_AUTO_CERT=true           # Automatic certificate generation
-PROSODY_CERT_EMAIL=admin@your-domain.com
-```
-
-### Access Control
-
-```bash
-# Firewall settings
-PROSODY_FIREWALL_ENABLED=true
-PROSODY_RATE_LIMIT_ENABLED=true
-PROSODY_SPAM_PROTECTION=true
-
-# IP restrictions
-PROSODY_ALLOWED_IPS=            # Empty = all IPs allowed
-PROSODY_BLOCKED_IPS=            # Comma-separated blocked IPs
-```
-
-## 💾 Storage Configuration
-
-### SQLite (Default)
-
-```bash
-# Simple file-based storage
-PROSODY_STORAGE=sqlite
-PROSODY_DB_PATH=/var/lib/prosody/prosody.sqlite
-```
-
-### PostgreSQL
-
-```bash
-# PostgreSQL database
-PROSODY_STORAGE=postgresql
-PROSODY_DB_HOST=localhost
-PROSODY_DB_PORT=5432
+# Database credentials (REQUIRED for production)
 PROSODY_DB_NAME=prosody
 PROSODY_DB_USER=prosody
-PROSODY_DB_PASSWORD=your-secure-password
+PROSODY_DB_PASSWORD=ChangeMe123!
 ```
 
-### MySQL
+## 🌐 Network Settings
+
+### Port Configuration
 
 ```bash
-# MySQL database
-PROSODY_STORAGE=mysql
-PROSODY_DB_HOST=localhost
-PROSODY_DB_PORT=3306
-PROSODY_DB_NAME=prosody
-PROSODY_DB_USER=prosody
-PROSODY_DB_PASSWORD=your-secure-password
+# XMPP ports (defaults shown)
+PROSODY_C2S_PORT=5222              # Client connections (STARTTLS)
+PROSODY_S2S_PORT=5269              # Server-to-server
+PROSODY_C2S_DIRECT_TLS_PORT=5223   # Client connections (Direct TLS)
+PROSODY_S2S_DIRECT_TLS_PORT=5270   # Server-to-server (Direct TLS)
+
+# Web services ports
+PROSODY_HTTP_PORT=5280             # HTTP (BOSH/WebSocket/Admin)
+PROSODY_HTTPS_PORT=5281            # HTTPS (BOSH/WebSocket/Admin)
 ```
 
-## 📊 Performance Settings
+### Standard Ports (80/443)
 
-### Resource Limits
+To run on standard web ports:
 
 ```bash
-# Connection limits
-PROSODY_MAX_CLIENTS=1000
-PROSODY_MAX_CLIENTS_PER_IP=10
+# Set to standard ports
+PROSODY_HTTP_PORT=80
+PROSODY_HTTPS_PORT=443
 
-# Rate limiting
-PROSODY_C2S_RATE_LIMIT=10kb/s
-PROSODY_S2S_RATE_LIMIT=30kb/s
-
-# Memory limits
-PROSODY_MEMORY_LIMIT=512M
+# Note: Requires running as root or using authbind/capabilities
 ```
 
-### Archive Settings
+## 🔒 Security Settings
+
+### User Registration
 
 ```bash
-# Message archiving
-PROSODY_ARCHIVE_ENABLED=true
-PROSODY_ARCHIVE_RETENTION=1y     # 1 year retention
-PROSODY_ARCHIVE_POLICY=roster    # roster, always, never
-
-# MUC archiving
-PROSODY_MUC_ARCHIVE_ENABLED=true
-PROSODY_MUC_ARCHIVE_RETENTION=6m # 6 months retention
+# Registration control (default: false for security)
+PROSODY_ALLOW_REGISTRATION=false
 ```
 
-## 🌐 Network Configuration
-
-### Port Settings
+### Authentication Backends
 
 ```bash
-# Standard XMPP ports
-PROSODY_C2S_PORT=5222           # Client connections
-PROSODY_S2S_PORT=5269           # Server connections
-PROSODY_HTTP_PORT=5280          # HTTP services
-PROSODY_HTTPS_PORT=5281         # HTTPS services
+# LDAP integration (optional)
+PROSODY_LDAP_PASSWORD=your_ldap_password
+
+# OAuth integration (optional)
+PROSODY_OAUTH_CLIENT_SECRET=your_oauth_secret
 ```
 
-### External Access
+### File Upload Limits
 
 ```bash
-# External hostname
-PROSODY_EXTERNAL_HOST=your-domain.com
-
-# Proxy settings (if behind reverse proxy)
-PROSODY_PROXY_ENABLED=true
-PROSODY_PROXY_PROTOCOL=https
-PROSODY_TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+# File upload size limit in bytes (default: ~50MB)
+PROSODY_UPLOAD_SIZE_LIMIT=50485760
 ```
 
-## 📱 Mobile & Web Support
+## 🎥 Voice/Video Support
 
-### Push Notifications
+### TURN/STUN Server
 
 ```bash
-# Enable push notifications
-PROSODY_PUSH_ENABLED=true
-PROSODY_PUSH_BACKEND=fcm         # fcm, apns, webpush
+# TURN server ports
+TURN_PORT=3478                     # STUN/TURN port
+TURNS_PORT=5349                    # TURN over TLS port
+TURN_MIN_PORT=49152                # RTP relay port range start
+TURN_MAX_PORT=65535                # RTP relay port range end
 
-# FCM settings
-PROSODY_FCM_SERVER_KEY=your-fcm-server-key
-PROSODY_FCM_SENDER_ID=your-sender-id
+# TURN server authentication
+TURN_USERNAME=prosody
+TURN_PASSWORD=ChangeMe123!
+TURN_SECRET=ChangeMe123!
 ```
 
-### Web Client Support
+## 📊 Monitoring & Logging
+
+### Log Level
 
 ```bash
-# Web client features
-PROSODY_WEB_ENABLED=true
-PROSODY_BOSH_ENABLED=true
-PROSODY_WEBSOCKET_ENABLED=true
-
-# CORS settings
-PROSODY_CORS_ENABLED=true
-PROSODY_CORS_ORIGINS=https://webclient.example.com
+# Logging level (debug, info, warn, error)
+PROSODY_LOG_LEVEL=info
 ```
 
-## 🔐 Authentication Options
-
-### Internal Authentication (Default)
+### Monitoring Ports
 
 ```bash
-# Built-in authentication
-PROSODY_AUTH_METHOD=internal_hashed
-```
+# Monitoring service ports
+PROMETHEUS_PORT=9090               # Prometheus metrics
+GRAFANA_PORT=3000                  # Grafana dashboards
+NODE_EXPORTER_PORT=9100            # System metrics
 
-### LDAP Authentication
-
-```bash
-# LDAP integration
-PROSODY_AUTH_METHOD=ldap
-PROSODY_LDAP_SERVER=ldap.example.com
-PROSODY_LDAP_PORT=389
-PROSODY_LDAP_BASE_DN=ou=users,dc=example,dc=com
-PROSODY_LDAP_BIND_DN=cn=prosody,ou=services,dc=example,dc=com
-PROSODY_LDAP_BIND_PASSWORD=ldap-password
-```
-
-### External Authentication
-
-```bash
-# HTTP authentication
-PROSODY_AUTH_METHOD=http
-PROSODY_AUTH_URL=https://auth.example.com/xmpp/auth
-PROSODY_AUTH_TOKEN=your-auth-token
+# Grafana admin password
+GRAFANA_ADMIN_PASSWORD=ChangeMe123!
 ```
 
 ## 🚀 Deployment Modes
 
-### Docker Compose
+### Minimal Deployment (Recommended for Start)
 
 ```bash
-# Deploy with Docker
+# Deploy only XMPP server and database
+docker-compose up -d prosody db
+```
+
+### Full Deployment
+
+```bash
+# Deploy all services (XMPP, Database, Monitoring, TURN)
+docker-compose up -d
+```
+
+### Custom Service Selection
+
+```bash
+# XMPP + Database + Monitoring
+docker-compose up -d prosody db prometheus grafana
+
+# XMPP + Database + TURN server
+docker-compose up -d prosody db coturn
+```
+
+## 🌐 Service URLs
+
+After deployment, access your services at:
+
+### XMPP Services
+
+```bash
+# Admin Panel
+https://${PROSODY_DOMAIN}:${PROSODY_HTTPS_PORT}/admin
+
+# File Upload
+https://${PROSODY_DOMAIN}:${PROSODY_HTTPS_PORT}/upload
+
+# WebSocket (for web clients)
+wss://${PROSODY_DOMAIN}:${PROSODY_HTTPS_PORT}/xmpp-websocket
+
+# BOSH (legacy web clients)
+https://${PROSODY_DOMAIN}:${PROSODY_HTTPS_PORT}/http-bind
+```
+
+### Monitoring Services
+
+```bash
+# Prometheus metrics
+http://localhost:${PROMETHEUS_PORT}
+
+# Grafana dashboards
+http://localhost:${GRAFANA_PORT}
+
+# Node Exporter metrics
+http://localhost:${NODE_EXPORTER_PORT}
+```
+
+### TURN/STUN Services
+
+```bash
+# STUN server
+${PROSODY_DOMAIN}:${TURN_PORT}
+
+# TURN server
+${PROSODY_DOMAIN}:${TURN_PORT}
+
+# TURNS (TLS)
+${PROSODY_DOMAIN}:${TURNS_PORT}
+```
+
+## 📝 Complete Example Configuration
+
+Here's a complete `.env` file example for a production deployment:
+
+```bash
+# ============================================================================
+# DOMAIN CONFIGURATION (REQUIRED)
+# ============================================================================
+PROSODY_DOMAIN=chat.example.com
+PROSODY_ADMINS=admin@chat.example.com
+
+# ============================================================================
+# DATABASE CONFIGURATION (REQUIRED)
+# ============================================================================
+PROSODY_DB_NAME=prosody
+PROSODY_DB_USER=prosody
+PROSODY_DB_PASSWORD=SuperSecurePassword123!
+
+# ============================================================================
+# NETWORK CONFIGURATION
+# ============================================================================
+# Standard XMPP ports (usually no need to change)
+PROSODY_C2S_PORT=5222
+PROSODY_S2S_PORT=5269
+PROSODY_C2S_DIRECT_TLS_PORT=5223
+PROSODY_S2S_DIRECT_TLS_PORT=5270
+
+# Web services (change if using reverse proxy)
+PROSODY_HTTP_PORT=5280
+PROSODY_HTTPS_PORT=5281
+
+# ============================================================================
+# SECURITY SETTINGS
+# ============================================================================
+PROSODY_ALLOW_REGISTRATION=false
+PROSODY_LOG_LEVEL=info
+PROSODY_UPLOAD_SIZE_LIMIT=50485760
+
+# ============================================================================
+# TURN/STUN FOR VOICE/VIDEO
+# ============================================================================
+TURN_PORT=3478
+TURNS_PORT=5349
+TURN_MIN_PORT=49152
+TURN_MAX_PORT=65535
+TURN_USERNAME=prosody
+TURN_PASSWORD=TurnPassword123!
+TURN_SECRET=TurnSecret123!
+
+# ============================================================================
+# MONITORING
+# ============================================================================
+PROMETHEUS_PORT=9090
+GRAFANA_PORT=3000
+NODE_EXPORTER_PORT=9100
+GRAFANA_ADMIN_PASSWORD=GrafanaAdmin123!
+```
+
+## 🔄 Apply Configuration Changes
+
+After editing your `.env` file:
+
+```bash
+# Restart services to apply changes
+docker-compose down
 docker-compose up -d
 
-# View logs
-docker-compose logs -f prosody
-
-# Restart service
+# Or restart specific service
 docker-compose restart prosody
 ```
 
-### Kubernetes
-
-```bash
-# Deploy to Kubernetes
-kubectl apply -f k8s/
-
-# Check status
-kubectl get pods -l app=prosody
-
-# View logs
-kubectl logs -f deployment/prosody
-```
-
-## 🔧 Advanced Configuration
-
-### Custom Modules
-
-```bash
-# Enable custom modules
-PROSODY_CUSTOM_MODULES=mod_example,mod_another
-
-# Custom module path
-PROSODY_CUSTOM_MODULE_PATH=/etc/prosody/custom-modules/
-```
-
-### Logging
-
-```bash
-# Log levels
-PROSODY_LOG_LEVEL=info          # debug, info, warn, error
-
-# Log format
-PROSODY_LOG_FORMAT=json         # json, plain
-
-# Log destinations
-PROSODY_LOG_FILE=/var/log/prosody/prosody.log
-PROSODY_LOG_SYSLOG=false
-```
-
-## 📋 Configuration Validation
+## ✅ Validate Configuration
 
 ### Check Configuration
 
 ```bash
-# Validate configuration
+# Test prosody configuration
 docker-compose exec prosody prosodyctl check config
 
-# Check connectivity
-docker-compose exec prosody prosodyctl check connectivity example.com
-
-# Test DNS
-docker-compose exec prosody prosodyctl check dns example.com
+# Test connectivity
+docker-compose exec prosody prosodyctl check connectivity chat.example.com
 ```
 
-### Common Issues
+### Verify Service Access
 
-| Issue | Solution |
-|-------|----------|
-| Port conflicts | Change port numbers in environment |
-| Certificate errors | Check certificate paths and permissions |
-| Database connection | Verify database settings and connectivity |
-| Module loading | Check module names and availability |
+```bash
+# Check if admin panel is accessible
+curl -k https://chat.example.com:5281/admin
 
-## 📚 Next Steps
+# Check if file upload is working
+curl -k https://chat.example.com:5281/upload
 
-- **[Client Setup Guide](client-setup.md)** - Configure XMPP clients
-- **[Troubleshooting Guide](troubleshooting.md)** - Fix common issues
-- **[Admin Guide](../admin/deployment.md)** - Advanced deployment
+# Check metrics endpoint
+curl http://localhost:9090/metrics
+```
+
+## 🛠️ Advanced Configuration
+
+### Custom Prosody Configuration
+
+While the default configuration covers most use cases, you can customize Prosody settings by:
+
+1. **Environment variables** (recommended) - Add to `.env` file
+2. **Configuration overrides** - Mount custom config files (advanced)
+
+### Reverse Proxy Configuration
+
+For production deployments behind a reverse proxy:
+
+```bash
+# Use standard ports internally
+PROSODY_HTTP_PORT=5280
+PROSODY_HTTPS_PORT=5281
+
+# Configure your reverse proxy to forward to these ports
+# See admin/websocket-configuration.md for details
+```
+
+### Resource Limits
+
+Docker Compose automatically sets production resource limits:
+
+- **Memory**: 1GB limit, 256MB reservation
+- **CPU**: 2.0 cores limit, 0.5 cores reservation
+- **File descriptors**: 65536 limit
+
+## 🛟 Troubleshooting
+
+### Common Configuration Issues
+
+**Service won't start:**
+
+```bash
+# Check logs for configuration errors
+docker-compose logs prosody
+```
+
+**Can't access web services:**
+
+```bash
+# Check port bindings
+docker-compose ps
+# Verify firewall allows the ports
+```
+
+**Database connection errors:**
+
+```bash
+# Check database is running
+docker-compose exec db psql -U prosody -d prosody -c "SELECT 1;"
+```
+
+### Configuration Validation
+
+```bash
+# Check all environment variables are loaded
+docker-compose exec prosody env | grep PROSODY
+
+# Test configuration syntax
+docker-compose exec prosody prosodyctl check config
+
+# Test all connectivity
+docker-compose exec prosody prosodyctl check connectivity
+```
+
+## 🎯 Next Steps
+
+- **[Getting Started](getting-started.md)** - Basic deployment guide
 - **[Security Guide](../admin/security.md)** - Security hardening
+- **[Certificate Management](../admin/certificate-management.md)** - SSL/TLS setup
+- **[WebSocket Configuration](../admin/websocket-configuration.md)** - Reverse proxy setup
 
 ---
 
-*Need help? Check the [troubleshooting guide](troubleshooting.md) or ask in our community discussions.*
+**💡 Pro Tip:** Start with minimal configuration and add services as needed. The default settings are production-ready and secure!

@@ -1,498 +1,404 @@
 # 🏗️ Architecture Overview
 
-This document provides a technical overview of the Professional Prosody XMPP Server's layer-based configuration architecture for developers and contributors.
+This document provides a technical overview of the Professional Prosody XMPP Server architecture for developers and contributors.
 
 ## 🌟 Design Philosophy
 
-### Layer-Based Architecture Principles
+### Single Configuration Approach
 
-Our configuration system is built on these core principles:
+This project follows a **single, opinionated configuration** philosophy:
 
-1. **Protocol Stack Alignment** - Configuration layers mirror XMPP protocol stack
-2. **Separation of Concerns** - Each layer handles specific functionality
-3. **Intuitive Organization** - Easy for XMPP experts to navigate
-4. **Maintainability** - Clear boundaries between components
-5. **Scalability** - Easy to extend with new features
+1. **Simplicity Over Complexity** - One comprehensive configuration file instead of complex layered systems
+2. **Production-Ready Defaults** - All settings optimized for production use out of the box
+3. **Docker-First Design** - Containerized deployment with Docker Compose orchestration
+4. **Security by Default** - Enterprise-grade security features enabled from the start
+5. **Modern XMPP Standards** - Full support for latest XEPs and Prosody 13.0+ features
 
-### Why Layer-Based?
+### Why Single Configuration?
 
 **Traditional approach:**
 
-- Monolithic configuration files
-- Unclear boundaries between features
-- Difficult to troubleshoot
-- Hard to maintain and extend
+- Complex multi-file configurations
+- Unclear dependencies between settings
+- Difficult to troubleshoot and maintain
+- Overwhelming for new users
 
 **Our approach:**
 
-- Clear separation by protocol layer
-- Intuitive for XMPP protocol experts
-- Easy to locate and debug issues
-- Modular and extensible
+- Single `prosody.cfg.lua` with comprehensive settings
+- Clear, documented configuration sections
+- Easy to understand and modify
+- Production-ready without customization
 
 ## 🏗️ System Architecture
 
-### Overview Diagram
+### Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│                    XMPP Client Applications                  │
+│                     Docker Compose Stack                    │
 └─────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     Layer 08: Integration                   │
-│          OAuth, LDAP, Webhooks, REST APIs                   │
+│                         Load Balancer                       │
+│                        (nginx/traefik)                      │
 └─────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     Layer 07: Interfaces                    │
-│         HTTP, WebSocket, BOSH, Components                   │
+│                    Prosody XMPP Server                      │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              Core XMPP Engine                        │   │
+│  │  • C2S (Client-to-Server) - Port 5222/5223           │   │
+│  │  • S2S (Server-to-Server) - Port 5269/5270           │   │
+│  │  • HTTP Services - Port 5280/5281                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              Modern XMPP Features                    │   │
+│  │  • Message Archive Management (MAM)                  │   │
+│  │  • Message Carbons & Stream Management               │   │
+│  │  • Push Notifications & CSI                          │   │
+│  │  • HTTP File Upload & WebSocket                      │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              Security Layer                          │   │
+│  │  • TLS 1.3 with Perfect Forward Secrecy              │   │
+│  │  • SCRAM-SHA-256 Authentication                      │   │
+│  │  • Anti-spam & Rate Limiting                         │   │
+│  │  • Firewall & DNS Blocklists                         │   │
+│  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     Layer 06: Storage                       │
-│      Database, Archiving, Caching, Migration               │
+│                     PostgreSQL Database                     │
+│  • User accounts & rosters                                  │
+│  • Message archives & history                               │
+│  • MUC rooms & configurations                               │
+│  • PubSub nodes & subscriptions                             │
 └─────────────────────────────────────────────────────────────┘
                                 │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Layer 05: Services                      │
-│      Messaging, Presence, Group Chat, PubSub               │
-└─────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Layer 04: Protocol                      │
-│        Core XMPP, Extensions, Legacy, Experimental         │
-└─────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Layer 03: Stanza                        │
-│       Routing, Filtering, Validation, Processing           │
-└─────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Layer 02: Stream                        │
-│     Authentication, Encryption, Management, Negotiation    │
-└─────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Layer 01: Transport                     │
-│          Ports, TLS, Compression, Connections              │
-└─────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Network Infrastructure                   │
-└─────────────────────────────────────────────────────────────┘
+                   ┌────────────┼────────────┐
+                   ▼            ▼            ▼
+┌──────────────────────┐ ┌─────────────┐ ┌─────────────────┐
+│    Coturn Server     │ │ Prometheus  │ │   Grafana       │
+│  TURN/STUN for A/V   │ │  Metrics    │ │  Dashboards     │
+│  Ports 3478/5349     │ │ Port 9090   │ │  Port 3000      │
+└──────────────────────┘ └─────────────┘ └─────────────────┘
 ```
 
-## 📁 Configuration Structure
+## 📁 Project Structure
 
 ### Directory Layout
 
-```
-config/
-├── prosody.cfg.lua              # Main configuration loader
-├── stack/                       # Layer-based configuration (32 files)
-│   ├── 01-transport/            # Network & TLS foundations
-│   │   ├── ports.cfg.lua        # Port bindings and listeners
-│   │   ├── tls.cfg.lua          # TLS/SSL configuration
-│   │   ├── compression.cfg.lua  # Stream compression settings
-│   │   └── connections.cfg.lua  # Connection management
-│   ├── 02-stream/               # Authentication & session layer
-│   │   ├── authentication.cfg.lua # Authentication methods
-│   │   ├── encryption.cfg.lua    # Encryption policies
-│   │   ├── management.cfg.lua    # Session management
-│   │   └── negotiation.cfg.lua   # Feature negotiation
-│   ├── 03-stanza/               # Message processing layer
-│   │   ├── routing.cfg.lua      # Message routing
-│   │   ├── filtering.cfg.lua    # Content filtering
-│   │   ├── validation.cfg.lua   # Input validation
-│   │   └── processing.cfg.lua   # Message processing
-│   ├── 04-protocol/             # Core XMPP features
-│   │   ├── core.cfg.lua         # RFC 6120/6121 features
-│   │   ├── extensions.cfg.lua   # Modern XEP implementations
-│   │   ├── legacy.cfg.lua       # Backwards compatibility
-│   │   └── experimental.cfg.lua # Experimental features
-│   ├── 05-services/             # Communication services
-│   │   ├── messaging.cfg.lua    # Message handling
-│   │   ├── presence.cfg.lua     # Presence management
-│   │   ├── groupchat.cfg.lua    # Multi-user chat
-│   │   └── pubsub.cfg.lua       # Publish-subscribe
-│   ├── 06-storage/              # Data persistence
-│   │   ├── backends.cfg.lua     # Database backends
-│   │   ├── archiving.cfg.lua    # Message archiving
-│   │   ├── caching.cfg.lua      # Performance caching
-│   │   └── migration.cfg.lua    # Data migration
-│   ├── 07-interfaces/           # External interfaces
-│   │   ├── http.cfg.lua         # HTTP server
-│   │   ├── websocket.cfg.lua    # WebSocket interface
-│   │   ├── bosh.cfg.lua         # BOSH interface
-│   │   └── components.cfg.lua   # External components
-│   └── 08-integration/          # External systems
-│       ├── ldap.cfg.lua         # LDAP integration
-│       ├── oauth.cfg.lua        # OAuth authentication
-│       ├── webhooks.cfg.lua     # HTTP webhooks
-│       └── apis.cfg.lua         # REST APIs
-├── domains/                     # Domain configurations
-├── environments/                # Environment-specific settings
-├── policies/                    # Security & compliance policies
-├── firewall/                    # Firewall rules
-└── tools/                       # Configuration utilities
+```text
+xmpp.atl.chat/
+├── README.md                     # Main project documentation
+├── docker/
+│   ├── Dockerfile                # Multi-stage container build
+│   └── docker-compose.yml        # Service orchestration
+├── config/
+│   ├── prosody.cfg.lua           # Single comprehensive configuration (685 lines)
+│   └── README.md                 # Configuration documentation
+├── scripts/
+│   ├── entrypoint.sh             # Container initialization
+│   ├── health-check.sh           # Service health monitoring
+│   ├── prosodyctl-manager.sh     # Enhanced server management
+│   ├── backup.sh                 # Database backup automation
+│   ├── deploy.sh                 # Deployment automation
+│   └── *.sh                      # Various utility scripts
+├── docs/
+│   ├── user/                     # End-user guides
+│   ├── admin/                    # Administrator documentation
+│   ├── dev/                      # Developer documentation
+│   └── reference/                # Technical specifications
+├── examples/
+│   ├── env.example               # Environment configuration template
+│   ├── nginx-websocket.conf      # Reverse proxy examples
+│   └── apache-websocket.conf     # Alternative proxy config
+└── research/                     # Development research and notes
 ```
 
-## 🔄 Configuration Loading Process
+### Configuration Architecture
 
-### Loading Sequence
+Unlike complex multi-layered systems, this project uses a **single configuration file** approach:
 
-1. **Main Configuration** (`prosody.cfg.lua`)
-   - Loads environment detection
-   - Initializes layer-based loader
-   - Sets up global configuration
-
-2. **Layer-Based Loading** (Sequential)
-   - Loads each layer in order (01-08)
-   - Processes 4 files per layer
-   - Merges configurations
-
-3. **Domain Loading**
-   - Loads domain-specific configurations
-   - Applies domain overrides
-
-4. **Environment Loading**
-   - Applies environment-specific settings
-   - Overrides based on deployment mode
-
-### Configuration Merging
-
-```lua
--- Example of configuration merging
-local function merge_config(base, override)
-    for key, value in pairs(override) do
-        if type(value) == "table" and type(base[key]) == "table" then
-            merge_config(base[key], value)
-        else
-            base[key] = value
-        end
-    end
-    return base
-end
+```text
+config/prosody.cfg.lua (685 lines)
+├── Core Server Settings (lines 1-50)
+│   ├── Process management & identity
+│   ├── Network interfaces & ports
+│   └── Administrator accounts
+├── Module Configuration (lines 51-200)
+│   ├── Core Prosody modules
+│   ├── Community modules
+│   └── Security modules
+├── Virtual Host Setup (lines 201-300)
+│   ├── Domain configuration
+│   ├── SSL/TLS settings
+│   └── Service discovery
+├── Component Services (lines 301-500)
+│   ├── Multi-User Chat (MUC)
+│   ├── Publish-Subscribe (PubSub)
+│   ├── HTTP file upload
+│   └── External service discovery
+├── Database Configuration (lines 501-550)
+│   ├── PostgreSQL settings
+│   ├── Archive management
+│   └── Storage optimization
+├── Security Configuration (lines 551-650)
+│   ├── TLS/SSL settings
+│   ├── Authentication methods
+│   ├── Rate limiting & anti-spam
+│   └── Firewall rules
+└── Advanced Features (lines 651-685)
+    ├── Push notifications
+    ├── WebSocket configuration
+    └── Monitoring integration
 ```
 
-## 🎯 Layer Details
+## 🔧 Core Components
 
-### Layer 01: Transport
+### 1. Prosody XMPP Server
 
-**Purpose**: Network foundations and connectivity
-**Key Components**:
+**Primary Container**: `prosody`
 
-- Port bindings (5222, 5269, 5280, 5281)
-- TLS configuration and certificate management
-- Stream compression (XEP-0138)
-- Connection management and rate limiting
+- **Base Image**: `prosody/prosody:0.12` (with Prosody 13.0+ features)
+- **Configuration**: Single comprehensive config file
+- **Modules**: 50+ enabled modules for maximum compatibility
+- **Ports**: 5222 (C2S), 5269 (S2S), 5280/5281 (HTTP/HTTPS)
 
-### Layer 02: Stream
+### 2. PostgreSQL Database
 
-**Purpose**: Authentication and session management
-**Key Components**:
+**Primary Container**: `db`
 
-- SASL authentication mechanisms
-- Stream Management (XEP-0198)
-- Encryption policies (OMEMO, OpenPGP)
-- Feature negotiation and capabilities
+- **Base Image**: `postgres:15-alpine`
+- **Purpose**: Persistent storage for all XMPP data
+- **Optimization**: Production-tuned PostgreSQL settings
+- **Backup**: Automated backup scripts included
 
-### Layer 03: Stanza
+### 3. Coturn TURN/STUN Server
 
-**Purpose**: Message processing and routing
-**Key Components**:
+**Optional Container**: `coturn`
 
-- Message routing and delivery
-- Content filtering and firewall
-- Input validation and security
-- Advanced message processing
+- **Base Image**: `coturn/coturn:latest`
+- **Purpose**: Voice/video call relay for NAT traversal
+- **Integration**: Automatic discovery via XEP-0215
+- **Ports**: 3478 (TURN), 5349 (TURNS), 49152-65535 (RTP relay)
 
-### Layer 04: Protocol
+### 4. Monitoring Stack
 
-**Purpose**: Core XMPP features and extensions
-**Key Components**:
+**Optional Containers**: `prometheus`, `grafana`, `node-exporter`
 
-- RFC 6120/6121 compliance
-- Modern XEP implementations
-- Legacy protocol support
-- Experimental features
+- **Purpose**: Server monitoring and metrics collection
+- **Integration**: Native Prosody metrics + system monitoring
+- **Access**: Grafana dashboards on port 3000
 
-### Layer 05: Services
+## 🌐 Service Communication
 
-**Purpose**: Communication services
-**Key Components**:
+### Internal Network
 
-- Message handling and delivery
-- Presence and availability
-- Multi-user chat (MUC)
-- Publish-subscribe (PubSub)
+All services communicate via Docker's internal network:
 
-### Layer 06: Storage
-
-**Purpose**: Data persistence and management
-**Key Components**:
-
-- Database backends (SQLite, PostgreSQL, MySQL)
-- Message archiving (XEP-0313)
-- Performance caching
-- Data migration tools
-
-### Layer 07: Interfaces
-
-**Purpose**: External interfaces and protocols
-**Key Components**:
-
-- HTTP server and file upload
-- WebSocket connections
-- BOSH (HTTP binding)
-- External component protocol
-
-### Layer 08: Integration
-
-**Purpose**: External system integration
-**Key Components**:
-
-- LDAP directory services
-- OAuth 2.0 authentication
-- HTTP webhooks
-- REST API endpoints
-
-## 🔧 Development Patterns
-
-### Configuration Module Template
-
-```lua
--- Layer XX: Name - Description
--- Brief description of layer functionality
--- XEP references where applicable
-
-local layer_config = {
-    -- Core functionality
-    core = {
-        -- Core modules and settings
-    },
-    
-    -- Security features
-    security = {
-        -- Security-related configuration
-    },
-    
-    -- Performance optimizations
-    performance = {
-        -- Performance tuning settings
-    },
-    
-    -- Monitoring and diagnostics
-    monitoring = {
-        -- Monitoring configuration
-    },
-}
-
--- Configuration utilities
-local layer_utilities = {
-    -- Helper functions
-    configure_feature = function(options)
-        -- Configuration logic
-    end,
-    
-    -- Validation functions
-    validate_config = function(config)
-        -- Validation logic
-    end,
-}
-
--- Export configuration
-return {
-    modules = layer_config,
-    utilities = layer_utilities,
-    version = "1.0.0",
-    dependencies = {"dependency1", "dependency2"},
-}
+```yaml
+networks:
+  prosody_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 ```
 
-### Module Organization
+### Service Dependencies
 
-**Naming Convention**:
-
-- `core` - Essential functionality
-- `security` - Security-related features
-- `performance` - Performance optimizations
-- `monitoring` - Monitoring and diagnostics
-- `utilities` - Helper functions
-
-### Environment Detection
-
-```lua
-local function get_environment()
-    local env = os.getenv("PROSODY_ENV") or "production"
-    return env
-end
-
-local function is_feature_enabled(feature)
-    local env_var = "PROSODY_ENABLE_" .. feature:upper()
-    return os.getenv(env_var) == "true"
-end
+```text
+prosody → depends_on → db (PostgreSQL)
+prosody → discovers → coturn (via XEP-0215)
+prometheus → scrapes → prosody, node-exporter
+grafana → queries → prometheus
 ```
 
-## 🧪 Testing Strategy
+### Port Mapping
 
-### Unit Testing
+| Service | Internal Port | External Port | Purpose |
+|---------|---------------|---------------|---------|
+| prosody | 5222 | 5222 | Client connections (STARTTLS) |
+| prosody | 5223 | 5223 | Client connections (Direct TLS) |
+| prosody | 5269 | 5269 | Server-to-server |
+| prosody | 5280 | 5280 | HTTP services |
+| prosody | 5281 | 5281 | HTTPS services |
+| coturn | 3478 | 3478 | STUN/TURN |
+| coturn | 5349 | 5349 | TURN over TLS |
+| grafana | 3000 | 3000 | Monitoring dashboards |
+| prometheus | 9090 | 9090 | Metrics collection |
 
-```lua
--- Test configuration loading
-local function test_config_loading()
-    local config = require("config.stack.01-transport.tls")
-    assert(config.modules, "Config must have modules")
-    assert(config.utilities, "Config must have utilities")
-end
+## 🔒 Security Architecture
 
--- Test environment detection
-local function test_environment_detection()
-    os.setenv("PROSODY_ENV", "testing")
-    local env = get_environment()
-    assert(env == "testing", "Environment detection failed")
-end
+### Transport Security
+
+- **TLS 1.3 preferred** with TLS 1.2 fallback
+- **Perfect Forward Secrecy** using ECDHE key exchange
+- **Modern cipher suites** (ChaCha20-Poly1305, AES-GCM)
+- **Certificate validation** with DANE/TLSA support
+- **HSTS headers** for web interfaces
+
+### Authentication & Authorization
+
+- **SCRAM-SHA-256** secure authentication (XEP-0474)
+- **Multi-factor authentication** support
+- **SASL 2.0** with channel binding
+- **Role-based access control** with admin privileges
+- **Enterprise backends** (LDAP, OAuth) ready
+
+### Network Security
+
+- **Firewall integration** with mod_firewall
+- **Rate limiting** per IP, user, and stanza type
+- **DNS blocklists** (Spamhaus, SURBL)
+- **JID reputation scoring** for abuse prevention
+- **Intrusion detection** with real-time alerts
+
+## 📊 Data Flow
+
+### Message Processing
+
+```text
+Client → TLS Connection → SASL Auth → Resource Binding → Message Routing
+                                                              ↓
+Archive Storage ← Database ← Message Carbons ← Stream Management
 ```
 
-### Integration Testing
+### File Upload Flow
+
+```text
+Client → HTTP Upload Request → Prosody HTTP Module → File Storage → Database Record
+                                      ↓
+               Temporary URL ← Prosody ← File Validation ← Virus Scan (optional)
+```
+
+### Federation (S2S) Flow
+
+```text
+Local Server → DNS SRV Lookup → Remote Server Connection → TLS Verification → SASL External → Message Exchange
+```
+
+## 🛠️ Development & Deployment
+
+### Container Build Process
+
+**Multi-stage Dockerfile**:
+
+1. **Base stage**: Install dependencies and Prosody
+2. **Community modules**: Clone and install community modules
+3. **Production stage**: Copy configuration and set up runtime
+4. **Health checks**: Implement comprehensive health monitoring
+
+### Configuration Management
+
+**Environment-driven configuration**:
+
+- All settings controlled via `.env` file
+- Docker Compose variable substitution
+- Runtime configuration validation
+- Hot-reload capability for most settings
+
+### Monitoring & Observability
+
+- **Prometheus metrics** - Native Prosody metrics integration
+- **Grafana dashboards** - Pre-built monitoring dashboards
+- **Health checks** - Comprehensive service health monitoring
+- **Log aggregation** - Structured logging with JSON format
+- **Alert manager** - Real-time notification system
+
+## 🔄 Development Workflow
+
+### Local Development
 
 ```bash
-# Test full configuration loading
-prosodyctl check config
+# Clone repository
+git clone https://github.com/allthingslinux/xmpp.atl.chat
+cd xmpp.atl.chat
 
-# Test layer-specific configuration
-prosodyctl check config --layer=01-transport
+# Set up development environment
+cp examples/env.example .env
+# Edit .env with development settings
 
-# Test environment-specific loading
-PROSODY_ENV=testing prosodyctl check config
+# Start development stack
+docker-compose up -d prosody db
+
+# Access logs
+docker-compose logs -f prosody
 ```
 
-## 🔄 Extension Points
+### Testing
 
-### Adding New Layers
+```bash
+# Configuration validation
+docker-compose exec prosody prosodyctl check config
 
-1. **Create layer directory**
-2. **Implement layer modules**
-3. **Update main loader**
-4. **Add documentation**
-5. **Create tests**
+# Connectivity testing
+docker-compose exec prosody prosodyctl check connectivity
 
-### Adding New Modules
-
-1. **Choose appropriate layer**
-2. **Follow naming conventions**
-3. **Implement configuration structure**
-4. **Add utility functions**
-5. **Update layer exports**
-
-### Environment Integration
-
-```lua
--- Environment-specific overrides
-local function apply_environment_overrides(config)
-    local env = get_environment()
-    
-    if env == "development" then
-        -- Development-specific settings
-        config.debug = true
-        config.logging = "verbose"
-    elseif env == "production" then
-        -- Production-specific settings
-        config.debug = false
-        config.logging = "info"
-    end
-    
-    return config
-end
+# Module testing
+docker-compose exec prosody prosodyctl check modules
 ```
 
-## 📊 Performance Considerations
+### Deployment
 
-### Configuration Loading Performance
+```bash
+# Production deployment
+./scripts/deploy.sh
 
-- **Lazy Loading**: Load configurations only when needed
-- **Caching**: Cache compiled configurations
-- **Optimization**: Minimize file I/O operations
-
-### Memory Usage
-
-- **Efficient Data Structures**: Use appropriate data structures
-- **Garbage Collection**: Minimize temporary objects
-- **Resource Cleanup**: Clean up unused resources
-
-### Startup Time
-
-- **Parallel Loading**: Load independent layers in parallel
-- **Precompilation**: Precompile configurations when possible
-- **Validation Caching**: Cache validation results
-
-## 🔍 Debugging and Troubleshooting
-
-### Configuration Debugging
-
-```lua
--- Debug configuration loading
-local function debug_config_loading()
-    print("Loading layer configurations...")
-    
-    for layer = 1, 8 do
-        local layer_name = string.format("%02d-layer", layer)
-        print("Loading layer: " .. layer_name)
-        
-        -- Load and validate layer
-        local success, config = pcall(require, "config.stack." .. layer_name)
-        if success then
-            print("  ✓ Layer loaded successfully")
-        else
-            print("  ✗ Layer failed to load: " .. config)
-        end
-    end
-end
+# Or manual deployment
+docker-compose -f docker-compose.yml up -d
 ```
 
-### Common Issues
+## 📈 Scalability Considerations
 
-| Issue | Symptoms | Solution |
-|-------|----------|----------|
-| Module not found | Error during loading | Check module path and name |
-| Configuration conflict | Unexpected behavior | Review layer dependencies |
-| Performance issues | Slow startup | Optimize configuration loading |
-| Memory leaks | Increasing memory usage | Review resource cleanup |
+### Horizontal Scaling
 
-## 📚 Development Resources
+- **Multiple Prosody instances** behind load balancer
+- **Shared database** for session persistence
+- **Redis clustering** for real-time features
+- **Geographic distribution** with DNS-based routing
 
-### Key Files
+### Vertical Scaling
 
-- **[prosody.cfg.lua](../../config/prosody.cfg.lua)** - Main configuration
-- **[Layer Templates](../../config/stack/)** - Layer configuration files
-- **[Module Reference](../reference/modules.md)** - Module documentation
+- **Resource limits** configured in Docker Compose
+- **Database optimization** with connection pooling
+- **Memory management** with Lua garbage collection tuning
+- **CPU optimization** with multi-threading support
 
-### Development Tools
+### Performance Monitoring
 
-- **Configuration Validator** - Validates configuration syntax
-- **Layer Tester** - Tests individual layers
-- **Performance Profiler** - Analyzes loading performance
-- **Dependency Checker** - Validates dependencies
+- **Real-time metrics** via Prometheus
+- **Resource usage tracking** with cAdvisor
+- **Database performance** monitoring
+- **Network latency** measurement
 
-### Contributing Guidelines
+## 🤝 Contributing
 
-1. **Follow layer-based architecture**
-2. **Use consistent naming conventions**
-3. **Include comprehensive documentation**
-4. **Add appropriate tests**
-5. **Maintain backward compatibility**
+### Architecture Changes
+
+When proposing architecture changes:
+
+1. **Maintain simplicity** - Avoid adding complexity without clear benefit
+2. **Preserve security** - Ensure changes don't compromise security posture
+3. **Document thoroughly** - Update architecture documentation
+4. **Test extensively** - Verify changes work across deployment scenarios
+5. **Consider backwards compatibility** - Minimize breaking changes
+
+### Code Organization
+
+- **Single configuration principle** - Keep configuration in one place
+- **Clear separation** between configuration and implementation
+- **Comprehensive documentation** for all features
+- **Security-first approach** to all changes
 
 ---
 
-*This architecture guide is maintained by the development team and updated with each major release.*
+**🎯 Key Takeaway**: This architecture prioritizes simplicity and security over flexibility, providing a production-ready XMPP server that works out of the box while remaining maintainable and scalable.
