@@ -398,18 +398,6 @@ PROSODY_DATA_DELETION=enabled
 PROSODY_PRIVACY_POLICY=required
 ```
 
-### HIPAA Compliance
-
-**Healthcare Security:**
-
-```bash
-# HIPAA compliance settings
-PROSODY_HIPAA_ENABLED=true
-PROSODY_ENCRYPTION_AT_REST=true
-PROSODY_AUDIT_TRAIL=comprehensive
-PROSODY_ACCESS_CONTROLS=strict
-```
-
 ### SOC 2 Compliance
 
 **Security Controls:**

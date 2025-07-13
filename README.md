@@ -83,7 +83,7 @@ XMPP Protocol Stack (8 Layers × 4 Configuration Files = 32 Total)
 - **Multi-Factor Authentication** - SASL 2.0, SCRAM-SHA-256, token auth
 - **Anti-Spam Protection** - DNS blocklists, rate limiting, quarantine
 - **Firewall Integration** - Advanced stanza filtering and abuse prevention
-- **Compliance Ready** - GDPR, HIPAA, audit logging capabilities
+- **Compliance Ready** - GDPR, audit logging capabilities
 
 ### 🌐 Modern XMPP Features (30+ XEPs)
 
@@ -250,7 +250,7 @@ PROSODY_MONITORING=prometheus
 - **Audit Logging** for security events
 - **Failed Authentication Tracking**
 - **Real-time Security Alerts**
-- **Compliance Reports** (GDPR, HIPAA ready)
+- **Compliance Reports** (GDPR ready)
 - **Performance Metrics** with Prometheus integration
 
 ## 🏗️ Project Structure

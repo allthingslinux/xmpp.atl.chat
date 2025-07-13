@@ -165,10 +165,6 @@ function merger.apply_compliance_policy(config, compliance_policy)
 		compliant.data_retention_days = 365
 		compliant.require_consent = true
 		compliant.anonymize_logs = true
-	elseif compliance_policy.standard == "hipaa" then
-		compliant.data_retention_days = 2555 -- 7 years
-		compliant.audit_logging = true
-		compliant.encryption_required = true
 	end
 
 	return compliant

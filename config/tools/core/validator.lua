@@ -228,7 +228,7 @@ function validator.validate_policies()
 	end
 
 	-- Check compliance policies
-	local compliance_types = { "gdpr", "hipaa", "audit" }
+	local compliance_types = { "gdpr", "audit" }
 	for _, comp_type in ipairs(compliance_types) do
 		local policy_path = "config/policies/compliance/" .. comp_type .. ".cfg.lua"
 		if not lfs.attributes(policy_path) then
