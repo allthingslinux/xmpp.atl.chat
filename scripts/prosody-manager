@@ -1,0 +1,846 @@
+#!/bin/bash
+set -euo pipefail
+
+# ============================================================================
+# PROSODY MANAGER - Unified CLI Tool
+# ============================================================================
+# Comprehensive management tool for Prosody XMPP Server
+# Consolidates multiple management scripts into a single interface
+
+readonly VERSION="1.0.0"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+readonly CONFIG_DIR="$PROJECT_DIR/config"
+readonly DOCKER_DIR="$PROJECT_DIR/docker"
+
+# ============================================================================
+# COLORS AND FORMATTING
+# ============================================================================
+
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly CYAN='\033[0;36m'
+readonly BOLD='\033[1m'
+readonly NC='\033[0m'
+
+# ============================================================================
+# LOGGING FUNCTIONS
+# ============================================================================
+
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+log_debug() {
+    if [[ "${DEBUG:-false}" == "true" ]]; then
+        echo -e "${CYAN}[DEBUG]${NC} $1"
+    fi
+}
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+is_docker_environment() {
+    [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2>/dev/null
+}
+
+get_container_name() {
+    if is_docker_environment; then
+        echo "prosody"
+    else
+        echo "xmpp-prosody-1"
+    fi
+}
+
+run_in_container() {
+    local container_name
+    container_name=$(get_container_name)
+    
+    if is_docker_environment; then
+        # Already in container, run directly
+        "$@"
+    else
+        # Run in container
+        docker exec -it "$container_name" "$@"
+    fi
+}
+
+# ============================================================================
+# PROSODYCTL MANAGEMENT
+# ============================================================================
+
+prosodyctl_command() {
+    local cmd="$1"
+    shift
+    
+    case "$cmd" in
+        "adduser"|"user")
+            if [[ $# -lt 1 ]]; then
+                log_error "Usage: prosody-manager prosodyctl adduser <user@domain> [password]"
+                return 1
+            fi
+            local user="$1"
+            local password="${2:-}"
+            
+            if [[ -z "$password" ]]; then
+                run_in_container prosodyctl adduser "$user"
+            else
+                echo "$password" | run_in_container prosodyctl adduser "$user"
+            fi
+            ;;
+        "deluser")
+            if [[ $# -lt 1 ]]; then
+                log_error "Usage: prosody-manager prosodyctl deluser <user@domain>"
+                return 1
+            fi
+            run_in_container prosodyctl deluser "$1"
+            ;;
+        "passwd")
+            if [[ $# -lt 1 ]]; then
+                log_error "Usage: prosody-manager prosodyctl passwd <user@domain> [password]"
+                return 1
+            fi
+            local user="$1"
+            local password="${2:-}"
+            
+            if [[ -z "$password" ]]; then
+                run_in_container prosodyctl passwd "$user"
+            else
+                echo "$password" | run_in_container prosodyctl passwd "$user"
+            fi
+            ;;
+        "status")
+            run_in_container prosodyctl status
+            ;;
+        "reload")
+            run_in_container prosodyctl reload
+            ;;
+        "restart")
+            if is_docker_environment; then
+                log_warn "In Docker, use 'docker compose restart prosody' instead"
+                return 1
+            else
+                docker compose -f "$DOCKER_DIR/docker-compose.yml" restart prosody
+            fi
+            ;;
+        "cert")
+            local subcmd="${1:-list}"
+            shift || true
+            
+            case "$subcmd" in
+                "import")
+                    if [[ $# -lt 1 ]]; then
+                        log_error "Usage: prosody-manager prosodyctl cert import <domain> [cert_path]"
+                        return 1
+                    fi
+                    run_in_container prosodyctl cert import "$@"
+                    ;;
+                "generate")
+                    if [[ $# -lt 1 ]]; then
+                        log_error "Usage: prosody-manager prosodyctl cert generate <domain>"
+                        return 1
+                    fi
+                    run_in_container prosodyctl cert generate "$@"
+                    ;;
+                "list"|*)
+                    run_in_container prosodyctl cert list
+                    ;;
+            esac
+            ;;
+        *)
+            run_in_container prosodyctl "$cmd" "$@"
+            ;;
+    esac
+}
+
+# ============================================================================
+# HEALTH CHECK FUNCTIONS
+# ============================================================================
+
+health_check() {
+    local check_type="${1:-all}"
+    local exit_code=0
+    
+    log_info "Running Prosody health check..."
+    
+    case "$check_type" in
+        "process"|"all")
+            if ! check_process; then
+                exit_code=1
+            fi
+            ;;
+    esac
+    
+    case "$check_type" in
+        "ports"|"all")
+            if ! check_ports; then
+                exit_code=1
+            fi
+            ;;
+    esac
+    
+    case "$check_type" in
+        "config"|"all")
+            if ! check_config; then
+                exit_code=1
+            fi
+            ;;
+    esac
+    
+    case "$check_type" in
+        "certs"|"certificates"|"all")
+            if ! check_certificates_health; then
+                exit_code=1
+            fi
+            ;;
+    esac
+    
+    if [[ $exit_code -eq 0 ]]; then
+        log_success "All health checks passed"
+    else
+        log_error "Some health checks failed"
+    fi
+    
+    return $exit_code
+}
+
+check_process() {
+    log_info "Checking Prosody process..."
+    
+    if run_in_container prosodyctl status >/dev/null 2>&1; then
+        log_success "Prosody is running"
+        return 0
+    else
+        log_error "Prosody process not running"
+        return 1
+    fi
+}
+
+check_ports() {
+    local ports=(5222 5269 5280)
+    local failed=0
+    
+    log_info "Checking port availability..."
+    
+    for port in "${ports[@]}"; do
+        if run_in_container ss -tlnp | grep -q ":$port "; then
+            log_success "Port $port is listening"
+        else
+            log_error "Port $port is not listening"
+            ((failed++))
+        fi
+    done
+    
+    return $failed
+}
+
+check_config() {
+    log_info "Checking configuration..."
+    
+    if run_in_container prosodyctl check config >/dev/null 2>&1; then
+        log_success "Configuration is valid"
+        return 0
+    else
+        log_error "Configuration validation failed"
+        run_in_container prosodyctl check config
+        return 1
+    fi
+}
+
+check_certificates_health() {
+    local domain="${PROSODY_DOMAIN:-localhost}"
+    local warning_days=30
+    local critical_days=7
+    local failed=0
+    
+    log_info "Checking certificates for domain: $domain"
+    
+    # Check if certificate exists
+    if ! run_in_container test -f "/etc/prosody/certs/$domain.crt"; then
+        log_error "Certificate not found for domain: $domain"
+        return 1
+    fi
+    
+    # Check certificate expiry
+    local expiry_date
+    if expiry_date=$(run_in_container openssl x509 -in "/etc/prosody/certs/$domain.crt" -noout -enddate 2>/dev/null | cut -d= -f2); then
+        local expiry_epoch
+        expiry_epoch=$(date -d "$expiry_date" +%s)
+        local current_epoch
+        current_epoch=$(date +%s)
+        local days_until_expiry=$(( (expiry_epoch - current_epoch) / 86400 ))
+        
+        if [[ $days_until_expiry -lt $critical_days ]]; then
+            log_error "Certificate expires in $days_until_expiry days (critical)"
+            failed=1
+        elif [[ $days_until_expiry -lt $warning_days ]]; then
+            log_warn "Certificate expires in $days_until_expiry days (warning)"
+        else
+            log_success "Certificate expires in $days_until_expiry days"
+        fi
+    else
+        log_error "Could not read certificate expiry date"
+        failed=1
+    fi
+    
+    return $failed
+}
+
+# ============================================================================
+# CERTIFICATE MANAGEMENT
+# ============================================================================
+
+cert_command() {
+    local cmd="$1"
+    shift
+    
+    case "$cmd" in
+        "check")
+            local domain="${1:-${PROSODY_DOMAIN:-}}"
+            if [[ -z "$domain" ]]; then
+                log_error "Domain required. Usage: prosody-manager cert check <domain>"
+                return 1
+            fi
+            check_certificates_detailed "$domain"
+            ;;
+        "install")
+            local domain="${1:-}"
+            local cert_path="${2:-}"
+            if [[ -z "$domain" ]]; then
+                log_error "Domain required. Usage: prosody-manager cert install <domain> [cert_path]"
+                return 1
+            fi
+            install_certificate "$domain" "$cert_path"
+            ;;
+        "renew")
+            local domain="${1:-${PROSODY_DOMAIN:-}}"
+            if [[ -z "$domain" ]]; then
+                log_error "Domain required. Usage: prosody-manager cert renew <domain>"
+                return 1
+            fi
+            renew_certificate "$domain"
+            ;;
+        *)
+            log_error "Unknown certificate command: $cmd"
+            log_info "Available commands: check, install, renew"
+            return 1
+            ;;
+    esac
+}
+
+check_certificates_detailed() {
+    local domain="$1"
+    local cert_file="/etc/prosody/certs/$domain.crt"
+    local key_file="/etc/prosody/certs/$domain.key"
+    
+    log_info "Detailed certificate check for domain: $domain"
+    
+    # Check certificate file exists
+    if run_in_container test -f "$cert_file"; then
+        log_success "Certificate file exists: $cert_file"
+    else
+        log_error "Certificate file not found: $cert_file"
+        return 1
+    fi
+    
+    # Check key file exists
+    if run_in_container test -f "$key_file"; then
+        log_success "Private key file exists: $key_file"
+    else
+        log_error "Private key file not found: $key_file"
+        return 1
+    fi
+    
+    # Check certificate details
+    log_info "Certificate details:"
+    run_in_container openssl x509 -in "$cert_file" -noout -subject -issuer -dates -fingerprint
+    
+    # Check certificate chain
+    log_info "Verifying certificate chain..."
+    if run_in_container openssl verify "$cert_file" >/dev/null 2>&1; then
+        log_success "Certificate chain is valid"
+    else
+        log_warn "Certificate chain verification failed (may be self-signed)"
+    fi
+    
+    return 0
+}
+
+install_certificate() {
+    local domain="$1"
+    local cert_path="$2"
+    
+    if [[ -n "$cert_path" ]]; then
+        log_info "Installing certificate from: $cert_path"
+        # Copy certificate files to container
+        docker cp "$cert_path/$domain.crt" "$(get_container_name):/etc/prosody/certs/"
+        docker cp "$cert_path/$domain.key" "$(get_container_name):/etc/prosody/certs/"
+    else
+        log_info "Generating self-signed certificate for domain: $domain"
+        run_in_container prosodyctl cert generate "$domain"
+    fi
+    
+    # Set proper permissions
+    run_in_container chown prosody:prosody "/etc/prosody/certs/$domain.crt" "/etc/prosody/certs/$domain.key"
+    run_in_container chmod 644 "/etc/prosody/certs/$domain.crt"
+    run_in_container chmod 600 "/etc/prosody/certs/$domain.key"
+    
+    # Reload Prosody to use new certificate
+    run_in_container prosodyctl reload
+    
+    log_success "Certificate installed for domain: $domain"
+}
+
+renew_certificate() {
+    local domain="$1"
+    
+    log_info "Renewing certificate for domain: $domain"
+    
+    # Check if using Let's Encrypt
+    if run_in_container test -f "/etc/letsencrypt/live/$domain/fullchain.pem"; then
+        log_info "Renewing Let's Encrypt certificate..."
+        run_in_container certbot renew --cert-name "$domain"
+        
+        # Copy renewed certificate
+        run_in_container cp "/etc/letsencrypt/live/$domain/fullchain.pem" "/etc/prosody/certs/$domain.crt"
+        run_in_container cp "/etc/letsencrypt/live/$domain/privkey.pem" "/etc/prosody/certs/$domain.key"
+        
+        # Set permissions
+        run_in_container chown prosody:prosody "/etc/prosody/certs/$domain.crt" "/etc/prosody/certs/$domain.key"
+        run_in_container chmod 644 "/etc/prosody/certs/$domain.crt"
+        run_in_container chmod 600 "/etc/prosody/certs/$domain.key"
+        
+        # Reload Prosody
+        run_in_container prosodyctl reload
+        
+        log_success "Let's Encrypt certificate renewed for domain: $domain"
+    else
+        log_warn "Let's Encrypt certificate not found. Generating new self-signed certificate..."
+        install_certificate "$domain"
+    fi
+}
+
+# ============================================================================
+# BACKUP MANAGEMENT
+# ============================================================================
+
+backup_command() {
+    local cmd="${1:-create}"
+    shift || true
+    
+    case "$cmd" in
+        "create")
+            create_backup "$@"
+            ;;
+        "restore")
+            restore_backup "$@"
+            ;;
+        "list")
+            list_backups
+            ;;
+        *)
+            log_error "Unknown backup command: $cmd"
+            log_info "Available commands: create, restore, list"
+            return 1
+            ;;
+    esac
+}
+
+create_backup() {
+    local backup_name="${1:-prosody_backup_$(date +%Y%m%d_%H%M%S)}"
+    local backup_dir="${BACKUP_DIR:-$PROJECT_DIR/backups}"
+    local backup_path="$backup_dir/$backup_name"
+    
+    log_info "Creating backup: $backup_name"
+    
+    # Create backup directory
+    mkdir -p "$backup_path"
+    
+    # Backup configuration
+    log_info "Backing up configuration..."
+    cp -r "$CONFIG_DIR" "$backup_path/"
+    
+    # Backup Docker configuration
+    log_info "Backing up Docker configuration..."
+    cp -r "$DOCKER_DIR" "$backup_path/"
+    
+    # Backup Prosody data from container
+    if ! is_docker_environment && docker ps --format '{{.Names}}' | grep -q "prosody"; then
+        log_info "Backing up Prosody data from container..."
+        mkdir -p "$backup_path/prosody-data"
+        
+        # Backup data directory
+        docker cp "$(get_container_name):/var/lib/prosody/data" "$backup_path/prosody-data/"
+        
+        # Backup certificates
+        docker cp "$(get_container_name):/etc/prosody/certs" "$backup_path/prosody-data/"
+        
+        # Backup database (if PostgreSQL)
+        if docker ps --format '{{.Names}}' | grep -q "db"; then
+            log_info "Backing up PostgreSQL database..."
+            docker exec xmpp-db-1 pg_dump -U prosody prosody > "$backup_path/database.sql"
+        fi
+    fi
+    
+    # Create archive
+    log_info "Creating backup archive..."
+    cd "$backup_dir"
+    tar -czf "${backup_name}.tar.gz" "$backup_name"
+    rm -rf "$backup_name"
+    
+    log_success "Backup created: $backup_dir/${backup_name}.tar.gz"
+}
+
+restore_backup() {
+    local backup_file="$1"
+    
+    if [[ -z "$backup_file" ]]; then
+        log_error "Backup file required. Usage: prosody-manager backup restore <backup_file>"
+        return 1
+    fi
+    
+    if [[ ! -f "$backup_file" ]]; then
+        log_error "Backup file not found: $backup_file"
+        return 1
+    fi
+    
+    log_warn "This will restore from backup and may overwrite current data."
+    read -p "Continue? (y/N): " -n 1 -r
+    echo
+    
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Restore cancelled"
+        return 0
+    fi
+    
+    log_info "Restoring from backup: $backup_file"
+    
+    # Extract backup
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    tar -xzf "$backup_file" -C "$temp_dir"
+    
+    local backup_name
+    backup_name=$(basename "$backup_file" .tar.gz)
+    local backup_path="$temp_dir/$backup_name"
+    
+    # Stop services
+    if ! is_docker_environment; then
+        log_info "Stopping services..."
+        docker compose -f "$DOCKER_DIR/docker-compose.yml" down
+    fi
+    
+    # Restore configuration
+    if [[ -d "$backup_path/config" ]]; then
+        log_info "Restoring configuration..."
+        cp -r "$backup_path/config"/* "$CONFIG_DIR/"
+    fi
+    
+    # Restore Docker configuration
+    if [[ -d "$backup_path/docker" ]]; then
+        log_info "Restoring Docker configuration..."
+        cp -r "$backup_path/docker"/* "$DOCKER_DIR/"
+    fi
+    
+    # Restore Prosody data
+    if [[ -d "$backup_path/prosody-data" ]] && ! is_docker_environment; then
+        log_info "Starting services to restore data..."
+        docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d
+        
+        # Wait for services to start
+        sleep 10
+        
+        # Restore data
+        if [[ -d "$backup_path/prosody-data/data" ]]; then
+            docker cp "$backup_path/prosody-data/data" "$(get_container_name):/var/lib/prosody/"
+        fi
+        
+        if [[ -d "$backup_path/prosody-data/certs" ]]; then
+            docker cp "$backup_path/prosody-data/certs" "$(get_container_name):/etc/prosody/"
+        fi
+        
+        # Restore database
+        if [[ -f "$backup_path/database.sql" ]]; then
+            log_info "Restoring database..."
+            docker exec -i xmpp-db-1 psql -U prosody prosody < "$backup_path/database.sql"
+        fi
+    fi
+    
+    # Cleanup
+    rm -rf "$temp_dir"
+    
+    if ! is_docker_environment; then
+        log_info "Restarting services..."
+        docker compose -f "$DOCKER_DIR/docker-compose.yml" restart
+    fi
+    
+    log_success "Backup restored successfully"
+}
+
+list_backups() {
+    local backup_dir="${BACKUP_DIR:-$PROJECT_DIR/backups}"
+    
+    if [[ ! -d "$backup_dir" ]]; then
+        log_info "No backup directory found: $backup_dir"
+        return 0
+    fi
+    
+    log_info "Available backups in $backup_dir:"
+    
+    if ls "$backup_dir"/*.tar.gz >/dev/null 2>&1; then
+        ls -lah "$backup_dir"/*.tar.gz | while read -r line; do
+            echo "  $line"
+        done
+    else
+        log_info "No backups found"
+    fi
+}
+
+# ============================================================================
+# DEPLOYMENT MANAGEMENT
+# ============================================================================
+
+deploy_command() {
+    local cmd="${1:-up}"
+    shift || true
+    
+    case "$cmd" in
+        "up"|"start")
+            deploy_up "$@"
+            ;;
+        "down"|"stop")
+            deploy_down "$@"
+            ;;
+        "restart")
+            deploy_restart "$@"
+            ;;
+        "logs")
+            deploy_logs "$@"
+            ;;
+        "status")
+            deploy_status
+            ;;
+        *)
+            log_error "Unknown deploy command: $cmd"
+            log_info "Available commands: up, down, restart, logs, status"
+            return 1
+            ;;
+    esac
+}
+
+deploy_up() {
+    local mode="${1:-full}"
+    
+    log_info "Deploying Prosody XMPP server (mode: $mode)..."
+    
+    # Check prerequisites
+    if ! command_exists docker; then
+        log_error "Docker is required but not installed"
+        return 1
+    fi
+    
+    if ! command_exists docker-compose && ! docker compose version >/dev/null 2>&1; then
+        log_error "Docker Compose is required but not installed"
+        return 1
+    fi
+    
+    # Check for .env file
+    if [[ ! -f "$PROJECT_DIR/.env" ]]; then
+        log_warn "No .env file found. Creating from example..."
+        if [[ -f "$PROJECT_DIR/examples/env.example" ]]; then
+            cp "$PROJECT_DIR/examples/env.example" "$PROJECT_DIR/.env"
+            log_info "Please edit .env file with your configuration"
+            return 1
+        else
+            log_error "No .env example file found"
+            return 1
+        fi
+    fi
+    
+    # Deploy based on mode
+    case "$mode" in
+        "minimal")
+            log_info "Starting minimal deployment (Prosody only)..."
+            docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d prosody
+            ;;
+        "full"|*)
+            log_info "Starting full deployment (all services)..."
+            docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d
+            ;;
+    esac
+    
+    # Wait for services to be ready
+    log_info "Waiting for services to be ready..."
+    sleep 10
+    
+    # Run health check
+    if health_check >/dev/null 2>&1; then
+        log_success "Deployment successful! Services are healthy."
+    else
+        log_warn "Deployment completed but some health checks failed."
+        log_info "Run 'prosody-manager health' for detailed status."
+    fi
+}
+
+deploy_down() {
+    log_info "Stopping Prosody XMPP server..."
+    docker compose -f "$DOCKER_DIR/docker-compose.yml" down "$@"
+    log_success "Services stopped"
+}
+
+deploy_restart() {
+    local service="${1:-}"
+    
+    if [[ -n "$service" ]]; then
+        log_info "Restarting service: $service"
+        docker compose -f "$DOCKER_DIR/docker-compose.yml" restart "$service"
+    else
+        log_info "Restarting all services..."
+        docker compose -f "$DOCKER_DIR/docker-compose.yml" restart
+    fi
+    
+    log_success "Services restarted"
+}
+
+deploy_logs() {
+    local service="${1:-}"
+    local args=("${@:2}")
+    
+    if [[ -n "$service" ]]; then
+        docker compose -f "$DOCKER_DIR/docker-compose.yml" logs "${args[@]}" "$service"
+    else
+        docker compose -f "$DOCKER_DIR/docker-compose.yml" logs "${args[@]}"
+    fi
+}
+
+deploy_status() {
+    log_info "Service status:"
+    docker compose -f "$DOCKER_DIR/docker-compose.yml" ps
+    
+    echo
+    log_info "Resource usage:"
+    docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
+}
+
+# ============================================================================
+# MAIN COMMAND DISPATCHER
+# ============================================================================
+
+show_help() {
+    cat <<EOF
+${BOLD}Prosody Manager v${VERSION}${NC}
+Unified CLI tool for Prosody XMPP Server management
+
+${BOLD}USAGE:${NC}
+    prosody-manager <command> [subcommand] [options]
+
+${BOLD}COMMANDS:${NC}
+    ${GREEN}prosodyctl${NC}     Prosody control commands
+        adduser <user@domain> [password]    Add user account
+        deluser <user@domain>               Delete user account  
+        passwd <user@domain> [password]     Change user password
+        status                              Show Prosody status
+        reload                              Reload configuration
+        restart                             Restart Prosody service
+        cert <list|import|generate>         Certificate management
+
+    ${GREEN}health${NC}          Health monitoring
+        [process|ports|config|certs|all]    Run health checks
+
+    ${GREEN}cert${NC}            Certificate management
+        check <domain>                      Check certificate status
+        install <domain> [cert_path]        Install certificate
+        renew <domain>                      Renew certificate
+
+    ${GREEN}backup${NC}          Backup management
+        create [name]                       Create backup
+        restore <backup_file>               Restore from backup
+        list                                List available backups
+
+    ${GREEN}deploy${NC}          Deployment management
+        up [minimal|full]                   Start services
+        down                                Stop services
+        restart [service]                   Restart services
+        logs [service]                      View logs
+        status                              Show service status
+
+    ${GREEN}help${NC}            Show this help message
+    ${GREEN}version${NC}         Show version information
+
+${BOLD}EXAMPLES:${NC}
+    prosody-manager prosodyctl adduser alice@example.com
+    prosody-manager health all
+    prosody-manager cert check example.com
+    prosody-manager backup create
+    prosody-manager deploy up full
+    prosody-manager deploy logs prosody
+
+${BOLD}ENVIRONMENT VARIABLES:${NC}
+    DEBUG=true                              Enable debug output
+    PROSODY_DOMAIN                          Default domain for operations
+    BACKUP_DIR                              Custom backup directory
+
+For more information, visit: https://github.com/allthingslinux/xmpp.atl.chat
+EOF
+}
+
+show_version() {
+    echo "Prosody Manager v${VERSION}"
+}
+
+main() {
+    local command="${1:-help}"
+    shift || true
+    
+    case "$command" in
+        "prosodyctl")
+            prosodyctl_command "$@"
+            ;;
+        "health")
+            health_check "$@"
+            ;;
+        "cert"|"certificate"|"certificates")
+            cert_command "$@"
+            ;;
+        "backup")
+            backup_command "$@"
+            ;;
+        "deploy")
+            deploy_command "$@"
+            ;;
+        "help"|"-h"|"--help")
+            show_help
+            ;;
+        "version"|"-v"|"--version")
+            show_version
+            ;;
+        *)
+            log_error "Unknown command: $command"
+            echo
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function with all arguments
+main "$@" 
