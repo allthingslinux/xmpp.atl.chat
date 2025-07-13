@@ -184,6 +184,7 @@ local file_upload_config = {
 
 -- BOSH Configuration
 -- XEP-0124: Bidirectional-streams Over Synchronous HTTP
+-- Reference: https://prosody.im/doc/setting_up_bosh
 local bosh_config = {
 	-- BOSH settings
 	bosh_max_inactivity = 60, -- 60 seconds

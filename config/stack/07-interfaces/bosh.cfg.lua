@@ -2,6 +2,7 @@
 -- BOSH (Bidirectional-streams Over Synchronous HTTP) interface
 -- XEP-0124: Bidirectional-streams Over Synchronous HTTP (BOSH)
 -- XEP-0206: XMPP Over BOSH for web-based XMPP clients
+-- Reference: https://prosody.im/doc/setting_up_bosh
 
 local bosh_config = {
 	-- Core BOSH Module
