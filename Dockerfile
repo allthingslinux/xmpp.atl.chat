@@ -8,69 +8,71 @@
 # - Optional dependencies for enhanced functionality (SQL drivers, BitOp, etc.)
 # Reference: https://prosody.im/doc/depends
 
-# Build stage - Community modules and dependencies
-FROM debian:bookworm-slim AS builder
+FROM debian:bookworm-slim
 
-# Install build dependencies and Prosody
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    lua5.4-dev \
-    liblua5.4-dev \
-    libssl-dev \
-    libexpat1-dev \
-    libidn2-dev \
-    libicu-dev \
-    libunbound-dev \
-    libevent-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libpq-dev \
-    libmysqlclient-dev \
-    mercurial \
-    git \
-    ca-certificates \
-    curl \
-    luarocks && \
-    rm -rf /var/lib/apt/lists/*
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+ARG LUAROCKS_VERSION=3.11.1
 
-# Clone community modules
-RUN hg clone https://hg.prosody.im/prosody-modules/ /opt/prosody-modules
+# Build metadata
+LABEL maintainer="XMPP Server Admin" \
+    description="Production-ready Prosody XMPP server with modern features" \
+    version="1.0.0" \
+    org.opencontainers.image.title="Prosody XMPP Server" \
+    org.opencontainers.image.description="Modern XMPP server with comprehensive features" \
+    org.opencontainers.image.vendor="All Things Linux" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.source="https://github.com/allthingslinux/xmpp.atl.chat" \
+    org.opencontainers.image.created="${BUILD_DATE}" \
+    org.opencontainers.image.revision="${VCS_REF}" \
+    org.opencontainers.image.version="${VERSION}" \
+    luarocks.version="${LUAROCKS_VERSION}"
 
-# Build custom Lua modules if needed
-WORKDIR /opt/prosody-modules
-RUN find . -name "*.c" -exec gcc -shared -fPIC -I/usr/include/lua5.4 {} -o {}.so \; || true
-
-# Runtime stage - Optimized for production
-FROM debian:bookworm-slim AS runtime
-
-# Install runtime dependencies only
-RUN apt-get update && apt-get install -y \
-    lua5.4 \
+# Install runtime dependencies
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    libevent-2.1-7 \
+    libicu72 \
+    libidn2-0 \
+    libpq5 \
+    libsqlite3-0 \
+    libmariadb3 \
     libssl3 \
     libexpat1 \
-    libidn2-0 \
-    libicu72 \
     libunbound8 \
-    libevent-2.1-7 \
     libreadline8 \
-    libsqlite3-0 \
-    libpq5 \
-    libmariadb3 \
+    lua5.4 \
+    lua-bitop \
+    lua-dbi-mysql \
+    lua-dbi-postgresql \
+    lua-expat \
+    lua-filesystem \
+    lua-socket \
+    lua-sec \
+    lua-unbound \
     ca-certificates \
     curl \
     dumb-init \
-    gosu && \
+    gosu \
+    wget \
+    jq && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create prosody user and directories
-RUN groupadd -r prosody && useradd -r -g prosody prosody && \
-    mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody && \
-    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody
-
-# Download and install latest Prosody
-RUN PROSODY_VERSION=$(curl -s https://api.github.com/repos/bjc/prosody/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4) && \
-    curl -L "https://github.com/bjc/prosody/archive/${PROSODY_VERSION}.tar.gz" | tar -xz && \
-    cd prosody-* && \
+# Build Prosody and LuaRocks from source with latest versions
+RUN buildDeps='gcc git libc6-dev libidn2-dev liblua5.4-dev libsqlite3-dev libssl-dev libicu-dev libmariadb-dev-compat libexpat1-dev libunbound-dev libevent-dev libreadline-dev make unzip' && \
+    set -x && \
+    apt-get update && apt-get install -y $buildDeps --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* && \
+    \
+    PROSODY_VERSION=$(curl -s https://prosody.im/downloads/source/ | grep -o 'prosody-[0-9][0-9\.]*\.tar\.gz' | head -1 | sed 's/prosody-\(.*\)\.tar\.gz/\1/') && \
+    echo "Installing Prosody version: $PROSODY_VERSION" && \
+    wget -O prosody.tar.gz "https://prosody.im/downloads/source/prosody-${PROSODY_VERSION}.tar.gz" && \
+    mkdir -p /usr/src/prosody && \
+    tar -xzf prosody.tar.gz -C /usr/src/prosody --strip-components=1 && \
+    rm prosody.tar.gz && \
+    cd /usr/src/prosody && \
     ./configure \
     --prefix=/usr/local \
     --sysconfdir=/etc/prosody \
@@ -80,14 +82,28 @@ RUN PROSODY_VERSION=$(curl -s https://api.github.com/repos/bjc/prosody/releases/
     --no-example-certs && \
     make && \
     make install && \
-    cd .. && \
-    rm -rf prosody-*
+    cd / && rm -r /usr/src/prosody && \
+    \
+    mkdir /usr/src/luarocks && \
+    cd /usr/src/luarocks && \
+    wget https://luarocks.org/releases/luarocks-${LUAROCKS_VERSION}.tar.gz && \
+    tar zxpf luarocks-${LUAROCKS_VERSION}.tar.gz && \
+    cd luarocks-${LUAROCKS_VERSION} && \
+    ./configure --with-lua=/usr && \
+    make bootstrap && \
+    cd / && rm -r /usr/src/luarocks && \
+    \
+    luarocks install luaevent && \
+    luarocks install luadbi && \
+    luarocks install luadbi-sqlite3 && \
+    luarocks install luadbi-postgresql && \
+    luarocks install stringy && \
+    \
+    apt-get purge -y --auto-remove $buildDeps
 
-# Copy community modules from builder stage
-COPY --from=builder /opt/prosody-modules /opt/prosody-modules
-
-# Install community modules
-RUN cd /opt/prosody-modules && \
+# Clone and install community modules
+RUN git clone https://hg.prosody.im/prosody-modules/ /usr/src/prosody-modules && \
+    cd /usr/src/prosody-modules && \
     for module in \
     mod_pastebin \
     mod_http_openmetrics \
@@ -132,25 +148,23 @@ RUN cd /opt/prosody-modules && \
     mod_watchdog \
     mod_uptime \
     mod_posix \
-    mod_register_ibr; do \
+    mod_register_ibr \
+    mod_e2e_policy \
+    mod_throttle_presence \
+    mod_vcard_muc; do \
     if [ -d "$module" ]; then \
     cp -r "$module" /usr/local/lib/prosody/modules/ || true; \
     fi; \
-    done
+    done && \
+    rm -rf /usr/src/prosody-modules
 
-# Create necessary directories and set permissions
-RUN mkdir -p \
-    /etc/prosody \
-    /var/lib/prosody \
-    /var/log/prosody \
-    /var/run/prosody \
-    /var/www/certbot/.well-known/acme-challenge \
-    /certs && \
-    chown -R prosody:prosody \
-    /var/lib/prosody \
-    /var/log/prosody \
-    /var/run/prosody \
-    /certs && \
+# Create prosody user and directories
+RUN groupadd -r prosody && \
+    useradd -r -g prosody prosody && \
+    mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody && \
+    mkdir -p /var/www/certbot/.well-known/acme-challenge && \
+    mkdir -p /certs && \
+    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs && \
     chmod 755 /var/www/certbot/.well-known/acme-challenge
 
 # Copy configuration files
@@ -178,6 +192,18 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Volume mounts
 VOLUME ["/var/lib/prosody", "/var/log/prosody", "/certs"]
 
+# Environment variables for proper logging
+ENV __FLUSH_LOG=yes \
+    PROSODY_LOG_LEVEL=info \
+    PROSODY_STORAGE=sql \
+    PROSODY_DB_DRIVER=PostgreSQL \
+    LUA_PATH="/usr/local/lib/prosody/?.lua;/usr/local/lib/prosody/?/init.lua;;" \
+    LUA_CPATH="/usr/local/lib/prosody/?.so;;"
+
+# Performance tuning
+ENV LUA_GC_STEP=13 \
+    LUA_GC_PAUSE=110
+
 # Switch to prosody user for security
 USER prosody
 
@@ -187,30 +213,3 @@ WORKDIR /var/lib/prosody
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/usr/local/bin/entrypoint.sh"]
-
-# Build metadata
-LABEL maintainer="XMPP Server Admin" \
-    description="Production-ready Prosody XMPP server with modern features" \
-    version="1.0.0" \
-    org.opencontainers.image.title="Prosody XMPP Server" \
-    org.opencontainers.image.description="Modern XMPP server with comprehensive features" \
-    org.opencontainers.image.vendor="All Things Linux" \
-    org.opencontainers.image.licenses="MIT" \
-    org.opencontainers.image.source="https://github.com/allthingslinux/xmpp.atl.chat"
-
-# Production optimizations
-ENV PROSODY_LOG_LEVEL=info \
-    PROSODY_STORAGE=sql \
-    PROSODY_DB_DRIVER=PostgreSQL \
-    LUA_PATH="/usr/local/lib/prosody/?.lua;/usr/local/lib/prosody/?/init.lua;;" \
-    LUA_CPATH="/usr/local/lib/prosody/?.so;;"
-
-# Security hardening
-RUN echo "prosody:x:999:999::/var/lib/prosody:/usr/sbin/nologin" >>/etc/passwd
-
-# Performance tuning
-ENV LUA_GC_STEP=13 \
-    LUA_GC_PAUSE=110
-
-# Final security check - ensure no root processes
-USER prosody
