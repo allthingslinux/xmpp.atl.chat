@@ -339,7 +339,8 @@ configs:
   adminer-index.php:
     content: |
       <?php
-        if (empty($$_GET)) {
+        // Only auto-login in development environments
+        if (getenv('ADMINER_AUTO_LOGIN') === 'true' && empty($$_GET)) {
           $$_POST['auth'] = [
             'server' => getenv('ADMINER_DEFAULT_SERVER'),
             'username' => getenv('ADMINER_DEFAULT_USERNAME'),

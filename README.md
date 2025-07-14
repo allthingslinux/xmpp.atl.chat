@@ -221,6 +221,8 @@ The Adminer interface will automatically connect to your PostgreSQL database wit
 
 **Theme**: The interface uses the [Hydra Dark Theme](https://github.com/Niyko/Hydra-Dark-Theme-for-Adminer) for improved visibility and a modern Material Design appearance.
 
+**Security**: Auto-login is controlled by the `ADMINER_AUTO_LOGIN` environment variable. Set to `true` for development convenience, but **always set to `false` in production** for security.
+
 ### Unified CLI Tool
 
 The **`prosody-manager`** script provides comprehensive server management:
