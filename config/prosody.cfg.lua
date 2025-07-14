@@ -496,6 +496,11 @@ modules_enabled = {
 	"vcard_legacy", -- XEP-0054: vCard-temp for user profiles
 
 	-- ===============================================
+	-- PUSH NOTIFICATIONS
+	-- ===============================================
+	-- "cloud_notify", -- XEP-0357: Push Notifications (requires external push service)
+
+	-- ===============================================
 	-- MULTI-USER CHAT (MUC)
 	-- ===============================================
 	"muc_mam", -- XEP-0313: Message Archive Management for MUC
