@@ -10,8 +10,6 @@ Production-ready XMPP server with comprehensive features, extensive XEP complian
 
 Comprehensive Prosody XMPP server setup with both production and development configurations. Built from research of real-world XMPP deployments, this setup provides enterprise-level features with modern XMPP capabilities enabled by default.
 
-Includes production-ready configuration for live deployment and a complete development environment for testing and development.
-
 ## Quick Start
 
 ### Production Setup
