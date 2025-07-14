@@ -1,4 +1,4 @@
-name: Shell Script Quality
+name: CI
 
 on:
   push:
@@ -6,24 +6,31 @@ on:
     paths:
       - '**/*.sh'
       - 'prosody-manager'
-      - '.github/workflows/shell-quality.yml'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
       - '**/*.sh'
       - 'prosody-manager'
-      - '.github/workflows/shell-quality.yml'
+      - '.github/workflows/ci.yml'
 
 jobs:
-  shell-check:
-    name: Shell Script Linting and Formatting
+  shell-lint:
+    name: Shell Linting
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Find shell scripts
+      - name: Run shellcheck with pre-built action
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+          additional_files: 'prosody-manager'
+          severity: error
+          
+      - name: Find all shell scripts
         id: find-scripts
         run: |
           # Find all shell scripts in the repository
@@ -31,31 +38,14 @@ jobs:
           echo "Found shell scripts:"
           echo "$scripts"
           
-          # Create a space-separated list for the matrix
-          script_list=""
-          for script in $scripts; do
-            script_list="$script_list $script"
-          done
-          
-          # Output for matrix strategy
+          # Output for next step
           echo "scripts<<EOF" >> $GITHUB_OUTPUT
           echo "$scripts" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-      - name: Install shellcheck
+      - name: Run comprehensive shellcheck
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
-          
-      - name: Install shfmt
-        run: |
-          # Install shfmt using go install
-          go install mvdan.cc/sh/v3/cmd/shfmt@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
-          
-      - name: Run shellcheck
-        run: |
-          echo "Running shellcheck on all shell scripts..."
+          echo "Running comprehensive shellcheck on all shell scripts..."
           exit_code=0
           
           while IFS= read -r script; do
@@ -77,10 +67,47 @@ jobs:
           else
             echo "✅ All scripts passed shellcheck"
           fi
+
+  shell-format:
+    name: Shell Formatting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install shfmt
+        run: |
+          go install mvdan.cc/sh/v3/cmd/shfmt@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
           
-      - name: Check shfmt formatting
+      - name: Find shell scripts
+        id: find-scripts
+        run: |
+          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*" | sort)
+          echo "scripts<<EOF" >> $GITHUB_OUTPUT
+          echo "$scripts" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+      - name: Check shell script formatting
         run: |
           echo "Checking shell script formatting with shfmt..."
+          
+          # Simple check using file list
+          files=$(find . -name "*.sh" -o -name "prosody-manager" | grep -v ".git")
+          
+          if ! shfmt -d -i 4 -ci $files; then
+            echo "❌ Shell scripts are not properly formatted"
+            echo "Run 'shfmt -w -i 4 -ci .' to fix formatting"
+            exit 1
+          fi
+          
+          echo "✅ All shell scripts are properly formatted"
+          
+      - name: Detailed format check with feedback
+        if: failure()
+        run: |
+          echo "Checking format for each script individually..."
           exit_code=0
           
           while IFS= read -r script; do
@@ -95,13 +122,6 @@ jobs:
               echo ""
             fi
           done <<< "${{ steps.find-scripts.outputs.scripts }}"
-          
-          if [ $exit_code -ne 0 ]; then
-            echo "❌ Some scripts need formatting. Run 'shfmt -w -i 4 -ci .' to fix."
-            exit 1
-          else
-            echo "✅ All scripts are properly formatted"
-          fi
           
       - name: Generate formatting suggestions
         if: failure()
@@ -124,7 +144,7 @@ jobs:
           echo "- Write changes back to files (-w)" >> $GITHUB_STEP_SUMMARY
 
   shell-security:
-    name: Shell Security Analysis
+    name: Security Analysis
     runs-on: ubuntu-latest
     
     steps:
@@ -170,19 +190,20 @@ jobs:
           fi
 
   shell-best-practices:
-    name: Shell Best Practices Check
+    name: Best Practices
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Check for common shell best practices
+      - name: Check shell script best practices
         run: |
           echo "Checking shell scripts for best practices..."
           
           scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*")
           issues=0
+          warnings=0
           
           for script in $scripts; do
             echo "Checking best practices: $script"
@@ -190,26 +211,50 @@ jobs:
             # Check for set -euo pipefail
             if ! grep -q "set -euo pipefail" "$script"; then
               echo "⚠️  Missing 'set -euo pipefail' in $script"
-              issues=$((issues + 1))
+              warnings=$((warnings + 1))
             fi
             
             # Check for proper shebang
             if ! head -n1 "$script" | grep -q "^#!/bin/bash"; then
               echo "⚠️  Missing or incorrect shebang in $script"
-              issues=$((issues + 1))
+              warnings=$((warnings + 1))
             fi
             
             # Check for unquoted variables (basic check)
-            if grep -n '\$[A-Za-z_][A-Za-z0-9_]*[^"'\''}\]]' "$script" | grep -v '#' | head -5; then
-              echo "⚠️  Potentially unquoted variables found in $script (lines shown above)"
-              issues=$((issues + 1))
+            if grep -n '\$[A-Za-z_][A-Za-z0-9_]*[^"'\''}\]]' "$script" | grep -v '#' | head -3; then
+              echo "⚠️  Potentially unquoted variables found in $script (sample lines shown above)"
+              warnings=$((warnings + 1))
+            fi
+            
+            # Check for command substitution without quotes
+            if grep -n '`.*`' "$script" | head -3; then
+              echo "⚠️  Old-style command substitution found in $script (use \$(...) instead)"
+              warnings=$((warnings + 1))
             fi
           done
           
-          if [ $issues -gt 0 ]; then
-            echo "⚠️  Found $issues best practice issues (warnings only)"
+          echo ""
+          echo "📊 Best Practices Summary:"
+          if [ $warnings -gt 0 ]; then
+            echo "⚠️  Found $warnings best practice warnings"
+            echo "💡 These are recommendations, not errors"
           else
-            echo "✅ All scripts follow best practices"
+            echo "✅ All scripts follow recommended best practices"
+          fi
+          
+          # Generate summary
+          echo "## Best Practices Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ $warnings -gt 0 ]; then
+            echo "⚠️ Found $warnings best practice recommendations" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Recommendations:" >> $GITHUB_STEP_SUMMARY
+            echo "- Add \`set -euo pipefail\` to the beginning of scripts for better error handling" >> $GITHUB_STEP_SUMMARY
+            echo "- Ensure all scripts start with \`#!/bin/bash\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Quote variables to prevent word splitting: \`\"\$variable\"\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Use modern command substitution: \`\$(command)\` instead of \`\`command\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ All scripts follow recommended best practices!" >> $GITHUB_STEP_SUMMARY
           fi
           
           # Don't fail the job for best practices, just warn
