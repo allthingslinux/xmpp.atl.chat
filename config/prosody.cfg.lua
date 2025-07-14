@@ -485,6 +485,17 @@ modules_enabled = {
 	"offline", -- Offline message storage
 
 	-- ===============================================
+	-- MULTI-DEVICE SYNCHRONIZATION
+	-- ===============================================
+	"bookmarks", -- XEP-0048: Bookmarks for multi-device sync
+	"pep", -- XEP-0163: Personal Eventing Protocol
+
+	-- ===============================================
+	-- USER PROFILES AND PRESENCE
+	-- ===============================================
+	"vcard_legacy", -- XEP-0054: vCard-temp for user profiles
+
+	-- ===============================================
 	-- MULTI-USER CHAT (MUC)
 	-- ===============================================
 	"muc_mam", -- XEP-0313: Message Archive Management for MUC
@@ -493,6 +504,7 @@ modules_enabled = {
 	-- FILE TRANSFER AND MEDIA
 	-- ===============================================
 	"http_file_share", -- XEP-0363: HTTP File Upload
+	"turn_external", -- XEP-0215: External Service Discovery (TURN/STUN)
 
 	-- ===============================================
 	-- ADMINISTRATION AND MANAGEMENT
@@ -597,8 +609,7 @@ description = "Multi-User Chat rooms and conferences (XEP-0045)"
 
 -- MUC-specific modules (must be loaded on MUC component)
 modules_enabled = {
-	-- Note: Additional MUC modules like muc_mam would go here when available
-	-- "muc_mam", -- Message Archive Management for MUC (XEP-0313)
+	"muc_mam", -- Message Archive Management for MUC (XEP-0313)
 	-- "pastebin", -- Automatic pastebin for long messages (not available in dev)
 }
 
