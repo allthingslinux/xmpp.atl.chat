@@ -50,9 +50,6 @@ services:
       # Logs (local directory for easier access)
       - ./logs:/var/log/prosody
 
-      # Let's Encrypt webroot (for HTTP-01 challenges)
-      - ./letsencrypt-webroot:/var/www/certbot
-
     # Health check
     healthcheck:
       test: ['CMD', '/opt/prosody/scripts/health-check.sh']
@@ -245,18 +242,19 @@ services:
   # CERTIFICATE MANAGEMENT SERVICES
   # ============================================================================
   
-  # Let's Encrypt certificate management
+  # Let's Encrypt certificate generation (DNS-01 challenge for wildcard support)
   certbot:
-    image: certbot/certbot:latest
+    image: certbot/dns-cloudflare:latest
     container_name: prosody-certbot
     volumes:
       - ./certs:/etc/letsencrypt
-      - ./letsencrypt-webroot:/var/www/certbot
+      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
     # Environment variables automatically loaded from .env file
     command: >
       certonly
-      --webroot
-      --webroot-path=/var/www/certbot
+      --dns-cloudflare
+      --dns-cloudflare-credentials=/etc/letsencrypt/cloudflare-credentials.ini
+      --dns-cloudflare-propagation-seconds=60
       --email admin@${PROSODY_DOMAIN:-atl.chat}
       --agree-tos
       --no-eff-email
@@ -271,11 +269,11 @@ services:
 
   # Certificate renewal service
   certbot-renew:
-    image: certbot/certbot:latest
+    image: certbot/dns-cloudflare:latest
     container_name: prosody-certbot-renew
     volumes:
       - ./certs:/etc/letsencrypt
-      - ./letsencrypt-webroot:/var/www/certbot
+      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
     command: renew --quiet
     profiles:
       - renewal

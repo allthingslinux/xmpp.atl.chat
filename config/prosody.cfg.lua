@@ -328,10 +328,7 @@ http_interfaces = { "*", "::" } -- HTTP accessible from internet for Let's Encry
 https_interfaces = { "*", "::" } -- HTTPS on all interfaces
 
 -- HTTP static file serving configuration
--- Let's Encrypt webroot (required for certificate validation)
-http_files = {
-	["/.well-known/acme-challenge/"] = "/var/www/certbot/.well-known/acme-challenge/",
-}
+http_files = {}
 
 -- Optional: Additional static file serving
 -- Configure via PROSODY_HTTP_FILES_DIR environment variable
