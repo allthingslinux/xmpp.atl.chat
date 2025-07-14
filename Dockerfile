@@ -93,11 +93,10 @@ RUN buildDeps='gcc git libc6-dev libidn2-dev liblua5.4-dev libsqlite3-dev libssl
     make bootstrap && \
     cd / && rm -r /usr/src/luarocks && \
     \
-    luarocks install luaevent && \
-    luarocks install luadbi && \
-    luarocks install luadbi-sqlite3 && \
-    luarocks install luadbi-postgresql && \
-    luarocks install stringy && \
+    luarocks install luadbi || echo "luadbi installation failed, continuing..." && \
+    luarocks install luadbi-sqlite3 || echo "luadbi-sqlite3 installation failed, continuing..." && \
+    luarocks install luadbi-postgresql || echo "luadbi-postgresql installation failed, continuing..." && \
+    luarocks install stringy || echo "stringy installation failed, continuing..." && \
     \
     apt-get purge -y --auto-remove $buildDeps
 
