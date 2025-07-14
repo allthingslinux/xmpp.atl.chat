@@ -6,32 +6,43 @@ Complete documentation for the Professional Prosody XMPP Server - a production-r
 
 New to XMPP or need to deploy quickly? Start here:
 
-- **[Getting Started](user/getting-started.md)** - Complete deployment walkthrough in 5 minutes
-- **[Configuration Guide](user/configuration.md)** - Environment variables and customization options
+- **[Quick Start Guide](quick-start.md)** - Get running in minutes with prosody-manager
+- **[User Guide](guides/users/user-guide.md)** - Complete user documentation
+- **[Administration Guide](guides/administration/administration.md)** - Server administration
+- **[Deployment Guide](guides/deployment/deployment.md)** - Production deployment
 
 ## 📖 Documentation Structure
 
-### 👥 **For Users**
+### 🚀 **Quick Start**
 
-*End-user deployment and configuration guides*
-
-| Guide | Description | Audience |
-|-------|-------------|----------|
-| **[Getting Started](user/getting-started.md)** | Step-by-step deployment walkthrough | New users |
-| **[Configuration](user/configuration.md)** | Environment variables and settings | All users |
-
-### 🛠️ **For Administrators**
-
-*Production deployment and management guides*
+*Get up and running quickly*
 
 | Guide | Description | Audience |
 |-------|-------------|----------|
-| **[Administrator Guide](admin/README.md)** | Essential admin documentation and CLI tools | System administrators |
+| **[Quick Start](quick-start.md)** | Get your server running in minutes | Everyone |
+
+### 📚 **Comprehensive Guides**
+
+*Task-oriented documentation*
+
+| Guide | Description | Audience |
+|-------|-------------|----------|
+| **[User Guide](guides/users/user-guide.md)** | Complete user documentation | End users |
+| **[Administration Guide](guides/administration/administration.md)** | Server administration with prosody-manager | Administrators |
+| **[Deployment Guide](guides/deployment/deployment.md)** | Production deployment | DevOps teams |
+| **[prosody-manager Guide](guides/administration/prosody-manager-guide.md)** | Complete CLI tool reference | Administrators |
+
+### 🛠️ **Legacy Admin Docs**
+
+*Specific administration topics*
+
+| Guide | Description | Audience |
+|-------|-------------|----------|
 | **[DNS Setup](admin/dns-setup.md)** | Required DNS records and security considerations | Network administrators |
 | **[Certificate Management](admin/certificate-management.md)** | SSL/TLS certificates and Let's Encrypt automation | DevOps teams |
 | **[Security Hardening](admin/security.md)** | Production security configuration and best practices | Security teams |
 
-### 💻 **For Developers**
+### 💻 **Developer Documentation**
 
 *Technical documentation and architecture*
 

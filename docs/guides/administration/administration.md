@@ -61,10 +61,10 @@ docker-compose up -d
 ./prosody-manager health
 
 # Create admin user
-./prosody-manager user create admin@your-domain.com --admin
+./prosody-manager prosodyctl adduser admin@your-domain.com
 
 # Install SSL certificate
-./prosody-manager cert install
+./prosody-manager cert install your-domain.com
 ```
 
 ### Post-Deployment Verification
@@ -74,7 +74,7 @@ docker-compose up -d
 ./prosody-manager health --all
 
 # Test user creation
-./prosody-manager user create test@your-domain.com
+./prosody-manager prosodyctl adduser test@your-domain.com
 
 # Verify external connectivity
 ./prosody-manager health --ports --external
