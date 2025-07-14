@@ -28,16 +28,25 @@ certs/
 
 ### Automatic Generation (Recommended)
 
+**⚠️ Important**: Generate certificates **before** starting Prosody for production use.
+
 ```bash
 # 1. Configure Cloudflare API credentials
 cp cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your Cloudflare API token
 
-# 2. Generate wildcard certificate
+# 2. Generate wildcard certificate (ONE-TIME SETUP)
 docker compose --profile letsencrypt run --rm certbot
 
-# 3. Certificates are automatically placed in correct location
+# 3. Start Prosody with real certificates
+docker compose up -d prosody db
 ```
+
+**Why this separate step?**
+
+- **Security**: Avoids self-signed certificates in production
+- **DNS-01 challenges**: Requires Cloudflare API setup first
+- **One-time setup**: After this, renewals are automated
 
 ### Manual Certificate Placement
 
