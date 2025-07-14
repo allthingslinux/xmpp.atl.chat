@@ -110,7 +110,7 @@ services:
   # POSTGRESQL DATABASE
   # ============================================================================
   xmpp-postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: xmpp-postgres
     hostname: xmpp-postgres
     restart: unless-stopped
