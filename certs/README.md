@@ -48,17 +48,6 @@ docker compose up -d prosody db
 - **DNS-01 challenges**: Requires Cloudflare API setup first
 - **One-time setup**: After this, renewals are automated
 
-### Manual Certificate Placement
-
-If using custom certificates:
-
-```bash
-# Place certificates in Let's Encrypt format
-mkdir -p certs/live/atl.chat/
-cp your-fullchain.pem certs/live/atl.chat/fullchain.pem
-cp your-privkey.pem certs/live/atl.chat/privkey.pem
-```
-
 ## Environment Variables
 
 - `PROSODY_DOMAIN`: Main domain (default: `atl.chat`)
@@ -73,8 +62,35 @@ cp your-privkey.pem certs/live/atl.chat/privkey.pem
 
 ## Renewal
 
-Certificates are automatically renewed via:
+### Automated Renewal (Recommended)
 
-- **Cron job**: Set up via `scripts/renew-certificates.sh`
-- **Docker profile**: `docker compose --profile letsencrypt run --rm certbot`
-- **Automatic restart**: Prosody service reloads after renewal
+**Production setup** - Use the renewal script with cron:
+
+```bash
+# Set up cron job (runs daily at 3 AM)
+0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh
+
+# Manual run for testing
+./scripts/renew-certificates.sh
+```
+
+**Benefits of the renewal script:**
+
+- ✅ **Automatic Prosody reload** after successful renewal
+- ✅ **Comprehensive logging** to `/var/log/prosody-cert-renewal.log`
+- ✅ **Error handling** and validation checks
+- ✅ **Cron-friendly** with proper exit codes
+
+### Manual Renewal
+
+**For testing or troubleshooting:**
+
+```bash
+# Renew certificates only (no Prosody reload)
+docker compose --profile renewal run --rm certbot-renew
+
+# Manual Prosody reload (if needed)
+docker compose restart prosody
+```
+
+**Note:** Manual renewal requires you to restart Prosody manually to apply new certificates.
