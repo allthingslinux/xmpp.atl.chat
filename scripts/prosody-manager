@@ -750,7 +750,7 @@ deploy_status() {
 
 readonly MODULES_DIR="/usr/local/lib/prosody/modules"
 readonly MODULES_REPO="https://hg.prosody.im/prosody-modules/"
-readonly TEMP_MODULES_DIR="/tmp/prosody-modules"
+readonly TEMP_MODULES_DIR="$PROJECT_DIR/.prosody-modules"
 
 module_command() {
     local subcommand="${1:-help}"

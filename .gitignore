@@ -1,6 +1,7 @@
 .vscode
 prosody-hg
 prosody-modules
+.prosody-modules
 research/
 
 # Runtime data directories (local bind mounts)
