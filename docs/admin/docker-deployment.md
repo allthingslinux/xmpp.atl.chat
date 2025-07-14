@@ -42,6 +42,7 @@ docker compose up -d prosody db
    # Edit .env file
    PROSODY_DOMAIN=atl.chat
    PROSODY_ADMINS=admin@atl.chat
+   LETSENCRYPT_EMAIL=admin@allthingslinux.org
    ```
 
 3. **Set database credentials**:

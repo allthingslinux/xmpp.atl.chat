@@ -13,11 +13,12 @@ This Docker setup provides **fully automated wildcard certificate management**:
 
 ## 🚀 Setup
 
-### 1. Set Your Domain
+### 1. Set Your Domain and Email
 
 ```bash
 # Edit .env file
 PROSODY_DOMAIN=atl.chat
+LETSENCRYPT_EMAIL=admin@allthingslinux.org
 ```
 
 ### 2. Configure Cloudflare API

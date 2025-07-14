@@ -31,6 +31,7 @@ Edit `.env` file with your domain:
 PROSODY_DOMAIN=atl.chat
 PROSODY_ADMINS=admin@atl.chat
 PROSODY_DB_PASSWORD=ChangeMe123!
+LETSENCRYPT_EMAIL=admin@allthingslinux.org
 ```
 
 ### 4. Deploy

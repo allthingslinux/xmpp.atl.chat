@@ -21,6 +21,9 @@ PROSODY_DOMAIN=atl.chat
 
 # Administrator JIDs (comma-separated)
 PROSODY_ADMINS=admin@atl.chat
+
+# Let's Encrypt email for certificate notifications
+LETSENCRYPT_EMAIL=admin@allthingslinux.org
 ```
 
 ### Database Configuration (Required)
