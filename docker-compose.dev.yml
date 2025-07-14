@@ -281,6 +281,3 @@ networks:
   xmpp_network_dev:
     name: xmpp_network_dev
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.21.0.0/16 
