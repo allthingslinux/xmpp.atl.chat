@@ -11,7 +11,7 @@
 -- ===============================================
 
 -- Process management
-daemonize = true
+-- daemonize = true -- Deprecated: use command line flags instead
 pidfile = "/var/run/prosody/prosody.pid"
 user = "prosody"
 group = "prosody"
@@ -26,7 +26,7 @@ admins = { os.getenv("PROSODY_ADMIN_JID") or "admin@localhost" }
 
 -- Standard XMPP ports (RFC 6120/6121)
 c2s_ports = { tonumber(os.getenv("PROSODY_C2S_PORT")) or 5222 } -- Client-to-server (STARTTLS)
-legacy_ssl_ports = { tonumber(os.getenv("PROSODY_C2S_DIRECT_TLS_PORT")) or 5223 } -- Direct TLS (legacy support)
+c2s_direct_tls_ports = { tonumber(os.getenv("PROSODY_C2S_DIRECT_TLS_PORT")) or 5223 } -- Direct TLS
 s2s_ports = { tonumber(os.getenv("PROSODY_S2S_PORT")) or 5269 } -- Server-to-server
 s2s_direct_tls_ports = { tonumber(os.getenv("PROSODY_S2S_DIRECT_TLS_PORT")) or 5270 } -- Server-to-server Direct TLS
 component_ports = { 5347 } -- External components
@@ -69,7 +69,7 @@ ssl = {
 	protocol = "tlsv1_2+", -- TLS 1.2+ only
 	ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
 	curve = "secp384r1", -- Strong elliptic curve
-	verifyext = { "lsExtKeyUsage" },
+	-- verifyext = { "lsExtKeyUsage" }, -- Disabled due to compatibility issue
 	options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
 }
 
