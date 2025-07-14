@@ -1,621 +1,429 @@
-# 🔐 Certificate Management Guide
+# 🔐 SSL Certificate Management - Docker Setup
 
-This guide provides comprehensive certificate management for Professional Prosody XMPP Server, following official Prosody documentation and security best practices.
+Complete SSL certificate management guide for the Professional Prosody XMPP Server Docker deployment.
 
 ## 📋 Overview
 
-Prosody requires SSL/TLS certificates for secure XMPP connections. This guide covers:
+This Docker setup provides **automatic certificate management** with multiple options:
 
-- **Certificate Sources**: Let's Encrypt, commercial CAs, self-signed
-- **Automatic Discovery**: Prosody's built-in certificate location system
-- **Manual Configuration**: Custom certificate paths and advanced setups
-- **Security**: Proper permissions, certificate chains, and validation
-- **Automation**: Certificate generation, renewal, and import workflows
+- **Let's Encrypt certificates** (recommended for production)
+- **Manual certificate placement** (for existing certificates)
+- **Self-signed certificates** (automatic fallback for development)
 
-## 🎯 Quick Reference
+All certificates are stored in the `./certs` directory and automatically detected by Prosody.
 
-### Automatic Certificate Discovery
+## 🚀 Quick Start
 
-Prosody automatically searches for certificates in this order:
-
-```
-/etc/prosody/certs/
-├── {hostname}.crt & {hostname}.key           # Standard format
-├── {hostname}/fullchain.pem & {hostname}/privkey.pem  # Let's Encrypt format
-└── {service}.crt & {service}.key             # Service certificates
-```
-
-### prosodyctl Commands
+### 1. Let's Encrypt (Recommended)
 
 ```bash
-# Check certificate configuration
-prosodyctl check certs
+# Set up your domain in .env file
+echo "PROSODY_DOMAIN=atl.chat" >> .env
 
-# Generate self-signed certificate
-prosodyctl cert generate atl.chat
-
-# Generate certificate signing request
-prosodyctl cert request atl.chat
-
-# Import certificate from external source
-prosodyctl --root cert import /path/to/certificates
-
-# Reload certificates without restart
-prosodyctl reload
-```
-
-## 🏗️ Certificate Sources
-
-### 1. Let's Encrypt Certificates (Recommended)
-
-Use Let's Encrypt for free SSL/TLS certificates:
-
-```bash
-# Using Docker (recommended)
-docker compose --profile letsencrypt run --rm certbot
-
-# Manual certbot for wildcard (requires DNS validation)
-sudo certbot certonly --manual --preferred-challenges=dns \
-  -d "atl.chat,*.atl.chat" --email admin@atl.chat
-
-# Standard domain certificate (HTTP validation)
-sudo certbot certonly --standalone \
-  -d atl.chat -d xmpp.atl.chat --email admin@atl.chat
-
-# Renew certificates
-sudo certbot renew
-```
-
-**Benefits of Let's Encrypt certificates:**
-
-- ✅ Free and trusted by all browsers
-- ✅ Automated renewal available
-- ✅ Wildcard support with DNS validation
-- ✅ Simple integration with Docker
-- ✅ Handles certificate renewal automatically
-
-**Supported DNS providers:**
-
-- **Manual**: Add TXT records manually during validation
-- **Cloudflare**: Automatic DNS validation with API token
-- **AWS Route53**: Automatic DNS validation with AWS credentials
-- **DigitalOcean**: Automatic DNS validation with API token
-
-### 2. Let's Encrypt (Manual Setup)
-
-#### Automatic Setup with Certbot
-
-```bash
-# Install certbot
-sudo apt install certbot
+# Create webroot directory for HTTP challenge
+mkdir -p letsencrypt-webroot
 
 # Generate certificate
-sudo certbot certonly --standalone -d your-domain.com -d conference.your-domain.com -d upload.your-domain.com
+docker compose --profile letsencrypt run --rm certbot
 
-# Verify certificate location
-ls -la /etc/letsencrypt/live/your-domain.com/
+# Start Prosody (will automatically find and use certificates)
+docker compose up -d prosody db
 ```
 
-#### Integration with Prosody
+### 2. Manual Certificate
 
 ```bash
-# Method 1: Using prosodyctl cert import
-sudo prosodyctl --root cert import your-domain.com /etc/letsencrypt/live/
+# Copy your existing certificates
+cp your-certificate.crt certs/atl.chat.crt
+cp your-private-key.key certs/atl.chat.key
 
-# Method 2: Manual copy with proper naming
-sudo cp /etc/letsencrypt/live/your-domain.com/fullchain.pem /etc/prosody/certs/your-domain.com.crt
-sudo cp /etc/letsencrypt/live/your-domain.com/privkey.pem /etc/prosody/certs/your-domain.com.key
-
-# Method 3: Let's Encrypt directory structure (automatic discovery)
-sudo mkdir -p /etc/prosody/certs/your-domain.com/
-sudo cp /etc/letsencrypt/live/your-domain.com/fullchain.pem /etc/prosody/certs/your-domain.com/
-sudo cp /etc/letsencrypt/live/your-domain.com/privkey.pem /etc/prosody/certs/your-domain.com/
+# Start Prosody
+docker compose up -d prosody db
 ```
 
-#### Automated Renewal Hook
+### 3. Self-Signed (Development)
 
 ```bash
-# Create renewal hook
-sudo tee /etc/letsencrypt/renewal-hooks/deploy/prosody-reload.sh << 'EOF'
-#!/bin/bash
-# Import renewed certificates and reload Prosody
-
-# Import certificates using prosodyctl
-prosodyctl --root cert import "$RENEWED_LINEAGE/"
-
-# Reload Prosody to use new certificates
-prosodyctl reload
-
-# Log the renewal
-echo "$(date): Prosody certificates renewed for $RENEWED_DOMAINS" >> /var/log/prosody/cert-renewal.log
-EOF
-
-# Make executable
-sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/prosody-reload.sh
+# Just start Prosody - it will generate self-signed certificates automatically
+docker compose up -d prosody db
 ```
 
-### 2. Commercial Certificate Authorities
+## 🔧 Certificate Detection
 
-#### Generate Certificate Signing Request
+Prosody automatically detects certificates in this order:
+
+1. **Let's Encrypt format**: `certs/{domain}/fullchain.pem` and `certs/{domain}/privkey.pem`
+2. **Standard format**: `certs/{domain}.crt` and `certs/{domain}.key`
+3. **Self-signed**: Generated automatically if none found
+
+## 📁 Directory Structure
+
+```
+project/
+├── certs/                          # Certificate directory
+│   ├── atl.chat.crt               # Standard certificate
+│   ├── atl.chat.key               # Private key
+│   ├── atl.chat/                  # Let's Encrypt directory
+│   │   ├── fullchain.pem          # Certificate chain
+│   │   └── privkey.pem            # Private key
+│   └── live/                      # Let's Encrypt live directory
+│       └── atl.chat/              # Domain-specific certificates
+│           ├── fullchain.pem
+│           └── privkey.pem
+├── letsencrypt-webroot/           # HTTP challenge directory
+│   └── .well-known/
+│       └── acme-challenge/
+└── docker-compose.yml
+```
+
+## 🌐 Let's Encrypt Setup
+
+### Standard Domain Certificate
 
 ```bash
-# Using prosodyctl (recommended)
-prosodyctl cert request your-domain.com
+# Set domain in .env
+PROSODY_DOMAIN=atl.chat
 
-# Manual OpenSSL method
-openssl req -new -newkey rsa:2048 -nodes \
-    -keyout your-domain.com.key \
-    -out your-domain.com.csr \
-    -subj "/CN=your-domain.com"
+# Create webroot directory
+mkdir -p letsencrypt-webroot
+
+# Generate certificate
+docker compose --profile letsencrypt run --rm certbot
+
+# Certificates will be placed in:
+# - certs/live/atl.chat/fullchain.pem
+# - certs/live/atl.chat/privkey.pem
 ```
 
-#### Install CA-Provided Certificate
+### Wildcard Certificate (DNS Challenge)
+
+For wildcard certificates, you need to use DNS challenge:
 
 ```bash
-# Place certificates in Prosody certs directory
-sudo cp your-domain.com.crt /etc/prosody/certs/
-sudo cp your-domain.com.key /etc/prosody/certs/
-
-# Handle certificate chains (if intermediate certificate provided)
-cat your-domain.com.crt intermediate.crt > /etc/prosody/certs/your-domain.com.crt
-
-# Or use fullchain if provided by CA
-sudo cp fullchain.crt /etc/prosody/certs/your-domain.com.crt
+# Interactive DNS challenge (requires manual DNS record creation)
+docker run --rm -it \
+  -v $(pwd)/certs:/etc/letsencrypt \
+  certbot/certbot certonly \
+  --manual \
+  --preferred-challenges=dns \
+  --email admin@atl.chat \
+  --agree-tos \
+  --no-eff-email \
+  -d "atl.chat,*.atl.chat"
 ```
 
-### 3. Self-Signed Certificates (Development Only)
+**Note**: You'll need to create DNS TXT records during the process.
 
-#### Using prosodyctl (Recommended)
+### HTTP Challenge Requirements
+
+For HTTP challenge to work, ensure:
+
+1. **Port 80 accessible**: Your server must be reachable on port 80
+2. **Domain points to server**: DNS A record for your domain
+3. **Webroot directory**: `letsencrypt-webroot` directory exists
+
+## 🔄 Automatic Certificate Renewal
+
+### Setup Automated Renewal
+
+The easiest way to set up automatic renewal:
 
 ```bash
-# Generate self-signed certificate
-prosodyctl cert generate your-domain.com
+# Add to crontab (run daily at 3 AM)
+(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 
-# Follow prompts, ensure Common Name matches your domain
+# Test the renewal script
+./scripts/renew-certificates.sh
 ```
 
-#### Manual Generation
+### Manual Renewal
 
 ```bash
-# Create self-signed certificate with SAN
-openssl req -x509 -newkey rsa:4096 -keyout your-domain.com.key -out your-domain.com.crt \
-    -days 365 -nodes \
-    -subj "/CN=your-domain.com" \
-    -addext "subjectAltName=DNS:your-domain.com,DNS:*.your-domain.com,DNS:conference.your-domain.com,DNS:upload.your-domain.com"
+# Renew certificates manually
+docker compose --profile renewal run --rm certbot-renew
+
+# Restart Prosody to use new certificates
+docker compose restart prosody
 ```
 
-## ⚙️ Configuration Methods
+### Renewal Process
 
-### 1. Automatic Certificate Discovery (Recommended)
+The renewal script (`scripts/renew-certificates.sh`) automatically:
 
-Prosody automatically finds certificates when using standard naming:
+1. ✅ Checks if certificates need renewal
+2. ✅ Runs Let's Encrypt renewal
+3. ✅ Restarts Prosody if renewal succeeded
+4. ✅ Logs all activities to `/var/log/prosody-cert-renewal.log`
+
+## 📝 Manual Certificate Management
+
+### Using Existing Certificates
+
+```bash
+# Copy certificates to the correct location
+cp your-certificate.crt certs/atl.chat.crt
+cp your-private-key.key certs/atl.chat.key
+
+# Set proper permissions (optional, Docker handles this)
+chmod 644 certs/atl.chat.crt
+chmod 600 certs/atl.chat.key
+
+# Restart Prosody to use new certificates
+docker compose restart prosody
+```
+
+### Certificate Chain
+
+If you have intermediate certificates:
+
+```bash
+# Combine certificate and intermediate chain
+cat your-certificate.crt intermediate.crt > certs/atl.chat.crt
+
+# Or use the provided fullchain if available
+cp fullchain.crt certs/atl.chat.crt
+```
+
+## 🔍 Certificate Validation
+
+### Check Certificate Status
+
+```bash
+# View certificate details
+docker run --rm -v $(pwd)/certs:/certs debian:bookworm-slim \
+  openssl x509 -in /certs/atl.chat.crt -text -noout
+
+# Check expiration date
+docker run --rm -v $(pwd)/certs:/certs debian:bookworm-slim \
+  openssl x509 -in /certs/atl.chat.crt -noout -dates
+
+# Verify certificate chain
+docker run --rm -v $(pwd)/certs:/certs debian:bookworm-slim \
+  openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt /certs/atl.chat.crt
+```
+
+### Test XMPP Connection
+
+```bash
+# Test TLS connection to your server
+openssl s_client -connect atl.chat:5222 -starttls xmpp -verify_hostname atl.chat
+
+# Test direct TLS connection
+openssl s_client -connect atl.chat:5223 -verify_hostname atl.chat
+```
+
+### Check Prosody Logs
+
+```bash
+# Check certificate loading in Prosody logs
+docker logs prosody 2>&1 | grep -i cert
+
+# Monitor logs in real-time
+docker logs -f prosody
+```
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+#### "Certificate not found"
+
+```bash
+# Check if certificates exist
+ls -la certs/
+
+# Check Prosody logs
+docker logs prosody 2>&1 | grep -i cert
+
+# Verify certificate format
+file certs/atl.chat.crt
+```
+
+#### "Permission denied"
+
+```bash
+# Docker handles permissions automatically, but if issues persist:
+chmod 644 certs/*.crt
+chmod 600 certs/*.key
+
+# Restart Prosody
+docker compose restart prosody
+```
+
+#### "Certificate expired"
+
+```bash
+# Check expiration
+openssl x509 -in certs/atl.chat.crt -noout -dates
+
+# Renew Let's Encrypt certificate
+docker compose --profile renewal run --rm certbot-renew
+docker compose restart prosody
+```
+
+#### "Domain mismatch"
+
+```bash
+# Check certificate subject and SAN
+openssl x509 -in certs/atl.chat.crt -noout -subject -ext subjectAltName
+
+# Ensure certificate matches your PROSODY_DOMAIN
+grep PROSODY_DOMAIN .env
+```
+
+### Let's Encrypt Troubleshooting
+
+#### HTTP Challenge Fails
+
+```bash
+# Check if webroot is accessible
+curl -I http://your-domain.com/.well-known/acme-challenge/test
+
+# Verify DNS resolution
+nslookup your-domain.com
+
+# Check port 80 accessibility
+telnet your-domain.com 80
+```
+
+#### Rate Limiting
+
+Let's Encrypt has rate limits:
+
+- 50 certificates per domain per week
+- 5 duplicate certificates per week
+
+```bash
+# Check rate limits at: https://letsencrypt.org/docs/rate-limits/
+# Use staging environment for testing:
+docker run --rm -it \
+  -v $(pwd)/certs:/etc/letsencrypt \
+  certbot/certbot certonly \
+  --webroot \
+  --webroot-path=/var/www/certbot \
+  --staging \
+  --email admin@your-domain.com \
+  --agree-tos \
+  --no-eff-email \
+  -d your-domain.com
+```
+
+## 🔒 Security Best Practices
+
+### Certificate Security
+
+- **Use strong certificates**: RSA 2048-bit minimum, ECDSA P-256 preferred
+- **Regular renewal**: Automate certificate renewal
+- **Secure storage**: Keep private keys secure (Docker handles this)
+- **Monitor expiration**: Set up alerts for certificate expiry
+
+### Prosody Configuration
+
+The Docker setup automatically configures secure TLS settings:
 
 ```lua
--- In config/stack/01-transport/tls.cfg.lua
-certificates = "certs"  -- Directory for automatic discovery
-
--- Prosody will automatically find:
--- /etc/prosody/certs/your-domain.com.crt & .key
--- /etc/prosody/certs/your-domain.com/fullchain.pem & privkey.pem
-```
-
-### 2. Manual Certificate Paths
-
-#### Per-VirtualHost Configuration
-
-```lua
--- In config/domains/primary/domain.cfg.lua
-VirtualHost "your-domain.com"
+-- Automatic TLS configuration in prosody.cfg.lua
 ssl = {
-    key = "/etc/prosody/certs/your-domain.com.key";
-    certificate = "/etc/prosody/certs/your-domain.com.crt";
+ protocol = "tlsv1_2+", -- TLS 1.2+ only
+ ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
+ curve = "secp384r1", -- Strong elliptic curve
+ options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
 }
+
+-- Certificate auto-discovery
+certificates = "certs"
 ```
 
-#### Global SSL Configuration Override
+## 📊 Monitoring
 
-```lua
--- In config/stack/01-transport/tls.cfg.lua
-ssl = {
-    c2s = {
-        key = "/etc/prosody/certs/your-domain.com.key";
-        certificate = "/etc/prosody/certs/your-domain.com.crt";
-        -- Additional TLS options
-        protocol = "tlsv1_2+";
-        ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS";
-    },
-    s2s = {
-        key = "/etc/prosody/certs/your-domain.com.key";
-        certificate = "/etc/prosody/certs/your-domain.com.crt";
-        protocol = "tlsv1_2+";
-        verify = "optional";
+### Certificate Monitoring
+
+```bash
+# Check certificate expiry (30 days warning)
+docker run --rm -v $(pwd)/certs:/certs debian:bookworm-slim bash -c '
+  cert_file="/certs/atl.chat.crt"
+  if [[ -f "$cert_file" ]]; then
+    if ! openssl x509 -in "$cert_file" -noout -checkend 2592000; then
+      echo "Certificate expires within 30 days"
+    else
+      echo "Certificate is valid"
+    fi
+  fi
+'
+
+# Check renewal logs
+tail -f /var/log/prosody-cert-renewal.log
+```
+
+### Health Checks
+
+```bash
+# Prosody health check (includes certificate validation)
+docker exec prosody /usr/local/bin/health-check.sh
+
+# Check all container health
+docker compose ps
+```
+
+## 🔗 Integration Examples
+
+### Reverse Proxy (Nginx)
+
+If using Nginx as reverse proxy, you can share certificates:
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name xmpp.atl.chat;
+    
+    # Use the same certificates as Prosody
+    ssl_certificate /path/to/xmpp.atl.chat/certs/atl.chat.crt;
+    ssl_certificate_key /path/to/xmpp.atl.chat/certs/atl.chat.key;
+    
+    location /xmpp-websocket {
+        proxy_pass http://localhost:5280;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }
 ```
 
-### 3. Service-Specific Certificates
+### CI/CD Integration
 
-#### HTTPS Service Certificate
-
-```lua
--- For HTTP services (BOSH, WebSocket, file upload)
-https_certificate = "/etc/prosody/certs/https.crt"
--- Prosody will automatically look for https.key
-
--- Or per-port configuration
-https_certificate = {
-    [5281] = "/etc/prosody/certs/web.crt";
-    [6281] = "/etc/prosody/certs/admin.crt";
-}
+```yaml
+# .github/workflows/deploy.yml
+- name: Renew certificates
+  run: |
+    cd /path/to/xmpp.atl.chat
+    ./scripts/renew-certificates.sh
 ```
 
-#### Legacy SSL Certificate
+## 📚 Environment Variables
 
-```lua
--- For legacy SSL connections (deprecated but sometimes needed)
-legacy_ssl_ssl = {
-    certificate = "/etc/prosody/certs/legacy.crt";
-    key = "/etc/prosody/certs/legacy.key";
-}
-```
-
-### 4. Certificate with Passphrase
-
-```lua
--- If your private key is protected with a passphrase
-ssl = {
-    certificate = "/etc/prosody/certs/your-domain.com.crt";
-    key = "/etc/prosody/certs/your-domain.com.key";
-    password = "your-secure-passphrase";
-}
-```
-
-**Security Note**: Including passwords in config files requires careful permission management.
-
-#### Remove Passphrase from Key
+Key certificate-related environment variables:
 
 ```bash
-# Backup original key
-cp your-domain.com.key your-domain.com.key.orig
+# Required
+PROSODY_DOMAIN=atl.chat                    # Your domain (certificate CN/SAN)
 
-# Remove passphrase
-openssl rsa -in your-domain.com.key.orig -out your-domain.com.key
-
-# Secure the unprotected key
-chmod 600 your-domain.com.key
+# Optional
+PROSODY_CERT_DIR=/etc/prosody/certs       # Certificate directory (default)
+PROSODY_ADMIN_JID=admin@atl.chat          # Admin contact for Let's Encrypt
 ```
 
-## 🔒 Security and Permissions
-
-### File Permissions
-
-Following Prosody documentation recommendations:
-
-```bash
-# Certificate files (public) - readable by prosody
-sudo chmod 644 /etc/prosody/certs/*.crt
-sudo chown root:prosody /etc/prosody/certs/*.crt
-
-# Private key files - readable only by prosody and root
-sudo chmod 640 /etc/prosody/certs/*.key
-sudo chown root:prosody /etc/prosody/certs/*.key
-
-# Certificate directory
-sudo chmod 750 /etc/prosody/certs/
-sudo chown root:prosody /etc/prosody/certs/
-
-# Verify permissions
-sudo -u prosody cat /etc/prosody/certs/your-domain.com.key  # Should succeed
-sudo -u nobody cat /etc/prosody/certs/your-domain.com.key   # Should fail
-```
-
-### Certificate Chain Validation
-
-#### Handle Intermediate Certificates
-
-Many CAs provide intermediate certificates that must be included:
-
-```bash
-# Method 1: Concatenate certificates (order matters)
-cat your-domain.com.crt intermediate.crt ca-bundle.crt > fullchain.crt
-cp fullchain.crt /etc/prosody/certs/your-domain.com.crt
-
-# Method 2: Let's Encrypt provides fullchain.pem automatically
-cp /etc/letsencrypt/live/your-domain.com/fullchain.pem /etc/prosody/certs/your-domain.com.crt
-
-# Verify certificate chain
-openssl verify -CApath /etc/ssl/certs /etc/prosody/certs/your-domain.com.crt
-```
-
-### Trusted Certificate Store
-
-Configure trusted CA certificates for validating remote servers:
-
-```lua
--- In config/stack/01-transport/tls.cfg.lua
-ssl = {
-    capath = "/etc/ssl/certs";  -- System CA store
-    cafile = "/etc/ssl/certs/ca-certificates.crt";  -- CA bundle file
-}
-```
-
-## 🛠️ Certificate Management Scripts
-
-### Certificate Health Check Script
-
-```bash
-#!/bin/bash
-# scripts/check-certificates.sh
-
-CERT_DIR="/etc/prosody/certs"
-DOMAIN="${PROSODY_DOMAIN:-localhost}"
-
-echo "=== Certificate Health Check ==="
-
-# Check if certificates exist
-for cert in "${CERT_DIR}/${DOMAIN}.crt" "${CERT_DIR}/${DOMAIN}/fullchain.pem"; do
-    if [[ -f "$cert" ]]; then
-        echo "✅ Certificate found: $cert"
-        
-        # Check expiry (warn if < 30 days)
-        if openssl x509 -in "$cert" -noout -checkend 2592000; then
-            echo "✅ Certificate valid for >30 days"
-        else
-            echo "⚠️  Certificate expires within 30 days"
-        fi
-        
-        # Check if it matches domain
-        if openssl x509 -in "$cert" -noout -subject | grep -q "$DOMAIN"; then
-            echo "✅ Certificate matches domain"
-        else
-            echo "❌ Certificate domain mismatch"
-        fi
-        break
-    fi
-done
-
-# Check private key
-for key in "${CERT_DIR}/${DOMAIN}.key" "${CERT_DIR}/${DOMAIN}/privkey.pem"; do
-    if [[ -f "$key" ]]; then
-        echo "✅ Private key found: $key"
-        
-        # Check permissions
-        if [[ "$(stat -c %a "$key")" == "640" ]]; then
-            echo "✅ Private key permissions correct (640)"
-        else
-            echo "⚠️  Private key permissions should be 640"
-        fi
-        break
-    fi
-done
-
-# Check Prosody configuration
-echo ""
-echo "=== Prosody Certificate Check ==="
-prosodyctl check certs
-```
-
-### Certificate Installation Script
-
-```bash
-#!/bin/bash
-# scripts/install-certificates.sh
-
-DOMAIN="${1:-${PROSODY_DOMAIN}}"
-CERT_SOURCE="${2}"
-CERT_DIR="/etc/prosody/certs"
-
-if [[ -z "$DOMAIN" ]]; then
-    echo "Usage: $0 <domain> [certificate_source_path]"
-    exit 1
-fi
-
-echo "Installing certificates for domain: $DOMAIN"
-
-if [[ -n "$CERT_SOURCE" ]]; then
-    echo "Source: $CERT_SOURCE"
-    
-    # Use prosodyctl cert import for external certificates
-    prosodyctl --root cert import "$DOMAIN" "$CERT_SOURCE"
-else
-    echo "Generating self-signed certificate..."
-    
-    # Generate self-signed certificate using prosodyctl
-    prosodyctl cert generate "$DOMAIN"
-fi
-
-# Set proper permissions
-echo "Setting certificate permissions..."
-find "$CERT_DIR" -name "*.crt" -exec chmod 644 {} \; -exec chown root:prosody {} \;
-find "$CERT_DIR" -name "*.pem" -name "*fullchain*" -exec chmod 644 {} \; -exec chown root:prosody {} \;
-find "$CERT_DIR" -name "*.key" -exec chmod 640 {} \; -exec chown root:prosody {} \;
-find "$CERT_DIR" -name "*privkey*" -exec chmod 640 {} \; -exec chown root:prosody {} \;
-
-# Reload Prosody
-echo "Reloading Prosody configuration..."
-prosodyctl reload
-
-echo "Certificate installation complete!"
-```
-
-## 🔄 Automation and Maintenance
-
-### Automated Certificate Renewal
-
-#### Systemd Timer for Certificate Check
-
-```bash
-# Create systemd service
-sudo tee /etc/systemd/system/prosody-cert-check.service << 'EOF'
-[Unit]
-Description=Prosody Certificate Health Check
-After=network.target
-
-[Service]
-Type=oneshot
-User=prosody
-ExecStart=/opt/prosody/scripts/check-certificates.sh
-EOF
-
-# Create systemd timer
-sudo tee /etc/systemd/system/prosody-cert-check.timer << 'EOF'
-[Unit]
-Description=Run Prosody Certificate Check Daily
-Requires=prosody-cert-check.service
-
-[Timer]
-OnCalendar=daily
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-EOF
-
-# Enable and start timer
-sudo systemctl enable prosody-cert-check.timer
-sudo systemctl start prosody-cert-check.timer
-```
-
-### Integration with Docker Environment
-
-Update the entrypoint script to check certificates:
-
-```bash
-# Add to scripts/entrypoint.sh
-setup_ssl_certificates() {
-    log_info "Setting up SSL certificates..."
-
-    local cert_file="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}.crt"
-    local key_file="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}.key"
-
-    # Check for Let's Encrypt format first
-    local le_cert="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}/fullchain.pem"
-    local le_key="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}/privkey.pem"
-
-    if [[ -f "$le_cert" ]] && [[ -f "$le_key" ]]; then
-        log_info "Let's Encrypt certificates found"
-        cert_file="$le_cert"
-        key_file="$le_key"
-    elif [[ -f "$cert_file" ]] && [[ -f "$key_file" ]]; then
-        log_info "Standard certificates found"
-    else
-        log_warn "No certificates found, generating self-signed certificate..."
-        
-        # Use prosodyctl to generate certificate
-        prosodyctl cert generate "${PROSODY_DOMAIN}"
-        
-        log_warn "Self-signed certificate generated. Replace with proper certificates for production."
-    fi
-
-    # Verify certificate
-    if ! openssl x509 -in "$cert_file" -noout -checkend 86400 >/dev/null 2>&1; then
-        log_warn "SSL certificate expires within 24 hours"
-    fi
-
-    # Set proper permissions
-    chmod 644 "$cert_file" 2>/dev/null || true
-    chmod 640 "$key_file" 2>/dev/null || true
-    chown root:prosody "$cert_file" "$key_file" 2>/dev/null || true
-}
-```
-
-## 🧪 Testing and Validation
-
-### Certificate Validation Commands
-
-```bash
-# Check certificate details
-openssl x509 -in /etc/prosody/certs/your-domain.com.crt -text -noout
-
-# Verify certificate chain
-openssl verify -CApath /etc/ssl/certs /etc/prosody/certs/your-domain.com.crt
-
-# Test certificate matches private key
-cert_md5=$(openssl x509 -noout -modulus -in your-domain.com.crt | openssl md5)
-key_md5=$(openssl rsa -noout -modulus -in your-domain.com.key | openssl md5)
-if [[ "$cert_md5" == "$key_md5" ]]; then
-    echo "✅ Certificate and key match"
-else
-    echo "❌ Certificate and key do not match"
-fi
-
-# Test TLS connection
-openssl s_client -connect your-domain.com:5222 -starttls xmpp -verify_hostname your-domain.com
-```
-
-### Prosody-Specific Validation
-
-```bash
-# Prosody's built-in certificate checker
-prosodyctl check certs
-
-# Test XMPP connection with specific certificate validation
-prosodyctl check connectivity your-domain.com
-
-# Monitor certificate usage in logs
-tail -f /var/log/prosody/prosody.log | grep -i cert
-```
-
-## 📚 Troubleshooting
-
-### Common Certificate Issues
-
-#### "Certificate verification failed"
-
-```bash
-# Check certificate chain
-openssl verify -verbose -CApath /etc/ssl/certs your-domain.com.crt
-
-# Ensure intermediate certificates are included
-openssl x509 -in your-domain.com.crt -text -noout | grep -A 5 "Issuer"
-```
-
-#### "No shared cipher"
-
-Usually indicates certificate/key mismatch or wrong format:
-
-```bash
-# Verify certificate and key match
-openssl x509 -noout -modulus -in your-domain.com.crt | openssl md5
-openssl rsa -noout -modulus -in your-domain.com.key | openssl md5
-
-# Check certificate format (should be PEM)
-file your-domain.com.crt
-```
-
-#### "Permission denied" errors
-
-```bash
-# Fix certificate permissions
-sudo chmod 644 /etc/prosody/certs/*.crt
-sudo chmod 640 /etc/prosody/certs/*.key
-sudo chown root:prosody /etc/prosody/certs/*
-
-# Test prosody can read certificates
-sudo -u prosody cat /etc/prosody/certs/your-domain.com.key
-```
-
-### Configuration Validation
-
-```bash
-# Test configuration syntax
-prosodyctl check config
-
-# Validate specific certificate settings
-grep -r "ssl\|certificate\|tls" /etc/prosody/config/
-
-# Check automatic certificate discovery
-ls -la /etc/prosody/certs/
-prosodyctl check certs
-```
-
-## 🔗 References
-
-- **[Prosody Certificate Documentation](https://prosody.im/doc/certificates)**
-- **[Let's Encrypt Integration](https://prosody.im/doc/letsencrypt)**
-- **[TLS Configuration](https://prosody.im/doc/configure#ssl_config)**
-- **[Security Best Practices](https://prosody.im/doc/security)**
+## 🎯 Production Checklist
+
+Before going to production:
+
+- [ ] **Valid SSL certificate** (Let's Encrypt or commercial)
+- [ ] **Automated renewal** set up via cron
+- [ ] **Certificate monitoring** in place
+- [ ] **Backup certificates** included in backup strategy
+- [ ] **DNS properly configured** for your domain
+- [ ] **Firewall allows** ports 80 (HTTP challenge) and 443 (HTTPS)
+- [ ] **Test certificate renewal** process
 
 ---
 
-*This certificate management guide ensures your XMPP server follows Prosody best practices for certificate handling, security, and automation.*
+This Docker setup provides a complete, automated certificate management solution that handles all the complexity of SSL certificates while maintaining security best practices. The automatic detection and renewal features ensure your XMPP server stays secure with minimal manual intervention.
