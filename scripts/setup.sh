@@ -237,8 +237,76 @@ setup_directories() {
     log_info "Directories created ✓"
 }
 
-setup_cron() {
+setup_renewal() {
     log_step "Setting up automatic certificate renewal..."
+
+    # Check if systemd is available
+    if command -v systemctl >/dev/null 2>&1; then
+        setup_systemd_timer
+    elif command -v crontab >/dev/null 2>&1; then
+        setup_cron_job
+    else
+        log_warn "Neither systemd nor cron is available"
+        log_warn "You'll need to manually set up certificate renewal"
+        log_info "Run this command daily: $PROJECT_DIR/scripts/renew-certificates.sh"
+        return 0
+    fi
+}
+
+setup_systemd_timer() {
+    log_info "Setting up systemd timer for certificate renewal..."
+
+    # Create systemd service file
+    local service_file="/etc/systemd/system/xmpp-cert-renewal.service"
+    local timer_file="/etc/systemd/system/xmpp-cert-renewal.timer"
+
+    # Check if we need sudo
+    if [[ ! -w /etc/systemd/system/ ]]; then
+        log_info "Creating systemd service and timer files (requires sudo)..."
+
+        # Create service file
+        sudo tee "$service_file" >/dev/null <<EOF
+[Unit]
+Description=XMPP Certificate Renewal
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=$PROJECT_DIR/scripts/renew-certificates.sh
+User=$USER
+Group=$USER
+EOF
+
+        # Create timer file
+        sudo tee "$timer_file" >/dev/null <<EOF
+[Unit]
+Description=XMPP Certificate Renewal Timer
+Requires=xmpp-cert-renewal.service
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+        # Enable and start the timer
+        sudo systemctl daemon-reload
+        sudo systemctl enable xmpp-cert-renewal.timer
+        sudo systemctl start xmpp-cert-renewal.timer
+
+        log_info "Systemd timer created and started ✓"
+        log_info "Timer status: $(systemctl is-active xmpp-cert-renewal.timer)"
+    else
+        log_error "Cannot write to /etc/systemd/system/ and sudo not available"
+        return 1
+    fi
+}
+
+setup_cron_job() {
+    log_info "Setting up cron job for certificate renewal..."
 
     local cron_job="0 3 * * * $PROJECT_DIR/scripts/renew-certificates.sh"
 
@@ -359,7 +427,7 @@ main() {
     setup_environment
     setup_cloudflare
     generate_certificates
-    setup_cron
+    setup_renewal
     start_services
     create_admin_user
 
