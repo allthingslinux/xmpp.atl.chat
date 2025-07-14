@@ -394,7 +394,7 @@ Everything users need to know about using your XMPP server, from setup to advanc
 
 **Documentation**:
 
-- [Admin Guide](../administration/complete-admin-guide.md) - For server administrators
+- [Administration Guide](../administration/administration.md) - For server administrators
 - [Configuration Reference](../../reference/configuration-reference.md) - Technical details
 - [XEP Compliance](../../reference/xep-compliance.md) - Supported standards
 

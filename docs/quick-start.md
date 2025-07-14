@@ -142,10 +142,10 @@ After setup, you can access:
 
 ## 📚 Next Steps
 
-- **Users**: See [User Guide](guides/users/complete-user-guide.md)
-- **Administrators**: See [Admin Guide](guides/administration/complete-admin-guide.md)
+- **Users**: See [User Guide](guides/users/user-guide.md)
+- **Administrators**: See [Administration Guide](guides/administration/administration.md)
 - **Developers**: See [Development Guide](guides/development/development-guide.md)
-- **Deployment**: See [Production Deployment](guides/deployment/production-deployment.md)
+- **Deployment**: See [Deployment Guide](guides/deployment/deployment.md)
 
 ## 🆘 Getting Help
 

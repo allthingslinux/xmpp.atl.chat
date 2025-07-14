@@ -438,7 +438,7 @@ dig SRV _xmpp-client._tcp.atl.chat
 ## 📚 Additional Resources
 
 - **[prosody-manager Guide](../administration/prosody-manager-guide.md)** - Complete CLI tool reference
-- **[Admin Guide](../administration/complete-admin-guide.md)** - Comprehensive administration
+- **[Administration Guide](../administration/administration.md)** - Comprehensive administration
 - **[DNS Setup](../../admin/dns-setup.md)** - DNS configuration details
 - **[Certificate Management](../../admin/certificate-management.md)** - SSL/TLS details
 - **[Security Guide](../../admin/security.md)** - Security hardening
