@@ -82,6 +82,10 @@ check_dependencies() {
         missing_deps+=("openssl")
     fi
 
+    if ! command -v hg >/dev/null 2>&1; then
+        missing_deps+=("mercurial")
+    fi
+
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
         log_error "Missing required dependencies: ${missing_deps[*]}"
         log_error "Please install them and run this script again."
@@ -368,10 +372,12 @@ DESCRIPTION:
     5. Service startup
     6. Administrator user creation
 
-REQUIREMENTS:
-    - Docker and Docker Compose installed
-    - Cloudflare account with API access
-    - Domain name configured in Cloudflare
+ REQUIREMENTS:
+     - Docker and Docker Compose installed
+     - OpenSSL for certificate operations
+     - Mercurial (hg) for version control operations
+     - Cloudflare account with API access
+     - Domain name configured in Cloudflare
 
 WHAT IT CREATES:
     - .env file with your configuration
