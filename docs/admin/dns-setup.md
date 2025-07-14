@@ -49,6 +49,7 @@ Update your environment variables:
 # .env file
 PROSODY_DOMAIN=atl.chat                    # Users get @atl.chat addresses
 PROSODY_ADMINS=admin@atl.chat             # Admin uses clean domain
+LETSENCRYPT_EMAIL=admin@allthingslinux.org # Certificate notifications
 ```
 
 ### A Record for Target
@@ -167,6 +168,8 @@ dig CAA your-domain.com
 
 TLSA records provide certificate fingerprints for DANE (DNS-based Authentication of Named Entities), allowing clients to verify certificate authenticity.
 
+**Note:** With wildcard certificates (`*.atl.chat`), the same certificate is used for all subdomains, so the TLSA record hash will be the same for all services.
+
 ### Required TLSA Records
 
 ```dns
@@ -185,8 +188,14 @@ _5281._tcp.your-domain.com. TLSA 3 1 1 <certificate-sha256-hash>
 1. **Generate certificate fingerprints**
 
    ```bash
-   # Get certificate fingerprint (SHA-256)
-   openssl x509 -in /path/to/your/certificate.crt -pubkey -noout | \
+   # Get certificate fingerprint (SHA-256) from wildcard certificate
+   docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -pubkey -noout | \
+   openssl pkey -pubin -outform der | \
+   openssl dgst -sha256 -binary | \
+   xxd -p -u -c 32
+   
+   # Alternative: From local certificate file
+   openssl x509 -in ./certs/atl.chat.crt -pubkey -noout | \
    openssl pkey -pubin -outform der | \
    openssl dgst -sha256 -binary | \
    xxd -p -u -c 32
@@ -255,13 +264,14 @@ Create a script to update TLSA records when certificates are renewed:
 
 ```bash
 #!/bin/bash
-# /etc/letsencrypt/renewal-hooks/deploy/update-tlsa.sh
+# /path/to/xmpp.atl.chat/scripts/update-tlsa-records.sh
+# Hook script to update TLSA records after certificate renewal
 
-DOMAIN="your-domain.com"
-CERT_PATH="/etc/letsencrypt/live/$DOMAIN/cert.pem"
+DOMAIN="atl.chat"
+CERT_PATH="./certs/live/$DOMAIN/fullchain.pem"
 
-# Generate new TLSA hash
-NEW_HASH=$(openssl x509 -in "$CERT_PATH" -pubkey -noout | \
+# Generate new TLSA hash from wildcard certificate
+NEW_HASH=$(docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/$DOMAIN/fullchain.pem -pubkey -noout | \
            openssl pkey -pubin -outform der | \
            openssl dgst -sha256 -binary | \
            xxd -p -u -c 32)
@@ -354,5 +364,37 @@ dig +short SRV _xmpp-server._tcp.$DOMAIN | grep -q 5269 && echo "✅ S2S SRV fou
 5. **Set up automation** for certificate renewal
 6. **Test everything** using the validation scripts
 7. **Monitor regularly** to ensure continued security
+
+## 9. Integration with Wildcard Certificate Setup
+
+This DNS configuration works seamlessly with the wildcard Cloudflare certificate setup:
+
+### Certificate Generation
+
+```bash
+# 1. Configure Cloudflare API
+cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+# Edit with your Cloudflare API token
+
+# 2. Generate wildcard certificate
+docker compose --profile letsencrypt run --rm certbot
+
+# 3. Extract TLSA hash for DNS records
+docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -pubkey -noout | \
+openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | xxd -p -u -c 32
+```
+
+### Automatic Renewal Integration
+
+The certificate renewal script automatically handles:
+
+- Wildcard certificate renewal via DNS-01 challenges
+- Prosody service restart
+- TLSA record updates (with additional scripting)
+
+```bash
+# Set up automatic renewal
+(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+```
 
 Remember to update TLSA records whenever you renew your SSL certificates!
