@@ -249,13 +249,13 @@ Monitor pastebin storage usage:
 
 ```bash
 # Check pastebin storage directory
-docker compose exec prosody du -sh /var/lib/prosody/pastebin/
+docker compose exec xmpp-prosody du -sh /var/lib/prosody/pastebin/
 
 # Count active pastes
-docker compose exec prosody find /var/lib/prosody/pastebin/ -name "*.txt" | wc -l
+docker compose exec xmpp-prosody find /var/lib/prosody/pastebin/ -name "*.txt" | wc -l
 
 # Check oldest pastes
-docker compose exec prosody find /var/lib/prosody/pastebin/ -name "*.txt" -printf '%T+ %p\n' | sort | head -10
+docker compose exec xmpp-prosody find /var/lib/prosody/pastebin/ -name "*.txt" -printf '%T+ %p\n' | sort | head -10
 ```
 
 ### Performance Monitoring
@@ -279,10 +279,10 @@ Force cleanup of expired pastes:
 
 ```bash
 # Clean up expired pastes manually
-docker compose exec prosody prosodyctl mod_pastebin cleanup
+docker compose exec xmpp-prosody prosodyctl mod_pastebin cleanup
 
 # Remove all pastes (emergency cleanup)
-docker compose exec prosody rm -rf /var/lib/prosody/pastebin/*
+docker compose exec xmpp-prosody rm -rf /var/lib/prosody/pastebin/*
 ```
 
 ## Security Considerations
@@ -393,10 +393,10 @@ location /pastebin/ {
 
 ```bash
 # Check pastebin module status
-docker compose exec prosody prosodyctl about | grep -i pastebin
+docker compose exec xmpp-prosody prosodyctl about | grep -i pastebin
 
 # View pastebin configuration
-docker compose exec prosody prosodyctl config get pastebin
+docker compose exec xmpp-prosody prosodyctl config get pastebin
 
 # Test pastebin service manually
 curl http://localhost:5280/pastebin/

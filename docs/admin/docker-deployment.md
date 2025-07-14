@@ -23,7 +23,7 @@ cp examples/env.example .env
 # Edit .env with your domain and credentials
 
 # Start the basic services
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 ```
 
 ## Complete Deployment Process
@@ -94,7 +94,7 @@ Choose one of the following methods:
 #### Minimal Deployment (XMPP + Database)
 
 ```bash
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 ```
 
 #### Full Deployment (All Services)
@@ -107,10 +107,10 @@ docker compose up -d
 
 ```bash
 # XMPP with voice/video support
-docker compose up -d prosody db coturn
+docker compose up -d xmpp-prosody xmpp-postgres xmpp-coturn
 
 # Add TURN/STUN server for voice/video calls
-docker compose up -d prosody db coturn
+docker compose up -d xmpp-prosody xmpp-postgres xmpp-coturn
 ```
 
 ### Step 4: Verify Deployment
@@ -124,8 +124,8 @@ docker compose up -d prosody db coturn
 2. **Check logs**:
 
    ```bash
-   docker logs prosody
-   docker logs prosody-db
+   docker logs xmpp-prosody
+   docker logs xmpp-postgres
    ```
 
 3. **Test connectivity**:
@@ -142,7 +142,7 @@ docker compose up -d prosody db coturn
 4. **Health check**:
 
    ```bash
-   docker exec prosody /opt/prosody/scripts/health-check.sh
+   docker exec xmpp-prosody /opt/prosody/scripts/health-check.sh
    ```
 
 ## Service Architecture
@@ -151,14 +151,14 @@ docker compose up -d prosody db coturn
 
 | Service | Purpose | Port | Health Check |
 |---------|---------|------|--------------|
-| `prosody` | XMPP Server | 5222, 5269, 5280, 5281 | ✅ Built-in |
-| `db` | PostgreSQL Database | 5432 | ✅ Built-in |
+| `xmpp-prosody` | XMPP Server | 5222, 5269, 5280, 5281 | ✅ Built-in |
+| `xmpp-postgres` | PostgreSQL Database | 5432 | ✅ Built-in |
 
 ### Optional Services
 
 | Service | Purpose | Port | Profile |
 |---------|---------|------|---------|
-| `coturn` | TURN/STUN for voice/video | 3478, 5349 | Default |
+| `xmpp-coturn` | TURN/STUN for voice/video | 3478, 5349 | Default |
 | ~~`prometheus`~~ | ~~Metrics collection~~ | ~~9090~~ | ~~External monitoring~~ |
 | ~~`node-exporter`~~ | ~~System metrics~~ | ~~9100~~ | ~~External monitoring~~ |
 
@@ -166,8 +166,8 @@ docker compose up -d prosody db coturn
 
 | Service | Purpose | Profile | Usage |
 |---------|---------|---------|-------|
-| `certbot` | Let's Encrypt certificate | `letsencrypt` | One-time |
-| `certbot-renew` | Certificate renewal | `renewal` | Scheduled |
+| `xmpp-certbot` | Let's Encrypt certificate | `letsencrypt` | One-time |
+| `xmpp-certbot-renew` | Certificate renewal | `renewal` | Scheduled |
 
 ## Production Configuration
 
@@ -254,7 +254,7 @@ docker compose --profile letsencrypt run --rm certbot
 docker compose restart prosody
 
 # Check certificate expiration
-docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -noout -dates
+docker compose exec xmpp-prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -noout -dates
 ```
 
 ### Backup Strategy
@@ -262,8 +262,10 @@ docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fu
 1. **Database backup**:
 
    ```bash
-   docker exec prosody-db pg_dump -U prosody prosody > backup.sql
-   ```
+
+docker exec xmpp-postgres pg_dump -U prosody prosody > backup.sql
+
+```
 
 2. **Volume backup**:
 
@@ -295,7 +297,7 @@ docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fu
 
    ```bash
    # Test database connection
-   docker exec prosody-db psql -U prosody -d prosody -c "SELECT version();"
+   docker exec xmpp-postgres psql -U prosody -d prosody -c "SELECT version();"
    ```
 
 3. **Port conflicts**:

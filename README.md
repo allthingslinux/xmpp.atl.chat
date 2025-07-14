@@ -54,10 +54,10 @@ docker compose --profile letsencrypt run --rm certbot
 (crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 
 # Deploy the server
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 
 # Check status
-docker compose logs -f prosody
+docker compose logs -f xmpp-prosody
 ```
 
 📖 **Complete Setup Guide**: [Docker Deployment Guide](docs/admin/docker-deployment.md)
@@ -70,7 +70,7 @@ docker compose logs -f prosody
 ./scripts/prosody-manager prosodyctl adduser user@atl.chat
 
 # Or directly with Docker
-docker compose exec prosody prosodyctl adduser admin@atl.chat
+docker compose exec xmpp-prosody prosodyctl adduser admin@atl.chat
 ```
 
 ### 3. Connect
@@ -133,16 +133,16 @@ This deployment includes multiple services for a complete XMPP solution:
 
 ```bash
 # Minimal deployment (XMPP + Database only)
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 
 # With database management
-docker compose up -d prosody db adminer
+docker compose up -d xmpp-prosody xmpp-postgres xmpp-adminer
 
 # Full deployment (all services)
 docker compose up -d
 
 # Custom service selection
-docker compose up -d prosody db adminer coturn
+docker compose up -d xmpp-prosody xmpp-postgres xmpp-adminer xmpp-coturn
 ```
 
 ## 📊 XEP Compliance
@@ -206,7 +206,7 @@ This project includes comprehensive documentation organized by audience:
 
 ```bash
 # Start with database management
-docker compose up -d prosody db adminer
+docker compose up -d xmpp-prosody xmpp-postgres xmpp-adminer
 
 # Access Adminer at http://localhost:8080
 # Login credentials are automatically configured from your .env file

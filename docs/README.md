@@ -100,13 +100,13 @@ This server supports multiple deployment configurations:
 
 ```bash
 # Minimal deployment (XMPP + Database only)
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 
 # Full deployment (includes TURN/STUN for voice/video)
 docker compose up -d
 
 # Minimal deployment (XMPP + Database only)
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 ```
 
 ## 🔍 Finding What You Need

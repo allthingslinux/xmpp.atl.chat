@@ -246,7 +246,7 @@ Force cleanup of expired messages:
 
 ```bash
 # Trigger immediate cleanup
-docker compose exec prosody prosodyctl mod_mam cleanup
+docker compose exec xmpp-prosody prosodyctl mod_mam cleanup
 ```
 
 ## Compliance and Privacy
@@ -308,14 +308,14 @@ PROSODY_MUC_LOG_NOTIFICATION=true
 2. **Verify module is loaded**:
 
    ```bash
-   docker compose exec prosody prosodyctl about | grep muc_mam
+   docker compose exec xmpp-prosody prosodyctl about | grep muc_mam
    ```
 
 3. **Check storage configuration**:
 
    ```bash
    # Ensure muc_log is using SQL storage
-   docker compose exec prosody prosodyctl check config
+   docker compose exec xmpp-prosody prosodyctl check config
    ```
 
 #### History Not Loading in Clients
@@ -385,13 +385,13 @@ PROSODY_MUC_LOG_NOTIFICATION=true
 
 ```bash
 # Check MUC MAM module status
-docker compose exec prosody prosodyctl about | grep -A5 -B5 muc_mam
+docker compose exec xmpp-prosody prosodyctl about | grep -A5 -B5 muc_mam
 
 # View recent MUC archive activity
 docker compose logs prosody | grep -i "muc.*archive" | tail -20
 
 # Test MAM query manually (advanced)
-docker compose exec prosody prosodyctl shell
+docker compose exec xmpp-prosody prosodyctl shell
 > muc_mam = require "core.moduleapi".get_module("muc", "muc_mam")
 ```
 
@@ -426,10 +426,10 @@ When upgrading Prosody versions:
 docker compose exec db pg_dump -U prosody prosody > muc_archive_backup.sql
 
 # Test configuration after upgrade
-docker compose exec prosody prosodyctl check config
+docker compose exec xmpp-prosody prosodyctl check config
 
 # Verify archive accessibility
-docker compose exec prosody prosodyctl mod_mam info
+docker compose exec xmpp-prosody prosodyctl mod_mam info
 ```
 
 ### Migrating from Legacy Systems
@@ -463,7 +463,7 @@ WHERE store LIKE '%muc%';
 
 ```bash
 # Monitor memory usage
-docker compose exec prosody prosodyctl about | grep memory
+docker compose exec xmpp-prosody prosodyctl about | grep memory
 
 # Tune garbage collection if needed
 # Add to prosody.cfg.lua:

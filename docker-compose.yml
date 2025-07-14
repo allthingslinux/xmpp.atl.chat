@@ -6,13 +6,13 @@ services:
   # ============================================================================
   # PROSODY XMPP SERVER
   # ============================================================================
-  prosody:
+  xmpp-prosody:
     build:
       context: .
       dockerfile: Dockerfile
-    image: xmpp-atl-chat:latest
-    container_name: prosody
-    hostname: prosody
+    image: allthingslinux/prosody:latest
+    container_name: xmpp-prosody
+    hostname: xmpp-prosody
     restart: unless-stopped
 
     # Environment variables
@@ -21,7 +21,7 @@ services:
         required: true
     environment:
       # Override database connection for container-to-container communication
-      - PROSODY_DB_HOST=db
+      - PROSODY_DB_HOST=xmpp-postgres
       - PROSODY_DB_PORT=5432
 
     # Port mappings
@@ -39,8 +39,8 @@ services:
       - ./config:/etc/prosody/config:ro
 
       # Data persistence
-      - prosody_data:/var/lib/prosody/data
-      - prosody_uploads:/var/lib/prosody/uploads
+      - xmpp_prosody_data:/var/lib/prosody/data
+      - xmpp_prosody_uploads:/var/lib/prosody/uploads
 
       # SSL certificates (local directory for easier management)
       - ./certs:/etc/prosody/certs
@@ -99,19 +99,20 @@ services:
 
     # Dependencies
     depends_on:
-      db:
+      xmpp-postgres:
         condition: service_healthy
 
     # Networks
     networks:
-      - prosody_network
+      - xmpp_network
 
   # ============================================================================
   # POSTGRESQL DATABASE
   # ============================================================================
-  db:
+  xmpp-postgres:
     image: postgres:15-alpine
-    container_name: prosody-db
+    container_name: xmpp-postgres
+    hostname: xmpp-postgres
     restart: unless-stopped
 
     # Environment variables automatically loaded from .env file
@@ -122,7 +123,7 @@ services:
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
 
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - xmpp_postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
 
     # Production PostgreSQL optimization
@@ -165,14 +166,15 @@ services:
 
     # Networks
     networks:
-      - prosody_network
+      - xmpp_network
 
   # ============================================================================
   # COTURN - TURN/STUN SERVER (for voice/video calls)
   # ============================================================================
-  coturn:
+  xmpp-coturn:
     image: coturn/coturn:latest
-    container_name: prosody-coturn
+    container_name: xmpp-coturn
+    hostname: xmpp-coturn
     restart: unless-stopped
     
     # Environment variables automatically loaded from .env file
@@ -189,20 +191,18 @@ services:
       # Relay ports range
       - '${TURN_MIN_PORT:-49152}-${TURN_MAX_PORT:-65535}:49152-65535/udp'
     
-    # Environment variables automatically loaded from .env file
     environment:
       # Fixed security settings
       - TURN_NO_LOOPBACK_PEERS=true
       - TURN_NO_MULTICAST_PEERS=true
       - TURN_STALE_NONCE=true
       - TURN_SECURE_STUN=true
-      
       # Fixed logging
       - TURN_LOG_FILE=stdout
       - TURN_VERBOSE=false
     
     volumes:
-      - coturn_data:/var/lib/coturn
+      - xmpp_coturn_data:/var/lib/coturn
     
     command: >
       turnserver
@@ -229,7 +229,7 @@ services:
         --simple-log
     
     networks:
-      - prosody_network
+      - xmpp_network
     
     # Security settings
     security_opt:
@@ -252,9 +252,10 @@ services:
   # ============================================================================
   
   # Let's Encrypt certificate generation (DNS-01 challenge for wildcard support)
-  certbot:
+  xmpp-certbot:
     image: certbot/dns-cloudflare:latest
-    container_name: prosody-certbot
+    container_name: xmpp-certbot
+    hostname: xmpp-certbot
     
     # Environment variables automatically loaded from .env file
     env_file:
@@ -280,12 +281,13 @@ services:
     profiles:
       - letsencrypt
     networks:
-      - prosody_network
+      - xmpp_network
 
   # Certificate renewal service
-  certbot-renew:
+  xmpp-certbot-renew:
     image: certbot/dns-cloudflare:latest
-    container_name: prosody-certbot-renew
+    container_name: xmpp-certbot-renew
+    hostname: xmpp-certbot-renew
     
     # Environment variables automatically loaded from .env file
     env_file:
@@ -299,14 +301,15 @@ services:
     profiles:
       - renewal
     networks:
-      - prosody_network
+      - xmpp_network
 
   # ============================================================================
   # ADMINER - DATABASE MANAGEMENT
   # ============================================================================
-  adminer:
+  xmpp-adminer:
     image: adminer
-    container_name: prosody_adminer
+    container_name: xmpp-adminer
+    hostname: xmpp-adminer
     restart: unless-stopped
     ports:
       - '8080:8080'
@@ -315,7 +318,7 @@ services:
         required: true
     environment:
       ADMINER_DEFAULT_DRIVER: "pgsql"
-      ADMINER_DEFAULT_SERVER: "db"
+      ADMINER_DEFAULT_SERVER: "xmpp-postgres"
       ADMINER_DEFAULT_DB: ${POSTGRES_DB}
       ADMINER_DEFAULT_USERNAME: ${POSTGRES_USER}
       ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
@@ -326,29 +329,34 @@ services:
       - source: adminer-theme.css
         target: /var/www/html/adminer.css
     depends_on:
-      db:
+      xmpp-postgres:
         condition: service_healthy
     networks:
-      - prosody_network
+      - xmpp_network
 
 # ============================================================================
 # VOLUMES
 # ============================================================================
 volumes:
-  prosody_data:
+  xmpp_prosody_data:
     driver: local
-  prosody_uploads:
+    name: xmpp_prosody_data
+  xmpp_prosody_uploads:
     driver: local
-  postgres_data:
+    name: xmpp_prosody_uploads
+  xmpp_postgres_data:
     driver: local
-  coturn_data:
+    name: xmpp_postgres_data
+  xmpp_coturn_data:
     driver: local
+    name: xmpp_coturn_data
 
 # ============================================================================
 # NETWORKS
 # ============================================================================
 networks:
-  prosody_network:
+  xmpp_network:
+    name: xmpp_network
 
 # ============================================================================
 # CONFIGS

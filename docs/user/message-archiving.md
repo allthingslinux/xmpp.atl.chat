@@ -278,7 +278,7 @@ WHERE tablename LIKE '%archive%';
 
 ```bash
 # Force cleanup of expired messages
-docker compose exec prosody prosodyctl mod_mam expire
+docker compose exec xmpp-prosody prosodyctl mod_mam expire
 ```
 
 **Automatic Cleanup:**
@@ -338,7 +338,7 @@ PROSODY_MAM_SMART_ENABLE=true        # Opt-in archiving
 
 ```bash
 # Delete user's archive (manual process)
-docker compose exec prosody prosodyctl mod_mam delete user@domain.com
+docker compose exec xmpp-prosody prosodyctl mod_mam delete user@domain.com
 ```
 
 ## 🛠️ Troubleshooting
@@ -373,7 +373,7 @@ docker compose exec prosody prosodyctl mod_mam delete user@domain.com
 1. **Check database connectivity:**
 
    ```bash
-   docker compose exec prosody prosodyctl check config
+   docker compose exec xmpp-prosody prosodyctl check config
    ```
 
 2. **Verify archive table:**
@@ -412,10 +412,10 @@ docker compose exec prosody prosodyctl mod_mam delete user@domain.com
 
 ```bash
 # Verify MAM module is loaded
-docker compose exec prosody prosodyctl check modules | grep mam
+docker compose exec xmpp-prosody prosodyctl check modules | grep mam
 
 # Check archive settings
-docker compose exec prosody prosodyctl config get archive_expires_after
+docker compose exec xmpp-prosody prosodyctl config get archive_expires_after
 ```
 
 **Test archive queries:**

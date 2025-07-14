@@ -335,7 +335,7 @@ cp examples/env.example .env
 # Edit .env with development settings
 
 # Start development stack
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 
 # Access logs
 docker compose logs -f prosody
@@ -345,13 +345,13 @@ docker compose logs -f prosody
 
 ```bash
 # Configuration validation
-docker compose exec prosody prosodyctl check config
+docker compose exec xmpp-prosody prosodyctl check config
 
 # Connectivity testing
-docker compose exec prosody prosodyctl check connectivity
+docker compose exec xmpp-prosody prosodyctl check connectivity
 
 # Module testing
-docker compose exec prosody prosodyctl check modules
+docker compose exec xmpp-prosody prosodyctl check modules
 ```
 
 ### Deployment

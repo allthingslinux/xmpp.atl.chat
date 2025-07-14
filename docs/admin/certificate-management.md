@@ -108,10 +108,10 @@ Check certificate status:
 
 ```bash
 # Check certificate expiry and domains covered
-docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -noout -dates -text | grep -A5 "Subject Alternative Name"
+docker compose exec xmpp-prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -noout -dates -text | grep -A5 "Subject Alternative Name"
 
 # Check if renewal is working
-docker compose logs prosody | grep -i cert
+docker compose logs xmpp-prosody | grep -i cert
 ```
 
 ## 🔍 Troubleshooting

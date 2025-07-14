@@ -301,13 +301,13 @@ Some modules have dependencies on others:
 
 ```bash
 # Check module status
-docker compose exec prosody prosodyctl check modules
+docker compose exec xmpp-prosody prosodyctl check modules
 
 # List enabled modules
-docker compose exec prosody prosodyctl list modules
+docker compose exec xmpp-prosody prosodyctl list modules
 
 # Test specific module
-docker compose exec prosody prosodyctl test mod_example
+docker compose exec xmpp-prosody prosodyctl test mod_example
 ```
 
 ## 📚 Module Resources

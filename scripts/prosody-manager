@@ -500,7 +500,7 @@ create_backup() {
         # Backup database (if PostgreSQL)
         if docker ps --format '{{.Names}}' | grep -q "db"; then
             log_info "Backing up PostgreSQL database..."
-            docker exec xmpp-db-1 pg_dump -U prosody prosody >"$backup_path/database.sql"
+            docker exec xmpp-postgres pg_dump -U prosody prosody >"$backup_path/database.sql"
         fi
     fi
 
@@ -584,7 +584,7 @@ restore_backup() {
         # Restore database
         if [[ -f "$backup_path/database.sql" ]]; then
             log_info "Restoring database..."
-            docker exec -i xmpp-db-1 psql -U prosody prosody <"$backup_path/database.sql"
+            docker exec -i xmpp-postgres psql -U prosody prosody <"$backup_path/database.sql"
         fi
     fi
 
@@ -683,7 +683,7 @@ deploy_up() {
     case "$mode" in
     "minimal")
         log_info "Starting minimal deployment (Prosody only)..."
-        docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d prosody
+        docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d xmpp-prosody
         ;;
     "full" | *)
         log_info "Starting full deployment (all services)..."

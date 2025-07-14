@@ -38,21 +38,21 @@ LETSENCRYPT_EMAIL=admin@allthingslinux.org
 
 ```bash
 # Start the server (minimal deployment)
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 
 # Check status
-docker compose logs -f prosody
+docker compose logs -f xmpp-prosody
 ```
 
 ### 5. Create Users
 
 ```bash
 # Create admin user
-docker compose exec prosody prosodyctl adduser admin@atl.chat
+docker compose exec xmpp-prosody prosodyctl adduser admin@atl.chat
 
 # Create regular users
-docker compose exec prosody prosodyctl adduser alice@atl.chat
-docker compose exec prosody prosodyctl adduser bob@atl.chat
+docker compose exec xmpp-prosody prosodyctl adduser alice@atl.chat
+docker compose exec xmpp-prosody prosodyctl adduser bob@atl.chat
 ```
 
 ### 6. Connect
@@ -100,7 +100,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 docker compose --profile letsencrypt run --rm certbot
 
 # 3. Start the server
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 ```
 
 **Benefits:**
@@ -124,7 +124,7 @@ chmod 644 ./certs/atl.chat.crt
 chmod 600 ./certs/atl.chat.key
 
 # Start the server
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 ```
 
 ### Development Mode
@@ -133,7 +133,7 @@ For development, no certificate setup is needed:
 
 ```bash
 # Start server - self-signed certificates generated automatically
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 ```
 
 ## 📱 Connect XMPP Clients
@@ -187,7 +187,7 @@ Web clients can connect via WebSocket:
 
 ```bash
 # Deploy with TURN/STUN server for voice/video calls
-docker compose up -d prosody db coturn
+docker compose up -d xmpp-prosody xmpp-postgres xmpp-coturn
 ```
 
 ### External Monitoring
@@ -211,13 +211,13 @@ docker compose up -d
 
 ```bash
 # Check if prosody is running
-docker compose exec prosody prosodyctl status
+docker compose exec xmpp-prosody prosodyctl status
 
 # Test connectivity
-docker compose exec prosody prosodyctl check connectivity atl.chat
+docker compose exec xmpp-prosody prosodyctl check connectivity atl.chat
 
 # Check configuration
-docker compose exec prosody prosodyctl check config
+docker compose exec xmpp-prosody prosodyctl check config
 ```
 
 ### Test External Connectivity
@@ -235,13 +235,13 @@ Visit [XMPP Compliance Tester](https://compliance.conversations.im/) and enter y
 
 ```bash
 # List users
-docker compose exec prosody prosodyctl list users atl.chat
+docker compose exec xmpp-prosody prosodyctl list users atl.chat
 
 # Change password
-docker compose exec prosody prosodyctl passwd alice@atl.chat
+docker compose exec xmpp-prosody prosodyctl passwd alice@atl.chat
 
 # Delete user
-docker compose exec prosody prosodyctl deluser bob@atl.chat
+docker compose exec xmpp-prosody prosodyctl deluser bob@atl.chat
 ```
 
 ### Server Management

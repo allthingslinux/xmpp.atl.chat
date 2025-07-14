@@ -156,7 +156,7 @@ chmod 600 ./certs/atl.chat.key
 
 ```bash
 # Deploy only XMPP server and database
-docker compose up -d prosody db
+docker compose up -d xmpp-prosody xmpp-postgres
 ```
 
 ### Full Deployment
@@ -170,7 +170,7 @@ docker compose up -d
 
 ```bash
 # XMPP + Database + TURN server
-docker compose up -d prosody db coturn
+docker compose up -d xmpp-prosody xmpp-postgres xmpp-coturn
 ```
 
 ## 🌐 Service URLs
@@ -291,10 +291,10 @@ docker compose restart prosody
 
 ```bash
 # Test prosody configuration
-docker compose exec prosody prosodyctl check config
+docker compose exec xmpp-prosody prosodyctl check config
 
 # Test connectivity
-docker compose exec prosody prosodyctl check connectivity atl.chat
+docker compose exec xmpp-prosody prosodyctl check connectivity atl.chat
 ```
 
 ### Verify Service Access
@@ -370,13 +370,13 @@ docker compose exec db psql -U prosody -d prosody -c "SELECT 1;"
 
 ```bash
 # Check all environment variables are loaded
-docker compose exec prosody env | grep PROSODY
+docker compose exec xmpp-prosody env | grep PROSODY
 
 # Test configuration syntax
-docker compose exec prosody prosodyctl check config
+docker compose exec xmpp-prosody prosodyctl check config
 
 # Test all connectivity
-docker compose exec prosody prosodyctl check connectivity
+docker compose exec xmpp-prosody prosodyctl check connectivity
 ```
 
 ## 🎯 Next Steps

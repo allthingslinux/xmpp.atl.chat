@@ -189,7 +189,7 @@ _5281._tcp.your-domain.com. TLSA 3 1 1 <certificate-sha256-hash>
 
    ```bash
    # Get certificate fingerprint (SHA-256) from wildcard certificate
-   docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -pubkey -noout | \
+   docker compose exec xmpp-prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -pubkey -noout | \
    openssl pkey -pubin -outform der | \
    openssl dgst -sha256 -binary | \
    xxd -p -u -c 32
@@ -271,7 +271,7 @@ DOMAIN="atl.chat"
 CERT_PATH="./certs/live/$DOMAIN/fullchain.pem"
 
 # Generate new TLSA hash from wildcard certificate
-NEW_HASH=$(docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/$DOMAIN/fullchain.pem -pubkey -noout | \
+NEW_HASH=$(docker compose exec xmpp-prosody openssl x509 -in /etc/prosody/certs/live/$DOMAIN/fullchain.pem -pubkey -noout | \
            openssl pkey -pubin -outform der | \
            openssl dgst -sha256 -binary | \
            xxd -p -u -c 32)
@@ -380,7 +380,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 docker compose --profile letsencrypt run --rm certbot
 
 # 3. Extract TLSA hash for DNS records
-docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -pubkey -noout | \
+docker compose exec xmpp-prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -pubkey -noout | \
 openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | xxd -p -u -c 32
 ```
 

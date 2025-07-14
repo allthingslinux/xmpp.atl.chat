@@ -212,7 +212,7 @@ location /files/ {
 1. **Check permissions:**
 
    ```bash
-   docker compose exec prosody ls -la /var/www/html/
+   docker compose exec xmpp-prosody ls -la /var/www/html/
    ```
 
 2. **Check logs:**
@@ -224,7 +224,7 @@ location /files/ {
 3. **Verify mount:**
 
    ```bash
-   docker compose exec prosody cat /var/www/html/index.html
+   docker compose exec xmpp-prosody cat /var/www/html/index.html
    ```
 
 ### 404 Errors

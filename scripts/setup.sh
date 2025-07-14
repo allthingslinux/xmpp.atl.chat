@@ -268,7 +268,7 @@ start_services() {
     cd "$PROJECT_DIR"
 
     log_info "Starting Prosody and database..."
-    if docker compose up -d prosody db; then
+    if docker compose up -d xmpp-prosody xmpp-postgres; then
         log_info "Services started successfully ✓"
 
         # Wait a moment for services to start
@@ -298,12 +298,12 @@ create_admin_user() {
     log_info "Creating admin user: $admin_jid"
     log_info "Please enter a password for the administrator account:"
 
-    if docker compose exec prosody prosodyctl adduser "$admin_jid"; then
+    if docker compose exec xmpp-prosody prosodyctl adduser "$admin_jid"; then
         log_info "Administrator user created successfully ✓"
     else
         log_error "Failed to create administrator user"
         log_error "You can create it manually later with:"
-        log_error "docker compose exec prosody prosodyctl adduser $admin_jid"
+        log_error "docker compose exec xmpp-prosody prosodyctl adduser $admin_jid"
     fi
 }
 
@@ -339,7 +339,7 @@ show_completion() {
     echo -e "${YELLOW}Useful commands:${NC}"
     echo "• View logs: docker compose logs -f prosody"
     echo "• Restart services: docker compose restart"
-    echo "• Add users: docker compose exec prosody prosodyctl adduser user@domain"
+    echo "• Add users: docker compose exec xmpp-prosody prosodyctl adduser user@domain"
     echo "• Renew certificates: ./scripts/renew-certificates.sh"
     echo
     echo -e "${BLUE}Documentation: docs/README.md${NC}"

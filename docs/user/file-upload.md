@@ -174,10 +174,10 @@ Check current storage usage:
 
 ```bash
 # Check total storage used
-docker compose exec prosody du -sh /var/lib/prosody/http_file_share/
+docker compose exec xmpp-prosody du -sh /var/lib/prosody/http_file_share/
 
 # Check database records
-docker compose exec prosody prosodyctl mod_http_file_share info
+docker compose exec xmpp-prosody prosodyctl mod_http_file_share info
 ```
 
 ### Cleanup
@@ -186,7 +186,7 @@ Manual cleanup of expired files:
 
 ```bash
 # Force cleanup of expired files
-docker compose exec prosody prosodyctl mod_http_file_share cleanup
+docker compose exec xmpp-prosody prosodyctl mod_http_file_share cleanup
 ```
 
 ### Logs
@@ -211,7 +211,7 @@ docker compose logs -f prosody | grep -i upload
 
    ```bash
    # View current quotas and usage
-   docker compose exec prosody prosodyctl mod_http_file_share quota user@domain.com
+   docker compose exec xmpp-prosody prosodyctl mod_http_file_share quota user@domain.com
    ```
 
 2. **Check file size:**
@@ -228,7 +228,7 @@ docker compose logs -f prosody | grep -i upload
 
 ```bash
 # Check global quota usage
-docker compose exec prosody prosodyctl mod_http_file_share info
+docker compose exec xmpp-prosody prosodyctl mod_http_file_share info
 
 # Increase quotas in .env file
 PROSODY_UPLOAD_DAILY_QUOTA=2147483648  # 2GB
@@ -241,10 +241,10 @@ PROSODY_UPLOAD_GLOBAL_QUOTA=21474836480  # 20GB
 
 ```bash
 # Check storage directory permissions
-docker compose exec prosody ls -la /var/lib/prosody/
+docker compose exec xmpp-prosody ls -la /var/lib/prosody/
 
 # Fix permissions if needed
-docker compose exec prosody chown -R prosody:prosody /var/lib/prosody/http_file_share/
+docker compose exec xmpp-prosody chown -R prosody:prosody /var/lib/prosody/http_file_share/
 ```
 
 ## 🚀 Advanced Configuration

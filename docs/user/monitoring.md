@@ -67,7 +67,7 @@ Add this to your Prometheus `prometheus.yml`:
 
 ```yaml
 scrape_configs:
-  - job_name: "prosody-xmpp"
+  - job_name: "xmpp-prosody"
     metrics_path: "/metrics"
     scheme: "http"
     scrape_interval: 30s
@@ -238,7 +238,7 @@ rate(prosody_storage_operations_total[5m])
 
 ```yaml
 - alert: ProsodyDown
-  expr: up{job="prosody-xmpp"} == 0
+  expr: up{job="xmpp-prosody"} == 0
   for: 1m
   labels:
     severity: critical
@@ -380,7 +380,7 @@ The metrics endpoint may expose:
 1. **Verify statistics are enabled:**
 
    ```bash
-   docker compose exec prosody prosodyctl check config
+   docker compose exec xmpp-prosody prosodyctl check config
    ```
 
 2. **Check module loading:**
@@ -402,7 +402,7 @@ The metrics endpoint may expose:
 
    ```bash
    # Look for scrape errors
-   grep "prosody-xmpp" /var/log/prometheus/prometheus.log
+   grep "xmpp-prosody" /var/log/prometheus/prometheus.log
    ```
 
 2. **Verify network connectivity:**
@@ -438,10 +438,10 @@ watch -n 5 'curl -s http://localhost:5280/metrics | grep prosody_c2s_connections
 
 ```bash
 # Check statistics interval
-docker compose exec prosody prosodyctl check config | grep statistics
+docker compose exec xmpp-prosody prosodyctl check config | grep statistics
 
 # Check module status
-docker compose exec prosody prosodyctl check modules
+docker compose exec xmpp-prosody prosodyctl check modules
 ```
 
 ## 📖 Standards Compliance
