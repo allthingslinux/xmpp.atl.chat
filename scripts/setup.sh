@@ -63,6 +63,8 @@ prompt_password() {
 
     read -r -s -p "$prompt: " response
     echo
+    # Trim leading/trailing whitespace
+    response=$(echo "$response" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     echo "$response"
 }
 
@@ -176,6 +178,9 @@ setup_cloudflare() {
 
     local cf_token
     cf_token=$(prompt_password "Cloudflare API Token")
+
+    # Trim whitespace from token
+    cf_token=$(echo "$cf_token" | tr -d '[:space:]')
 
     # Update credentials file (using awk to safely handle any characters)
     awk -v token="$cf_token" '
