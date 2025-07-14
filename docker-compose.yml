@@ -298,8 +298,3 @@ volumes:
 # ============================================================================
 networks:
   prosody_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
