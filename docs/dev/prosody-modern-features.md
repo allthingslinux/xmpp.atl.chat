@@ -1,85 +1,91 @@
 # Modern Prosody Features Integration
 
-This document describes the integration of modern Prosody features (13.0+) into our layer-based XMPP server configuration, based on the official [Prosody configuration documentation](https://prosody.im/doc/configure).
+This document describes the integration of modern Prosody features (13.0+) into our **single configuration** XMPP server setup, based on the official [Prosody configuration documentation](https://prosody.im/doc/configure).
 
 ## Overview
 
-Our configuration has been enhanced with the latest Prosody features while maintaining the existing layer-based architecture. The improvements focus on security, credential management, and operational excellence.
+Our configuration has been enhanced with the latest Prosody features using a **single, comprehensive configuration file** approach. The improvements focus on security, credential management, and operational excellence while maintaining simplicity.
 
 ## New Features Implemented
 
 ### 1. Credential Management (Prosody 13.0+)
 
-**File**: `config/tools/security/credentials.cfg.lua`
+**Implementation**: Integrated directly into `core/config/prosody.cfg.lua`
 
-Implements secure credential handling using the new `Credential()` directive:
+Implements secure credential handling using environment variables and the new `Credential()` directive:
 
 ```lua
--- Secure database password loading
+-- Secure database password loading via environment variables
 sql = {
-    driver = "PostgreSQL",
-    database = "prosody", 
-    username = "prosody",
-    password = Credential("db_password"), -- Secure from CREDENTIALS_DIRECTORY
-    host = "localhost"
+    driver = Lua.os.getenv("PROSODY_DB_DRIVER") or "PostgreSQL",
+    database = Lua.os.getenv("PROSODY_DB_NAME") or "prosody",
+    username = Lua.os.getenv("PROSODY_DB_USER") or "prosody",
+    password = Lua.os.getenv("PROSODY_DB_PASSWORD") or "changeme",
+    host = Lua.os.getenv("PROSODY_DB_HOST") or "localhost"
 }
 ```
 
 **Benefits**:
 
-- Integration with systemd `LoadCredential=`
-- Compatible with podman/docker secrets
+- Integration with Docker secrets and environment variables
+- Compatible with container orchestration systems
 - Eliminates plaintext passwords in configuration files
 - Supports enterprise credential management systems
 
 **Setup**:
 
 ```bash
-# Systemd service example
-[Service]
-DynamicUser=true
-LoadCredential=db_password:/etc/prosody/secrets/db_password
-Environment=CREDENTIALS_DIRECTORY=%d/credentials
+# Docker environment with secrets
+docker run --env-file .env \
+           -e PROSODY_DB_PASSWORD_FILE=/run/secrets/db_password \
+           prosody:latest
 ```
 
-### 2. File Content Directives (Prosody 13.0+)
+### 2. Environment-Driven Configuration
 
-Dynamic configuration loading from external files:
+Dynamic configuration loading from environment variables:
 
 ```lua
 -- Dynamic administrator list
-admins = FileLines("config/security/admin-list.txt")
+admins = { Lua.os.getenv("PROSODY_ADMIN_JID") or "admin@localhost" }
 
--- System MOTD integration
-motd_text = FileContents("/etc/motd")
+-- Domain configuration
+server_name = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
 
--- Certificate path management
-ssl_certificate = FileLine("config/tls/cert-path.txt")
+-- Port configuration
+c2s_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_C2S_PORT")) or 5222 }
 ```
 
 **Benefits**:
 
-- No config reload needed for admin changes
-- Integration with system announcements
-- Automated certificate rotation support
-- External security policy management
+- No config rebuild needed for environment changes
+- Integration with container orchestration
+- Automated deployment support
+- External configuration management
 
-### 3. Enhanced Module Loading
+### 3. Enhanced Module Management
 
-**File**: `config/tools/core/module-loader.cfg.lua`
+**Implementation**: Built into the single configuration file with dual module support
 
 Advanced module management with:
 
-- **Dependency Resolution**: Automatic loading order based on module dependencies
-- **XEP Compliance Tracking**: Documentation of which XEPs each module implements
+- **Automatic Loading**: Pre-configured with 50+ modules for maximum compatibility
+- **Dual Installation Support**: Both official (LuaRocks) and community modules via `prosody-manager`
+- **XEP Compliance Tracking**: Comprehensive XEP support documentation
 - **Error Handling**: Graceful handling of missing modules
-- **Consistent Naming**: Enforces consistent module naming patterns
 
 ```lua
--- Example usage
-local loader = require("config.tools.core.module-loader")
-loader.load_module_set({"mam", "carbons", "smacks"}, "atl.chat")
-loader.generate_compliance_report()
+-- Core modules pre-configured in prosody.cfg.lua
+modules_enabled = {
+    -- Core XMPP Protocol
+    "roster", "saslauth", "tls", "dialback",
+    
+    -- Modern Messaging Features  
+    "mam", "carbons", "smacks", "csi_simple",
+    
+    -- Community modules (automatically installed)
+    "cloud_notify", "firewall", "anti_spam"
+}
 ```
 
 ### 4. Advanced Logging Configuration
@@ -87,22 +93,16 @@ loader.generate_compliance_report()
 Based on the [Logging Configuration](https://prosody.im/doc/logging) documentation:
 
 ```lua
+-- Production-ready logging configuration
 log = {
-    -- Development console output
-    { levels = { min = "debug" }, to = "console", timestamps = true },
+    -- Console output for development
+    { levels = { min = Lua.os.getenv("PROSODY_LOG_LEVEL") or "info" }, to = "console" },
     
-    -- Production file logging
+    -- File logging for production
     { levels = { min = "info" }, to = "file", filename = "/var/log/prosody/prosody.log" },
     
     -- Security event logging
-    { levels = { "warn", "error" }, to = "file", filename = "/var/log/prosody/security.log" },
-    
-    -- Audit trail
-    { events = { "authentication-success", "authentication-failure" }, 
-      to = "file", filename = "/var/log/prosody/audit.log" },
-      
-    -- Syslog integration
-    { levels = { min = "warn" }, to = "*syslog", syslog_name = "prosody" }
+    { levels = { "warn", "error" }, to = "file", filename = "/var/log/prosody/security.log" }
 }
 ```
 
@@ -111,78 +111,70 @@ log = {
 Alignment with current security best practices:
 
 ```lua
--- Mozilla TLS recommendations
-tls_profile = "intermediate"
+-- Enhanced TLS settings
+ssl = {
+    protocol = "tlsv1_2+", -- TLS 1.2+ only
+    ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
+    curve = "secp384r1",
+    options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" }
+}
 
 -- Mandatory encryption
 c2s_require_encryption = true
 s2s_require_encryption = true
-
--- Secure POSIX settings (no mod_posix required in 13.0+)
-pidfile = "/run/prosody/prosody.pid"
-umask = "027"
 ```
 
-## Integration with Existing Architecture
+## Integration with Current Architecture
 
-### Layer-Based Loading Enhancement
+### Single Configuration Benefits
 
-The main configuration file (`config/prosody.cfg.lua`) now includes:
+The main configuration file (`core/config/prosody.cfg.lua`) provides:
 
-1. **Credential Loading**: Called before other configurations
-2. **Enhanced Error Handling**: Better detection of missing files
-3. **Feature Detection**: Automatic detection of Prosody version capabilities
+1. **Centralized Management**: All settings in one comprehensive file
+2. **Environment Integration**: Dynamic configuration via environment variables  
+3. **Production Ready**: Optimized defaults for production deployment
+4. **Docker Native**: Designed for containerized deployment
 
-### Backward Compatibility
+### Unified Management
 
-All enhancements are backward compatible:
+All configuration is managed through:
 
-- Environment variable fallbacks for older Prosody versions
-- Graceful degradation when new features aren't available
-- Existing layer structure preserved
+- **Environment Variables**: Via `.env` file for deployment configuration
+- **prosody-manager CLI**: Unified tool for all administrative tasks
+- **Single Config File**: `core/config/prosody.cfg.lua` with comprehensive settings
 
 ## Deployment Considerations
 
-### Systemd Integration
+### Container Integration
 
-For modern systemd deployments:
+For modern container deployments:
 
-```ini
-[Unit]
-Description=Prosody XMPP Server
-After=network.target
-
-[Service]
-Type=simple
-User=prosody
-Group=prosody
-DynamicUser=true
-LoadCredential=db_password:/etc/prosody/secrets/db_password
-LoadCredential=ldap_password:/etc/prosody/secrets/ldap_password
-Environment=CREDENTIALS_DIRECTORY=%d/credentials
-Environment=PROSODY_ENV=production
-ExecStart=/usr/bin/prosody
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
+```yaml
+# docker-compose.yml
+services:
+  xmpp-prosody:
+    image: allthingslinux/prosody:latest
+    env_file: .env
+    environment:
+      - PROSODY_DB_HOST=xmpp-postgres
+      - PROSODY_DOMAIN=${PROSODY_DOMAIN}
+    volumes:
+      - ./core/config:/etc/prosody/config:ro
 ```
 
-### Container Deployment
-
-For containerized environments:
+### Environment Configuration
 
 ```bash
-# Podman with secrets
-podman secret create prosody_db_password /opt/xmpp.atl.chat/.env
-podman run --secret prosody_db_password \
-           -e CREDENTIALS_DIRECTORY=/run/secrets \
-           prosody:latest
+# .env file
+PROSODY_DOMAIN=atl.chat
+PROSODY_ADMIN_JID=admin@atl.chat
+PROSODY_DB_PASSWORD=secure_password_here
+PROSODY_LOG_LEVEL=info
 ```
 
 ## XEP Compliance Tracking
 
-The enhanced module loader automatically tracks XEP compliance:
+The single configuration automatically enables comprehensive XEP support:
 
 | Module | XEP | Description |
 |--------|-----|-------------|
@@ -191,43 +183,88 @@ The enhanced module loader automatically tracks XEP compliance:
 | smacks | XEP-0198 | Stream Management |
 | csi_simple | XEP-0352 | Client State Indication |
 | http_upload | XEP-0363 | HTTP File Upload |
-| websocket | RFC 7395 | WebSocket Subprotocol for XMPP |
-| bosh | XEP-0124/0206 | BOSH |
+| cloud_notify | XEP-0357 | Push Notifications |
 
-## Configuration Validation
+See [XEP Compliance Documentation](../reference/xep-compliance.md) for complete list.
 
-Enhanced configuration validation includes:
+## Configuration Management
 
-- Module dependency checking
-- Credential availability verification
-- File existence validation
-- XEP compliance reporting
+### Using prosody-manager
+
+The unified CLI tool provides comprehensive management:
+
+```bash
+# Module management
+./prosody-manager module list
+./prosody-manager module install mod_example
+
+# Configuration validation
+./prosody-manager health config
+
+# User management  
+./prosody-manager prosodyctl adduser alice@atl.chat
+```
+
+### Environment Updates
+
+```bash
+# Update configuration
+nano .env
+
+# Restart to apply changes
+docker compose restart xmpp-prosody
+```
 
 ## Migration Guide
 
-### From Basic Configuration
+### From Complex Multi-File Configurations
 
-To adopt these features in an existing Prosody setup:
+To adopt this simplified approach:
+
+1. **Consolidate Settings**: Move all configuration to environment variables
+2. **Use Single Config**: Replace multiple config files with single comprehensive file
+3. **Adopt prosody-manager**: Use unified CLI tool for all management tasks
+4. **Environment-Driven**: Configure via `.env` file rather than config file edits
+
+### From Legacy Prosody Deployments
 
 1. **Update Prosody**: Ensure version 13.0 or later
-2. **Add Credential Support**: Set up `CREDENTIALS_DIRECTORY`
-3. **Update Logging**: Migrate to advanced logging configuration
-4. **Enable Module Loader**: Integrate enhanced module management
-
-### From Legacy Configuration
-
-1. **Preserve Existing Settings**: All current configurations remain valid
-2. **Gradual Migration**: Adopt new features incrementally
+2. **Migrate Configuration**: Convert existing settings to environment variables
 3. **Test Environment**: Validate in development before production deployment
+4. **Use Modern Features**: Enable new security and performance features
 
 ## Example Configurations
 
-See `examples/prosody-13-features.cfg.lua` for a complete demonstration of all modern features integrated together.
+Complete example configurations are available in:
+
+- `templates/env/env.example` - Environment variable template
+- `core/config/prosody.cfg.lua` - Complete production configuration
+- `docker-compose.yml` - Container orchestration setup
+
+## Management Tools
+
+### prosody-manager CLI
+
+Comprehensive management via unified tool:
+
+```bash
+# Health monitoring
+./prosody-manager health all
+
+# Certificate management
+./prosody-manager cert check atl.chat
+
+# Backup operations
+./prosody-manager backup create
+
+# Deployment management
+./prosody-manager deploy status
+```
 
 ## References
 
 - [Official Prosody Configuration Documentation](https://prosody.im/doc/configure)
 - [Prosody 13.0 Release Notes](https://prosody.im/doc/release/0.13.0)
-- [Logging Configuration](https://prosody.im/doc/logging)
-- [Security Best Practices](https://prosody.im/doc/security)
-- [Certificate Management](https://prosody.im/doc/certificates)
+- [Environment Variable Configuration](../user/configuration.md)
+- [prosody-manager CLI Reference](../admin/README.md)
+- [Architecture Overview](architecture.md)

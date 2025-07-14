@@ -302,14 +302,33 @@ The `prosody-manager` script provides comprehensive server management:
 ```text
 xmpp.atl.chat/
 ├── prosody-manager          # Unified CLI management tool
-├── core/                   # Configuration and database files
-├── web/                    # Registration, admin, assets, themes, webclient
-├── scripts/                # Setup, admin, dev, maintenance scripts
-├── deployment/             # Reverse-proxy, systemd, monitoring configs
-├── templates/              # Environment and configuration examples
+├── core/                   # Core configuration files
+│   ├── config/             # Single comprehensive Prosody configuration
+│   └── database/           # Database initialization and migrations
+├── web/                    # Web components and themes
+│   ├── admin/              # Administrative web interfaces
+│   ├── registration/       # User registration components
+│   ├── webclient/          # Web-based XMPP client
+│   └── assets/             # Static web assets
+├── scripts/                # Automation and management scripts
+│   ├── setup/              # Initial setup and deployment
+│   ├── admin/              # Administrative utilities
+│   ├── dev/                # Development tools
+│   └── maintenance/        # Maintenance and backup scripts
+├── deployment/             # Production deployment configurations
+│   ├── reverse-proxy/      # nginx/Apache proxy configurations
+│   ├── systemd/            # systemd service configurations
+│   └── monitoring/         # Prometheus/Grafana configurations
+├── templates/              # Configuration templates and examples
+│   ├── env/                # Environment variable templates
+│   ├── configs/            # Configuration file examples
+│   └── deployment/         # Deployment configuration templates
 ├── docs/                   # Comprehensive documentation
-├── tests/                  # Testing framework
-├── .runtime/               # Runtime data (gitignored)
+│   ├── user/               # End-user guides (getting started, configuration)
+│   ├── admin/              # Administrator guides (deployment, security)
+│   ├── dev/                # Developer documentation (architecture, features)
+│   └── reference/          # Technical reference (XEPs, modules, troubleshooting)
+└── .runtime/               # Runtime data (certificates, logs, backups - gitignored)
 ```
 
 ## Contributing
