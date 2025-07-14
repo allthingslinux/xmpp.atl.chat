@@ -17,23 +17,23 @@ user = "prosody"
 group = "prosody"
 
 -- Server identity
-server_name = os.getenv("PROSODY_DOMAIN") or "localhost"
-admins = { os.getenv("PROSODY_ADMIN_JID") or "admin@localhost" }
+server_name = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
+admins = { Lua.os.getenv("PROSODY_ADMIN_JID") or "admin@localhost" }
 
 -- ===============================================
 -- NETWORK AND CONNECTION SETTINGS
 -- ===============================================
 
 -- Standard XMPP ports (RFC 6120/6121)
-c2s_ports = { tonumber(os.getenv("PROSODY_C2S_PORT")) or 5222 } -- Client-to-server (STARTTLS)
-c2s_direct_tls_ports = { tonumber(os.getenv("PROSODY_C2S_DIRECT_TLS_PORT")) or 5223 } -- Direct TLS
-s2s_ports = { tonumber(os.getenv("PROSODY_S2S_PORT")) or 5269 } -- Server-to-server
-s2s_direct_tls_ports = { tonumber(os.getenv("PROSODY_S2S_DIRECT_TLS_PORT")) or 5270 } -- Server-to-server Direct TLS
+c2s_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_C2S_PORT")) or 5222 } -- Client-to-server (STARTTLS)
+c2s_direct_tls_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_C2S_DIRECT_TLS_PORT")) or 5223 } -- Direct TLS
+s2s_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_S2S_PORT")) or 5269 } -- Server-to-server
+s2s_direct_tls_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_S2S_DIRECT_TLS_PORT")) or 5270 } -- Server-to-server Direct TLS
 component_ports = { 5347 } -- External components (XEP-0114: Jabber Component Protocol)
 
 -- HTTP services
-http_ports = { tonumber(os.getenv("PROSODY_HTTP_PORT")) or 5280 } -- HTTP (BOSH, file upload, admin)
-https_ports = { tonumber(os.getenv("PROSODY_HTTPS_PORT")) or 5281 } -- HTTPS (secure services)
+http_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTP_PORT")) or 5280 } -- HTTP (BOSH, file upload, admin)
+https_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTPS_PORT")) or 5281 } -- HTTPS (secure services)
 
 -- Interface bindings
 interfaces = { "*" }
@@ -113,16 +113,16 @@ user_account_management = {
 -- ===============================================
 
 -- Default storage backend
-default_storage = os.getenv("PROSODY_STORAGE") or "sql"
+default_storage = Lua.os.getenv("PROSODY_STORAGE") or "sql"
 
 -- SQL configuration for production scalability
 sql = {
-	driver = os.getenv("PROSODY_DB_DRIVER") or "PostgreSQL",
-	database = os.getenv("PROSODY_DB_NAME") or "prosody",
-	username = os.getenv("PROSODY_DB_USER") or "prosody",
-	password = os.getenv("PROSODY_DB_PASSWORD") or "changeme",
-	host = os.getenv("PROSODY_DB_HOST") or "localhost",
-	port = tonumber(os.getenv("PROSODY_DB_PORT")) or 5432,
+	driver = Lua.os.getenv("PROSODY_DB_DRIVER") or "PostgreSQL",
+	database = Lua.os.getenv("PROSODY_DB_NAME") or "prosody",
+	username = Lua.os.getenv("PROSODY_DB_USER") or "prosody",
+	password = Lua.os.getenv("PROSODY_DB_PASSWORD") or "changeme",
+	host = Lua.os.getenv("PROSODY_DB_HOST") or "localhost",
+	port = Lua.tonumber(Lua.os.getenv("PROSODY_DB_PORT")) or 5432,
 
 	-- Production connection pooling
 	pool_size = 10,
@@ -173,29 +173,25 @@ storage = {
 -- Message archive expiry (how long messages are stored)
 -- Supports: "1d", "1w", "1m", "1y", "never", or seconds as number
 -- Default: "1w" (1 week), Production: "1y" (1 year) for compliance
-archive_expires_after = os.getenv("PROSODY_ARCHIVE_EXPIRES_AFTER") or "1y"
+archive_expires_after = Lua.os.getenv("PROSODY_ARCHIVE_EXPIRES_AFTER") or "1y"
 
 -- Archive policy: who gets messages archived by default
 -- "false" = no archiving, "roster" = contacts only, "true" = all messages
 -- Default: "true", but "roster" is more privacy-friendly
-default_archive_policy = os.getenv("PROSODY_ARCHIVE_POLICY") or "roster"
+default_archive_policy = Lua.os.getenv("PROSODY_ARCHIVE_POLICY") or "roster"
 
 -- Maximum messages returned per query (pagination)
 -- Too low = many queries, too high = resource intensive
 -- Default: 50, Production: 250 for better UX
-max_archive_query_results = tonumber(os.getenv("PROSODY_ARCHIVE_MAX_QUERY_RESULTS")) or 250
-
--- Archive cleanup interval (how often to remove expired messages)
--- Default: 4*60*60 (4 hours), Production: 86400 (daily) for efficiency
-archive_cleanup_interval = tonumber(os.getenv("PROSODY_ARCHIVE_CLEANUP_INTERVAL")) or 86400
+max_archive_query_results = Lua.tonumber(Lua.os.getenv("PROSODY_ARCHIVE_MAX_QUERY_RESULTS")) or 250
 
 -- Archive store name (usually should not be changed)
 -- Default: "archive", Legacy: "archive2" for old installations
-archive_store = os.getenv("PROSODY_ARCHIVE_STORE") or "archive"
+archive_store = Lua.os.getenv("PROSODY_ARCHIVE_STORE") or "archive"
 
 -- Smart archiving: only enable for users who actually use MAM
 -- Default: false (archive for all), true = only after first MAM query
-mam_smart_enable = (os.getenv("PROSODY_MAM_SMART_ENABLE") == "true")
+mam_smart_enable = (Lua.os.getenv("PROSODY_MAM_SMART_ENABLE") == "true")
 
 -- Namespaces to exclude from archiving (reduce storage)
 -- Default excludes chat state notifications (typing indicators)
@@ -205,21 +201,21 @@ dont_archive_namespaces = {
 }
 
 -- Optional: Add custom namespaces to exclude
-local archive_exclude_env = os.getenv("PROSODY_ARCHIVE_EXCLUDE_NAMESPACES")
+local archive_exclude_env = Lua.os.getenv("PROSODY_ARCHIVE_EXCLUDE_NAMESPACES")
 if archive_exclude_env then
 	local custom_namespaces = {}
-	for ns in string.gmatch(archive_exclude_env, "([^,]+)") do
-		table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$")) -- trim whitespace
+	for ns in Lua.string.gmatch(archive_exclude_env, "([^,]+)") do
+		Lua.table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$")) -- trim whitespace
 	end
 	-- Merge with default exclusions
-	for _, ns in ipairs(custom_namespaces) do
-		table.insert(dont_archive_namespaces, ns)
+	for _, ns in Lua.ipairs(custom_namespaces) do
+		Lua.table.insert(dont_archive_namespaces, ns)
 	end
 end
 
 -- Archive compression (save storage space)
 -- Default: true for production efficiency
-archive_compression = (os.getenv("PROSODY_ARCHIVE_COMPRESSION") ~= "false")
+archive_compression = (Lua.os.getenv("PROSODY_ARCHIVE_COMPRESSION") ~= "false")
 
 -- ===============================================
 -- PROSODY 13.0+ FEATURES
@@ -264,12 +260,12 @@ limits = {
 }
 
 -- Connection limits per IP
-max_connections_per_ip = tonumber(os.getenv("PROSODY_MAX_CONNECTIONS_PER_IP")) or 5
+max_connections_per_ip = Lua.tonumber(Lua.os.getenv("PROSODY_MAX_CONNECTIONS_PER_IP")) or 5
 
 -- Registration limits (production security)
-allow_registration = os.getenv("PROSODY_ALLOW_REGISTRATION") == "true"
-registration_throttle_max = tonumber(os.getenv("PROSODY_REGISTRATION_THROTTLE_MAX")) or 3
-registration_throttle_period = tonumber(os.getenv("PROSODY_REGISTRATION_THROTTLE_PERIOD")) or 3600 -- 1 hour
+allow_registration = Lua.os.getenv("PROSODY_ALLOW_REGISTRATION") == "true"
+registration_throttle_max = Lua.tonumber(Lua.os.getenv("PROSODY_REGISTRATION_THROTTLE_MAX")) or 3
+registration_throttle_period = Lua.tonumber(Lua.os.getenv("PROSODY_REGISTRATION_THROTTLE_PERIOD")) or 3600 -- 1 hour
 
 -- ===============================================
 -- MOBILE AND CLIENT OPTIMIZATIONS
@@ -320,8 +316,8 @@ smacks_config = {
 -- ===============================================
 
 -- HTTP server settings
-http_default_host = os.getenv("PROSODY_DOMAIN") or "localhost"
-http_external_url = "https://" .. (os.getenv("PROSODY_DOMAIN") or "localhost") .. "/"
+http_default_host = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
+http_external_url = "https://" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/"
 
 -- Security interfaces (production best practice)
 http_interfaces = { "*", "::" } -- HTTP accessible from internet for Let's Encrypt
@@ -332,10 +328,10 @@ http_files = {}
 
 -- Optional: Additional static file serving
 -- Configure via PROSODY_HTTP_FILES_DIR environment variable
-if os.getenv("PROSODY_HTTP_FILES_DIR") then
-	http_files_dir = os.getenv("PROSODY_HTTP_FILES_DIR")
+if Lua.os.getenv("PROSODY_HTTP_FILES_DIR") then
+	http_files_dir = Lua.os.getenv("PROSODY_HTTP_FILES_DIR")
 	http_index_files = { "index.html", "index.htm" }
-	http_dir_listing = (os.getenv("PROSODY_HTTP_DIR_LISTING") == "true")
+	http_dir_listing = (Lua.os.getenv("PROSODY_HTTP_DIR_LISTING") == "true")
 	log("info", "HTTP static files enabled: %s", http_files_dir)
 end
 
@@ -349,8 +345,11 @@ trusted_proxies = {
 }
 
 -- CORS support for web clients
-cross_domain_bosh = true
-cross_domain_websocket = true
+-- Modern CORS configuration (replaces deprecated cross_domain_* options)
+http_cors_override = {
+	bosh = true,
+	websocket = true,
+}
 
 -- Enhanced HTTP security headers
 http_headers = {
@@ -363,22 +362,22 @@ http_headers = {
 }
 
 -- File upload configuration (XEP-0363: HTTP File Upload)
-http_file_share_size_limit = tonumber(os.getenv("PROSODY_UPLOAD_SIZE_LIMIT")) or (100 * 1024 * 1024) -- Configurable size limit
-http_file_share_daily_quota = tonumber(os.getenv("PROSODY_UPLOAD_DAILY_QUOTA")) or (1024 * 1024 * 1024) -- 1GB per day default
-http_file_share_expire_after = tonumber(os.getenv("PROSODY_UPLOAD_EXPIRE_AFTER")) or (30 * 24 * 3600) -- 30 days default
-http_file_share_path = os.getenv("PROSODY_UPLOAD_PATH") or "/var/lib/prosody/http_file_share"
+http_file_share_size_limit = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_SIZE_LIMIT")) or (100 * 1024 * 1024) -- Configurable size limit
+http_file_share_daily_quota = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_DAILY_QUOTA")) or (1024 * 1024 * 1024) -- 1GB per day default
+http_file_share_expire_after = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_EXPIRE_AFTER")) or (30 * 24 * 3600) -- 30 days default
+http_file_share_path = Lua.os.getenv("PROSODY_UPLOAD_PATH") or "/var/lib/prosody/http_file_share"
 
 -- Optional: Global quota (total storage limit across all users)
-if os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") then
-	http_file_share_global_quota = tonumber(os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA"))
+if Lua.os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") then
+	http_file_share_global_quota = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA"))
 end
 
 -- Optional: Allowed file types restriction
-local upload_types_env = os.getenv("PROSODY_UPLOAD_ALLOWED_TYPES")
+local upload_types_env = Lua.os.getenv("PROSODY_UPLOAD_ALLOWED_TYPES")
 if upload_types_env then
 	local types = {}
-	for type in string.gmatch(upload_types_env, "([^,]+)") do
-		table.insert(types, type:match("^%s*(.-)%s*$")) -- trim whitespace
+	for type in Lua.string.gmatch(upload_types_env, "([^,]+)") do
+		Lua.table.insert(types, type:match("^%s*(.-)%s*$")) -- trim whitespace
 	end
 	http_file_share_allowed_file_types = types
 end
@@ -404,9 +403,9 @@ websocket_max_frame_size = 1024 * 1024 -- 1MB
 
 -- Production logging with rotation
 log = {
-	{ levels = { min = os.getenv("PROSODY_LOG_LEVEL") or "info" }, to = "console" },
+	{ levels = { min = Lua.os.getenv("PROSODY_LOG_LEVEL") or "info" }, to = "console" },
 	{
-		levels = { min = os.getenv("PROSODY_LOG_LEVEL") or "info" },
+		levels = { min = Lua.os.getenv("PROSODY_LOG_LEVEL") or "info" },
 		to = "file",
 		filename = "/var/log/prosody/prosody.log",
 	},
@@ -424,7 +423,7 @@ statistics = "internal"
 -- Statistics collection interval
 -- Use "manual" for single Prometheus instance (optimal performance)
 -- Use scrape interval (e.g., 30) for multiple Prometheus instances
-statistics_interval = os.getenv("PROSODY_STATISTICS_INTERVAL") or "manual"
+statistics_interval = Lua.os.getenv("PROSODY_STATISTICS_INTERVAL") or "manual"
 
 -- OpenMetrics (Prometheus) configuration
 -- Access control for /metrics endpoint (security critical)
@@ -434,21 +433,21 @@ openmetrics_allow_ips = {
 }
 
 -- Optional: Allow specific IP addresses for monitoring
-local metrics_ips_env = os.getenv("PROSODY_METRICS_ALLOW_IPS")
+local metrics_ips_env = Lua.os.getenv("PROSODY_METRICS_ALLOW_IPS")
 if metrics_ips_env then
 	local custom_ips = {}
-	for ip in string.gmatch(metrics_ips_env, "([^,]+)") do
-		table.insert(custom_ips, ip:match("^%s*(.-)%s*$")) -- trim whitespace
+	for ip in Lua.string.gmatch(metrics_ips_env, "([^,]+)") do
+		Lua.table.insert(custom_ips, ip:match("^%s*(.-)%s*$")) -- trim whitespace
 	end
 	-- Merge with default IPs
-	for _, ip in ipairs(custom_ips) do
-		table.insert(openmetrics_allow_ips, ip)
+	for _, ip in Lua.ipairs(custom_ips) do
+		Lua.table.insert(openmetrics_allow_ips, ip)
 	end
 end
 
 -- Optional: Allow CIDR ranges for monitoring networks
-if os.getenv("PROSODY_METRICS_ALLOW_CIDR") then
-	openmetrics_allow_cidr = os.getenv("PROSODY_METRICS_ALLOW_CIDR")
+if Lua.os.getenv("PROSODY_METRICS_ALLOW_CIDR") then
+	openmetrics_allow_cidr = Lua.os.getenv("PROSODY_METRICS_ALLOW_CIDR")
 end
 
 -- ===============================================
@@ -521,19 +520,25 @@ modules_enabled = {
 	"welcome", -- Welcome message for new users
 }
 
+-- Garbage collection tuning for production
+gc = {
+	speed = 200, -- More aggressive GC
+	threshold = 120, -- Lower threshold
+}
+
 -- ===============================================
 -- DOMAIN CONFIGURATION
 -- ===============================================
 
 -- Main domain configuration
-VirtualHost(os.getenv("PROSODY_DOMAIN") or "localhost")
+VirtualHost(Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
 -- Authentication method for this domain
 authentication = "internal_hashed"
 
 -- SSL certificate for this domain
 ssl = {
-	key = "certs/" .. (os.getenv("PROSODY_DOMAIN") or "localhost") .. ".key",
-	certificate = "certs/" .. (os.getenv("PROSODY_DOMAIN") or "localhost") .. ".crt",
+	key = "certs/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. ".key",
+	certificate = "certs/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. ".crt",
 }
 
 -- ===============================================
@@ -548,16 +553,16 @@ ssl = {
 
 disco_items = {
 	-- Multi-User Chat service (XEP-0045)
-	{ "muc." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "Multi-User Chat Rooms" },
+	{ "muc." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "Multi-User Chat Rooms" },
 
 	-- File upload service (XEP-0363)
-	{ "upload." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "HTTP File Upload" },
+	{ "upload." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "HTTP File Upload" },
 
 	-- File transfer proxy (XEP-0065)
-	{ "proxy." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "SOCKS5 File Transfer Proxy" },
+	{ "proxy." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "SOCKS5 File Transfer Proxy" },
 
 	-- Pastebin service (automatic for long messages)
-	{ os.getenv("PROSODY_DOMAIN") or "localhost", "Pastebin Service" },
+	{ Lua.os.getenv("PROSODY_DOMAIN") or "localhost", "Pastebin Service" },
 
 	-- Optional: External services that can be discovered
 	-- Add custom services here via environment variables
@@ -565,28 +570,28 @@ disco_items = {
 
 -- Optional: Additional disco items from environment variable
 -- Format: PROSODY_DISCO_ITEMS="jid1,name1;jid2,name2"
-local disco_items_env = os.getenv("PROSODY_DISCO_ITEMS")
+local disco_items_env = Lua.os.getenv("PROSODY_DISCO_ITEMS")
 if disco_items_env then
 	local custom_items = {}
-	for item in string.gmatch(disco_items_env, "([^;]+)") do
+	for item in Lua.string.gmatch(disco_items_env, "([^;]+)") do
 		local jid, name = item:match("([^,]+),(.+)")
 		if jid and name then
-			table.insert(custom_items, { jid:match("^%s*(.-)%s*$"), name:match("^%s*(.-)%s*$") })
+			Lua.table.insert(custom_items, { jid:match("^%s*(.-)%s*$"), name:match("^%s*(.-)%s*$") })
 		end
 	end
 	-- Merge custom items with default disco_items
-	for _, item in ipairs(custom_items) do
-		table.insert(disco_items, item)
+	for _, item in Lua.ipairs(custom_items) do
+		Lua.table.insert(disco_items, item)
 	end
 end
 
 -- Admin discovery settings
-disco_expose_admins = (os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true") -- Default: false for privacy
+disco_expose_admins = (Lua.os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true") -- Default: false for privacy
 
 -- MUC (Multi-User Chat) domain
 -- XEP-0045: Multi-User Chat - Group chat rooms and conferences
 -- https://xmpp.org/extensions/xep-0045.html
-Component("muc." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
+Component("muc." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
 name = "Multi-User Chat"
 description = "Multi-User Chat rooms and conferences (XEP-0045)"
 
@@ -620,48 +625,48 @@ muc_room_default_change_subject = true
 -- When true, all new rooms will have archiving enabled by default
 -- When false, room admins must manually enable archiving per room
 -- Default: true (recommended for compliance and user experience)
-muc_log_by_default = (os.getenv("PROSODY_MUC_LOG_BY_DEFAULT") ~= "false")
+muc_log_by_default = (Lua.os.getenv("PROSODY_MUC_LOG_BY_DEFAULT") ~= "false")
 
 -- Archive presence information (joins/parts/status changes)
 -- Useful for web interfaces and room activity tracking
 -- Can increase storage usage significantly in busy rooms
 -- Default: false (presence changes are frequent and less important)
-muc_log_presences = (os.getenv("PROSODY_MUC_LOG_PRESENCES") == "true")
+muc_log_presences = (Lua.os.getenv("PROSODY_MUC_LOG_PRESENCES") == "true")
 
 -- Force archiving for all rooms (disables room-level configuration)
 -- When true, all rooms are archived regardless of room settings
 -- When false, rooms can individually enable/disable archiving
 -- Default: false (allows room-level control)
-log_all_rooms = (os.getenv("PROSODY_MUC_LOG_ALL_ROOMS") == "true")
+log_all_rooms = (Lua.os.getenv("PROSODY_MUC_LOG_ALL_ROOMS") == "true")
 
 -- MUC archive expiry (how long room messages are stored)
 -- Supports: "1d", "1w", "1m", "1y", "never", or seconds as number
 -- Default: "1w" (1 week), Production: "1y" (1 year) for compliance
 -- Note: This is separate from personal MAM expiry settings
-muc_log_expires_after = os.getenv("PROSODY_MUC_LOG_EXPIRES_AFTER") or "1y"
+muc_log_expires_after = Lua.os.getenv("PROSODY_MUC_LOG_EXPIRES_AFTER") or "1y"
 
 -- MUC archive cleanup interval (how often to remove expired messages)
 -- Default: 4*60*60 (4 hours), Production: 86400 (daily) for efficiency
 -- Frequent cleanup reduces storage but increases CPU usage
-muc_log_cleanup_interval = tonumber(os.getenv("PROSODY_MUC_LOG_CLEANUP_INTERVAL")) or 86400
+muc_log_cleanup_interval = Lua.tonumber(Lua.os.getenv("PROSODY_MUC_LOG_CLEANUP_INTERVAL")) or 86400
 
 -- Maximum messages returned per MUC MAM query (pagination)
 -- Too low = many queries, too high = resource intensive
 -- Default: 50, Production: 100-250 for better UX
-muc_max_archive_query_results = tonumber(os.getenv("PROSODY_MUC_MAX_ARCHIVE_QUERY_RESULTS")) or 100
+muc_max_archive_query_results = Lua.tonumber(Lua.os.getenv("PROSODY_MUC_MAX_ARCHIVE_QUERY_RESULTS")) or 100
 
 -- MUC archive store name (usually should not be changed)
 -- Default: "muc_log", Legacy: "muc_archive" for old installations
-muc_log_store = os.getenv("PROSODY_MUC_LOG_STORE") or "muc_log"
+muc_log_store = Lua.os.getenv("PROSODY_MUC_LOG_STORE") or "muc_log"
 
 -- Archive compression for MUC messages (save storage space)
 -- Default: true for production efficiency
-muc_log_compression = (os.getenv("PROSODY_MUC_LOG_COMPRESSION") ~= "false")
+muc_log_compression = (Lua.os.getenv("PROSODY_MUC_LOG_COMPRESSION") ~= "false")
 
 -- Smart MUC archiving: only enable for rooms that actually use MAM
 -- Default: false (archive for all configured rooms)
 -- true = only start archiving after first MAM query in the room
-muc_mam_smart_enable = (os.getenv("PROSODY_MUC_MAM_SMART_ENABLE") == "true")
+muc_mam_smart_enable = (Lua.os.getenv("PROSODY_MUC_MAM_SMART_ENABLE") == "true")
 
 -- MUC-specific namespaces to exclude from archiving
 -- Reduces storage overhead by excluding less important stanzas
@@ -672,15 +677,15 @@ muc_dont_archive_namespaces = {
 }
 
 -- Optional: Add custom namespaces to exclude from MUC archiving
-local muc_exclude_env = os.getenv("PROSODY_MUC_ARCHIVE_EXCLUDE_NAMESPACES")
+local muc_exclude_env = Lua.os.getenv("PROSODY_MUC_ARCHIVE_EXCLUDE_NAMESPACES")
 if muc_exclude_env then
 	local custom_namespaces = {}
-	for ns in string.gmatch(muc_exclude_env, "([^,]+)") do
-		table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$")) -- trim whitespace
+	for ns in Lua.string.gmatch(muc_exclude_env, "([^,]+)") do
+		Lua.table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$")) -- trim whitespace
 	end
 	-- Merge with default exclusions
-	for _, ns in ipairs(custom_namespaces) do
-		table.insert(muc_dont_archive_namespaces, ns)
+	for _, ns in Lua.ipairs(custom_namespaces) do
+		Lua.table.insert(muc_dont_archive_namespaces, ns)
 	end
 end
 
@@ -688,13 +693,13 @@ end
 -- Controls which messages get archived by default
 -- "all" = archive all messages, "none" = archive nothing by default
 -- Default: "all" (recommended for group chat compliance)
-muc_archive_policy = os.getenv("PROSODY_MUC_ARCHIVE_POLICY") or "all"
+muc_archive_policy = Lua.os.getenv("PROSODY_MUC_ARCHIVE_POLICY") or "all"
 
 -- Room archiving notification
 -- Notify users when they join a room that has archiving enabled
 -- Helps with privacy compliance (GDPR, etc.)
 -- Default: true (recommended for transparency)
-muc_log_notification = (os.getenv("PROSODY_MUC_LOG_NOTIFICATION") ~= "false")
+muc_log_notification = (Lua.os.getenv("PROSODY_MUC_LOG_NOTIFICATION") ~= "false")
 
 -- ===============================================
 -- MUC PASTEBIN CONFIGURATION
@@ -703,18 +708,18 @@ muc_log_notification = (os.getenv("PROSODY_MUC_LOG_NOTIFICATION") ~= "false")
 -- Maximum message length before pastebin conversion (characters)
 -- Messages longer than this will be automatically converted to pastebin URLs
 -- Default: 500 characters, Production: 800-1000 for better UX
-pastebin_threshold = tonumber(os.getenv("PROSODY_PASTEBIN_THRESHOLD")) or 800
+pastebin_threshold = Lua.tonumber(Lua.os.getenv("PROSODY_PASTEBIN_THRESHOLD")) or 800
 
 -- Maximum number of lines before pastebin conversion
 -- Messages with more lines than this will be converted to pastebin
 -- Default: 4 lines, Production: 6-8 lines for better tolerance
-pastebin_line_threshold = tonumber(os.getenv("PROSODY_PASTEBIN_LINE_THRESHOLD")) or 6
+pastebin_line_threshold = Lua.tonumber(Lua.os.getenv("PROSODY_PASTEBIN_LINE_THRESHOLD")) or 6
 
 -- Trigger string to force pastebin (optional)
 -- If a message starts with this string, it's always sent to pastebin
 -- Useful for intentionally sharing code/logs regardless of length
 -- Default: not set, Example: "!paste" or "```"
-local pastebin_trigger_env = os.getenv("PROSODY_PASTEBIN_TRIGGER")
+local pastebin_trigger_env = Lua.os.getenv("PROSODY_PASTEBIN_TRIGGER")
 if pastebin_trigger_env then
 	pastebin_trigger = pastebin_trigger_env
 end
@@ -723,12 +728,12 @@ end
 -- How long pastes are stored before automatic deletion
 -- Default: 24 hours, Production: 168 hours (1 week) for better UX
 -- Set to 0 for permanent storage (not recommended)
-pastebin_expire_after = tonumber(os.getenv("PROSODY_PASTEBIN_EXPIRE_AFTER")) or 168
+pastebin_expire_after = Lua.tonumber(Lua.os.getenv("PROSODY_PASTEBIN_EXPIRE_AFTER")) or 168
 
 -- Pastebin URL path customization
 -- Customize the URL path for pastebin service
 -- Default: "/pastebin/", Custom: "/$host-paste/" or "/paste/"
-local pastebin_path_env = os.getenv("PROSODY_PASTEBIN_PATH")
+local pastebin_path_env = Lua.os.getenv("PROSODY_PASTEBIN_PATH")
 if pastebin_path_env then
 	http_paths = http_paths or {}
 	http_paths.pastebin = pastebin_path_env
@@ -737,7 +742,7 @@ end
 -- File upload domain
 -- XEP-0363: HTTP File Upload - Allows clients to upload files via HTTP
 -- https://xmpp.org/extensions/xep-0363.html
-Component("upload." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "http_file_share")
+Component("upload." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "http_file_share")
 name = "File Upload Service"
 description = "HTTP file upload and sharing service (XEP-0363)"
 
@@ -749,10 +754,10 @@ description = "HTTP file upload and sharing service (XEP-0363)"
 -- Proxy domain for file transfers
 -- XEP-0065: SOCKS5 Bytestreams - File transfer proxy service
 -- https://xmpp.org/extensions/xep-0065.html
-Component("proxy." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "proxy65")
+Component("proxy." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "proxy65")
 name = "SOCKS5 Proxy"
 description = "File transfer proxy service (XEP-0065)"
-proxy65_address = os.getenv("PROSODY_DOMAIN") or "localhost"
+proxy65_address = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
 
 -- ===============================================
 -- EXTERNAL COMPONENTS (XEP-0114)
@@ -839,34 +844,34 @@ external_services = {
 	-- Public STUN server (fallback)
 	{
 		type = "stun",
-		host = os.getenv("PROSODY_STUN_HOST") or "stun.l.google.com",
+		host = Lua.os.getenv("PROSODY_STUN_HOST") or "stun.l.google.com",
 		port = 19302,
 	},
 	-- Production STUN server
 	{
 		type = "stun",
 		transport = "udp",
-		host = "stun." .. (os.getenv("PROSODY_DOMAIN") or "localhost"),
+		host = "stun." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
 		port = 3478,
 	},
 	-- TURN server (UDP)
 	{
 		type = "turn",
 		transport = "udp",
-		host = "turn." .. (os.getenv("PROSODY_DOMAIN") or "localhost"),
+		host = "turn." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
 		port = 3478,
 		username = "prosody",
-		password = os.getenv("TURN_PASSWORD") or "changeme",
+		password = Lua.os.getenv("TURN_PASSWORD") or "changeme",
 		restricted = true,
 	},
 	-- TURN server (TCP)
 	{
 		type = "turn",
 		transport = "tcp",
-		host = "turn." .. (os.getenv("PROSODY_DOMAIN") or "localhost"),
+		host = "turn." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
 		port = 3478,
 		username = "prosody",
-		password = os.getenv("TURN_PASSWORD") or "changeme",
+		password = Lua.os.getenv("TURN_PASSWORD") or "changeme",
 		restricted = true,
 	},
 }
@@ -877,19 +882,19 @@ external_services = {
 
 contact_info = {
 	admin = {
-		"xmpp:" .. (os.getenv("PROSODY_ADMIN_JID") or "admin@localhost"),
-		"mailto:" .. (os.getenv("PROSODY_CONTACT_ADMIN") or "admin@localhost"),
+		"xmpp:" .. (Lua.os.getenv("PROSODY_ADMIN_JID") or "admin@localhost"),
+		"mailto:" .. (Lua.os.getenv("PROSODY_CONTACT_ADMIN") or "admin@localhost"),
 	},
 	abuse = {
-		"xmpp:abuse@" .. (os.getenv("PROSODY_DOMAIN") or "localhost"),
-		"mailto:" .. (os.getenv("PROSODY_CONTACT_ABUSE") or "abuse@localhost"),
+		"xmpp:abuse@" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
+		"mailto:" .. (Lua.os.getenv("PROSODY_CONTACT_ABUSE") or "abuse@localhost"),
 	},
 	support = {
-		"xmpp:support@" .. (os.getenv("PROSODY_DOMAIN") or "localhost"),
-		"mailto:" .. (os.getenv("PROSODY_CONTACT_SUPPORT") or "support@localhost"),
+		"xmpp:support@" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
+		"mailto:" .. (Lua.os.getenv("PROSODY_CONTACT_SUPPORT") or "support@localhost"),
 	},
 	security = {
-		"mailto:" .. (os.getenv("PROSODY_CONTACT_SECURITY") or "security@localhost"),
+		"mailto:" .. (Lua.os.getenv("PROSODY_CONTACT_SECURITY") or "security@localhost"),
 	},
 }
 
@@ -911,19 +916,13 @@ account_cleanup = {
 -- PERFORMANCE OPTIMIZATIONS
 -- ===============================================
 
--- Garbage collection tuning for production
-gc = {
-	speed = 200, -- More aggressive GC
-	threshold = 120, -- Lower threshold
-}
-
 -- Lua memory management
 lua_gc_step_size = 13
 lua_gc_pause = 110
 
-log("info", "=== PROFESSIONAL PROSODY XMPP SERVER LOADED ===")
-log("info", "Domain: %s", os.getenv("PROSODY_DOMAIN") or "localhost")
-log("info", "Storage: %s", default_storage)
-log("info", "All modern XMPP features enabled - Production ready!")
+Lua.log("info", "=== PROFESSIONAL PROSODY XMPP SERVER LOADED ===")
+Lua.log("info", "Domain: %s", Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
+Lua.log("info", "Storage: %s", default_storage)
+Lua.log("info", "All modern XMPP features enabled - Production ready!")
 -- log("info", "Modules loaded: %d", #modules_enabled) -- Temporarily disabled due to scope issue
-log("info", "=== Configuration complete ===")
+Lua.log("info", "=== Configuration complete ===")
