@@ -8,8 +8,10 @@ set -euo pipefail
 # CONFIGURATION
 # ============================================================================
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+readonly PROJECT_DIR
 readonly ENV_FILE="$PROJECT_DIR/.env"
 readonly CLOUDFLARE_CREDS="$PROJECT_DIR/cloudflare-credentials.ini"
 
@@ -47,10 +49,10 @@ prompt_user() {
     local response
 
     if [[ -n "$default" ]]; then
-        read -p "$prompt [$default]: " response
+        read -r -p "$prompt [$default]: " response
         echo "${response:-$default}"
     else
-        read -p "$prompt: " response
+        read -r -p "$prompt: " response
         echo "$response"
     fi
 }
@@ -59,7 +61,7 @@ prompt_password() {
     local prompt="$1"
     local response
 
-    read -s -p "$prompt: " response
+    read -r -s -p "$prompt: " response
     echo
     echo "$response"
 }
