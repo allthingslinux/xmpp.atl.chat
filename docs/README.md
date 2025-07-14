@@ -1,6 +1,6 @@
 # 📚 Documentation
 
-Complete documentation for the Professional Prosody XMPP Server - a production-ready, single-configuration XMPP deployment with enterprise features and modern XMPP capabilities.
+Complete documentation for the Professional Prosody XMPP Server - a production-ready XMPP deployment with enterprise features and modern XMPP capabilities.
 
 ## 🚀 Quick Start
 
@@ -51,12 +51,12 @@ New to XMPP or need to deploy quickly? Start here:
 
 ## 🎯 Documentation Philosophy
 
-This documentation follows the same **single, opinionated approach** as the server configuration:
+This documentation follows an **opinionated approach** for the server configuration:
 
 - **🎯 Production-focused** - All guides assume production deployment scenarios
 - **🐳 Docker-first** - Examples and instructions use Docker Compose
 - **🔒 Security by default** - Security considerations integrated into every guide
-- **📝 No complex layers** - Simple, direct configuration approach
+- **📝 Clear structure** - Organized by user type and use case
 - **✅ Tested examples** - All code examples are tested and verified
 
 ## 🛠️ Key Features Covered
