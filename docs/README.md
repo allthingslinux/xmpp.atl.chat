@@ -32,15 +32,18 @@ New to XMPP or need to deploy quickly? Start here:
 | **[Deployment Guide](guides/deployment/deployment.md)** | Production deployment | DevOps teams |
 | **[prosody-manager Guide](guides/administration/prosody-manager-guide.md)** | Complete CLI tool reference | Administrators |
 
-### 🛠️ **Legacy Admin Docs**
+### 📋 **Reference Documentation**
 
-*Specific administration topics*
+*Technical specifications and detailed configuration*
 
-| Guide | Description | Audience |
-|-------|-------------|----------|
-| **[DNS Setup](admin/dns-setup.md)** | Required DNS records and security considerations | Network administrators |
-| **[Certificate Management](admin/certificate-management.md)** | SSL/TLS certificates and Let's Encrypt automation | DevOps teams |
-| **[Security Hardening](admin/security.md)** | Production security configuration and best practices | Security teams |
+| Reference | Description | Audience |
+|-----------|-------------|----------|
+| **[File Upload Reference](reference/file-upload-reference.md)** | Complete XEP-0363 configuration and management | Administrators |
+| **[Message Archiving Reference](reference/message-archiving-reference.md)** | Complete MAM (XEP-0313) reference | Administrators |
+| **[XEP Compliance](reference/xep-compliance.md)** | Supported XMPP Extension Protocols (50+ XEPs) | Technical users |
+| **[Module Reference](reference/modules.md)** | Complete module documentation and configuration | Administrators |
+| **[Community Modules](reference/community-modules-setup.md)** | Third-party module installation | Administrators |
+| **[Module Management](reference/module-management.md)** | Prosody module system | Administrators |
 
 ### 💻 **Developer Documentation**
 
@@ -50,15 +53,6 @@ New to XMPP or need to deploy quickly? Start here:
 |-------|-------------|----------|
 | **[Architecture Overview](dev/architecture.md)** | System design, components, and data flow | Developers |
 | **[Modern XMPP Features](dev/prosody-modern-features.md)** | Advanced XMPP capabilities and implementation | XMPP developers |
-
-### 📋 **Reference Documentation**
-
-*Technical specifications and compliance information*
-
-| Reference | Description | Audience |
-|-----------|-------------|----------|
-| **[XEP Compliance](reference/xep-compliance.md)** | Supported XMPP Extension Protocols (50+ XEPs) | Technical users |
-| **[Module Reference](reference/modules.md)** | Complete module documentation and configuration | Administrators |
 
 ## 🎯 Documentation Philosophy
 
@@ -124,15 +118,15 @@ docker compose up -d xmpp-prosody xmpp-postgres
 
 ### 🆕 **New to XMPP?**
 
-Start with [Getting Started](user/getting-started.md) → [Configuration](user/configuration.md)
+Start with [Quick Start](quick-start.md) → [User Guide](guides/users/user-guide.md)
 
 ### 🔧 **Setting up production?**
 
-Read [Administrator Guide](admin/README.md) → [DNS Setup](admin/dns-setup.md) → [Security](admin/security.md)
+Read [Administration Guide](guides/administration/administration.md) → [Deployment Guide](guides/deployment/deployment.md)
 
 ### 🛡️ **Security focused?**
 
-Check [Security Hardening](admin/security.md) → [Certificate Management](admin/certificate-management.md)
+Check the Security sections in [Administration Guide](guides/administration/administration.md)
 
 ### 🏗️ **Understanding the system?**
 
@@ -140,7 +134,7 @@ Review [Architecture](dev/architecture.md) → [Modern Features](dev/prosody-mod
 
 ### 📚 **Need technical details?**
 
-Browse [XEP Compliance](reference/xep-compliance.md) → [Module Reference](reference/modules.md)
+Browse [Reference Documentation](reference/) → [XEP Compliance](reference/xep-compliance.md)
 
 ## 🤝 Contributing to Documentation
 
@@ -164,21 +158,27 @@ Found an issue or want to improve the documentation?
 ```
 docs/
 ├── README.md                    # This overview and navigation guide
-├── user/                        # End-user deployment guides
-│   ├── getting-started.md      # Quick deployment walkthrough
-│   └── configuration.md        # Environment and settings
-├── admin/                       # Administrator and operations guides
-│   ├── README.md               # Admin CLI tools and essentials
-│   ├── dns-setup.md            # DNS configuration and security
-│   ├── certificate-management.md # SSL/TLS and Let's Encrypt
-│   └── security.md             # Security hardening and best practices
-├── dev/                         # Developer and technical documentation
+├── quick-start.md              # Quick deployment guide
+├── guides/                     # Comprehensive task-oriented guides
+│   ├── users/
+│   │   └── user-guide.md       # Complete user documentation
+│   ├── administration/
+│   │   ├── administration.md   # Complete admin guide with security & DNS
+│   │   └── prosody-manager-guide.md # CLI tool documentation
+│   └── deployment/
+│       └── deployment.md       # Production deployment guide
+├── dev/                        # Developer and technical documentation
 │   ├── architecture.md         # System design and components
+│   ├── localhost-testing.md    # Development environment
 │   └── prosody-modern-features.md # Advanced XMPP capabilities
-├── reference/                   # Technical reference materials
+├── reference/                  # Technical reference materials
+│   ├── file-upload-reference.md # XEP-0363 complete reference
+│   ├── message-archiving-reference.md # MAM (XEP-0313) reference
 │   ├── xep-compliance.md       # Supported XMPP Extension Protocols
-│   └── modules.md              # Complete module documentation
-└── assets/                      # Documentation assets and diagrams
+│   ├── modules.md              # Complete module documentation
+│   ├── community-modules-setup.md # Third-party modules
+│   └── module-management.md    # Module system reference
+└── assets/                     # Documentation assets and diagrams
     ├── architecture/           # Architecture diagrams
     ├── diagrams/               # Technical diagrams
     └── screenshots/            # UI screenshots and examples
@@ -195,4 +195,4 @@ docs/
 
 **⭐ Star the repository if this documentation helps you!**
 
-For questions or support, please [open an issue](https://github.com/allthingslinux/xmpp.atl.chat/issues) or start with the [Getting Started guide](user/getting-started.md).
+For questions or support, please [open an issue](https://github.com/allthingslinux/xmpp.atl.chat/issues) or start with the [Quick Start Guide](quick-start.md).

@@ -131,45 +131,100 @@ Everything users need to know about using your XMPP server, from setup to advanc
 
 **Supported File Types**:
 
-- Images: JPG, PNG, GIF, WebP
-- Documents: PDF, DOC, TXT, etc.
-- Archives: ZIP, TAR, etc.
-- Media: MP4, MP3, etc.
+- **Images**: JPEG, PNG, GIF, WebP, SVG
+- **Videos**: MP4, WebM, AVI, MOV, MKV
+- **Audio**: MP3, OGG, WAV, FLAC, M4A
+- **Documents**: PDF, DOC, DOCX, TXT, ODT, RTF
+- **Archives**: ZIP, RAR, TAR, 7Z, GZ
+- **Code**: Most text-based files
+- **Other**: Most file types allowed (configurable)
 
 **Upload Limits**:
 
-- **Maximum file size**: 100MB
-- **Daily quota**: 1GB per user
+- **Maximum file size**: 100MB per file
+- **Daily quota**: 1GB per user per day
+- **Global quota**: Unlimited (configurable)
 - **Retention**: Files kept for 30 days
 
 **How to Share Files**:
 
 1. **In your client**: Click attach/upload button
 2. **Select file** from your device
-3. **File uploads** to server automatically
-4. **Share link** sent to recipient
-5. **Recipients click** to download
+3. **File uploads** to `https://your-domain.com:5281/upload/`
+4. **Secure URL** generated automatically
+5. **Share link** sent in message
+6. **Recipients click** to download
 
-**Direct File Transfer**:
+### Client-Specific Upload
 
-- Some clients support direct peer-to-peer transfer
+**Conversations (Android)**:
+
+- Tap 📎 attachment icon
+- Select from gallery, camera, or files
+- Automatic compression for images
+- Progress indicator during upload
+
+**Gajim (Desktop)**:
+
+- Drag & drop files into chat
+- Ctrl+U for file browser
+- Thumbnail previews for images
+- Upload progress in chat window
+
+**Monal (iOS)**:
+
+- Tap + button in chat
+- Choose from photos, camera, or files
+- Automatic image optimization
+- Upload status notifications
+
+**Web Clients**:
+
+- Click attachment button
+- File browser opens
+- Upload progress bar
+- Automatic link insertion
+
+### Advanced File Features
+
+**Direct File Transfer (P2P)**:
+
 - Uses SOCKS5 proxy for NAT traversal
 - Faster for large files between online users
+- Available at `proxy.your-domain.com:5000`
+- Fallback to HTTP upload if P2P fails
+
+**File Storage Details**:
+
+- **Storage location**: Server file system + database metadata
+- **URL format**: `https://your-domain.com:5281/upload/[slot]/[filename]`
+- **Security**: Cryptographically secure random URLs
+- **Access control**: Authentication required for upload
+- **Download**: Public URLs (anyone with link can download)
 
 ### File Upload Tips
 
 **Best Practices**:
 
-- Compress large files before uploading
-- Use descriptive filenames
-- Be mindful of daily quota limits
-- Clean up old files regularly
+- Compress large files before uploading to save quota
+- Use descriptive filenames for better organization
+- Monitor daily quota usage in client
+- Consider using file expiry for sensitive documents
 
-**Privacy Notes**:
+**Privacy & Security**:
 
-- Uploaded files are accessible via direct URL
-- Files expire after 30 days automatically
-- Administrators can see upload statistics
+- ✅ **Encrypted in transit** via HTTPS
+- ✅ **Authentication required** for uploads
+- ✅ **Automatic expiry** after retention period
+- ❌ **Files not end-to-end encrypted** on server
+- ❌ **URLs are shareable** (anyone with link can access)
+
+**Troubleshooting**:
+
+- **Upload fails**: Check file size and daily quota
+- **Can't download**: Verify file hasn't expired
+- **Slow uploads**: Check internet connection
+- **File rejected**: Verify file type is allowed
 
 ## 💬 Group Chats (MUC)
 
@@ -220,36 +275,118 @@ Everything users need to know about using your XMPP server, from setup to advanc
 
 ## 📚 Message History
 
-### Message Archive Management (MAM)
+### Message Archive Management (MAM) - XEP-0313
 
-**Automatic Archiving**:
+**What is MAM?**
 
-- All private messages archived by default
-- Group chat messages archived per room settings
-- Searchable message history
-- Synchronized across all your devices
+Message Archive Management provides conversation history synchronization across all your devices, even when clients are offline. It's one of the most important modern XMPP features.
 
-**Accessing History**:
+**Key Benefits**:
 
-- **New devices**: Automatically sync recent history
-- **Search**: Find old messages by content
-- **Date ranges**: Browse messages by time period
-- **Export**: Some clients allow message export
+- ✅ **Cross-device sync**: Access history from any device
+- ✅ **Offline message access**: View conversations that happened while offline
+- ✅ **New device setup**: Instantly get conversation history on new devices
+- ✅ **Message search**: Find old messages by content or date
+- ✅ **Never lose messages**: Server keeps your conversation history
+
+**How It Works**:
+
+1. **Server Archives**: All messages automatically stored on server
+2. **Client Requests**: Your client requests history when needed
+3. **Smart Sync**: Only downloads messages you don't already have
+4. **Search & Browse**: Find and navigate through old conversations
+
+### Archive Configuration
+
+**Default Settings** (configured by admin):
+
+- **Retention period**: Messages kept for 1 year
+- **Archive policy**: Only contacts in your roster
+- **Query limit**: 250 messages per request
+- **Smart archiving**: Enabled only after first MAM query
+
+**What Gets Archived**:
+
+- ✅ **Private messages** (1-on-1 conversations)
+- ✅ **Group chat messages** (if room has MAM enabled)
+- ✅ **Message content** and metadata
+- ❌ **Typing notifications** (excluded for efficiency)
+- ❌ **Call setup messages** (excluded for privacy)
+
+### Client Support
+
+**Desktop Clients**:
+
+- **Gajim**: Full MAM support with history browser
+- **Dino**: Native MAM integration with search
+- **Pidgin**: Basic MAM support with plugins
+
+**Mobile Clients**:
+
+- **Conversations**: Excellent MAM with automatic sync
+- **Monal**: Full MAM support with offline access
+- **Siskin IM**: Complete MAM implementation
+
+**Web Clients**:
+
+- **Converse.js**: Built-in MAM with pagination
+- **Movim**: Full MAM integration with web interface
+
+### Using Message History
+
+**Automatic Synchronization**:
+
+- History loads automatically when opening conversations
+- New devices get recent message history on first login
+- Background sync keeps all devices up to date
+
+**Manual History Retrieval**:
+
+- **Search messages**: Use client's search function
+- **Browse by date**: Navigate to specific time periods
+- **Load more history**: Request older messages as needed
+
+**Advanced Features**:
+
+- **Message search**: Find text in conversation history
+- **Date-based browsing**: Jump to specific dates
+- **Conversation export**: Save important conversations
+- **History pagination**: Load history in chunks for performance
+
+### Privacy & Storage
 
 **Privacy Controls**:
 
-- **Retention period**: Messages kept for configured time
-- **User control**: Can disable archiving for your account
-- **Room control**: Room owners set archiving policy
+- **User preference**: Some clients allow disabling MAM
+- **Contact-only archiving**: Only messages from roster contacts archived
+- **Automatic expiry**: Old messages deleted per retention policy
 
-### Offline Message Delivery
+**Storage Details**:
 
-**How it Works**:
+- **Server storage**: Messages stored in PostgreSQL database
+- **Compression**: Archive data compressed to save space
+- **Encryption**: Messages encrypted in transit and at rest
+- **Backup**: Included in regular server backups
 
-- Messages sent while offline are stored
-- Delivered when you come back online
-- Works across all your connected devices
-- Ensures you never miss important messages
+### Troubleshooting MAM
+
+**History Not Syncing**:
+
+- Verify client supports MAM (most modern clients do)
+- Check if MAM is enabled on your account
+- Try manually requesting history in client settings
+
+**Missing Messages**:
+
+- Check message retention period (default: 1 year)
+- Verify messages were sent to roster contacts
+- Ensure messages weren't sent during server downtime
+
+**Performance Issues**:
+
+- Large history may take time to sync initially
+- Use client's pagination features for better performance
+- Consider archiving old conversations locally
 
 ## 🔐 Advanced Features
 

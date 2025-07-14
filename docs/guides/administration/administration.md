@@ -22,10 +22,53 @@ Comprehensive guide for XMPP server administrators using the unified `prosody-ma
 Before starting, ensure you have:
 
 - **Domain name** with DNS control
-- **DNS records** configured (see [DNS Setup](dns-setup.md))
+- **DNS records** configured (detailed setup below)
 - **Docker & Docker Compose** installed
 - **SSL certificate** or Let's Encrypt access
 - **Server resources**: 2GB+ RAM, 20GB+ storage
+
+### DNS Configuration
+
+**Required DNS Records:**
+
+For clean domain separation (users get `@your-domain.com`, server runs on `xmpp.your-domain.com`):
+
+```dns
+# A record for XMPP server
+xmpp.your-domain.com.    3600  IN  A     YOUR.SERVER.IP.ADDRESS
+
+# SRV records for service delegation
+_xmpp-client._tcp.your-domain.com.    3600  IN  SRV  0  5  5222  xmpp.your-domain.com.
+_xmpp-server._tcp.your-domain.com.    3600  IN  SRV  0  5  5269  xmpp.your-domain.com.
+_xmpps-client._tcp.your-domain.com.   3600  IN  SRV  0  5  5223  xmpp.your-domain.com.
+_xmpps-server._tcp.your-domain.com.   3600  IN  SRV  0  5  5270  xmpp.your-domain.com.
+
+# MUC service delegation
+_xmpp-server._tcp.muc.your-domain.com.    3600  IN  SRV  0  5  5269  xmpp.your-domain.com.
+```
+
+**Security DNS Records:**
+
+```dns
+# CAA records (Certificate Authority Authorization)
+your-domain.com. CAA 0 issue "letsencrypt.org"
+your-domain.com. CAA 0 iodef "mailto:admin@your-domain.com"
+
+# TLSA records (for DANE) - generated after certificate installation
+_5222._tcp.your-domain.com. TLSA 3 1 1 <certificate-sha256-hash>
+_5269._tcp.your-domain.com. TLSA 3 1 1 <certificate-sha256-hash>
+```
+
+**DNS Verification:**
+
+```bash
+# Test SRV records
+dig SRV _xmpp-client._tcp.your-domain.com
+dig SRV _xmpp-server._tcp.your-domain.com
+
+# Test with prosody
+./prosody-manager prosodyctl check dns your-domain.com
+```
 
 ### First-Time Deployment
 
@@ -409,58 +452,132 @@ docker-compose up -d
 
 ### Security Hardening
 
-**Security Configuration:**
+**Transport Layer Security:**
+
+Configure strong TLS settings in your `.env` file:
 
 ```bash
-# Apply security hardening
-./prosody-manager security harden
+# TLS Configuration
+PROSODY_TLS_VERSION=1.3                    # Minimum TLS 1.3
+PROSODY_TLS_FALLBACK=1.2                   # TLS 1.2 fallback
+PROSODY_CERT_VALIDATION=strict             # Strict certificate validation
+PROSODY_S2S_SECURE_AUTH=true              # Secure server-to-server
+PROSODY_S2S_REQUIRE_ENCRYPTION=true       # Require S2S encryption
+```
 
-# Configure firewall rules
-./prosody-manager security firewall --enable
+**Authentication Security:**
 
-# Setup fail2ban protection
-./prosody-manager security fail2ban --configure
+```bash
+# Strong authentication settings
+PROSODY_AUTH_METHOD=internal_hashed        # SCRAM-SHA-256
+PROSODY_PASSWORD_MIN_LENGTH=12             # 12+ character passwords
+PROSODY_AUTH_FAIL_THRESHOLD=5              # Block after 5 failures
+PROSODY_AUTH_LOCKOUT_DURATION=300          # 5-minute lockout
+PROSODY_MFA_ENABLED=true                   # Multi-factor authentication
+```
+
+**Network Security:**
+
+```bash
+# Firewall configuration (UFW example)
+sudo ufw allow 5222/tcp                    # Client connections
+sudo ufw allow 5269/tcp                    # Server connections
+sudo ufw allow 80/tcp                      # HTTP (cert validation)
+sudo ufw allow 443/tcp                     # HTTPS
+sudo ufw enable
+
+# Rate limiting in .env
+PROSODY_MAX_CLIENTS_PER_IP=10
+PROSODY_CONNECTION_THROTTLE=true
+PROSODY_C2S_RATE_LIMIT=10kb/s
+PROSODY_S2S_RATE_LIMIT=30kb/s
+```
+
+**Anti-Spam Protection:**
+
+```bash
+# DNS blocklists in .env
+PROSODY_DNSBL_ENABLED=true
+PROSODY_DNSBL_SERVERS=zen.spamhaus.org,xbl.spamhaus.org
+PROSODY_DNSBL_ACTION=reject
+
+# Registration controls
+PROSODY_ALLOW_REGISTRATION=false
+PROSODY_INVITE_ONLY=true
+PROSODY_REGISTRATION_CAPTCHA=true
+```
+
+### Security Monitoring
+
+**Real-time Monitoring:**
+
+```bash
+# Check overall health including security
+./prosody-manager health all
+
+# Monitor authentication failures
+./prosody-manager deploy logs | grep -i "auth.*fail"
+
+# Check blocked connections
+./prosody-manager deploy logs | grep -i "blocked\|denied"
+
+# View recent security events
+./prosody-manager deploy logs --since 1h | grep -E "(fail|error|denied|blocked)"
 ```
 
 **Security Auditing:**
 
 ```bash
-# Run security audit
-./prosody-manager security audit
+# Enable comprehensive logging in .env
+PROSODY_AUDIT_ENABLED=true
+PROSODY_AUDIT_EVENTS=auth,admin,security,compliance
+PROSODY_AUDIT_FORMAT=json
+PROSODY_LOG_RETENTION=90d
+PROSODY_SECURITY_LOG_RETENTION=1y
 
-# Check for vulnerabilities
-./prosody-manager security scan
-
-# Generate security report
-./prosody-manager security report --output /tmp/security-report.pdf
+# Check security metrics
+curl http://localhost:5280/metrics | grep -i security
 ```
 
 ### System Maintenance
 
-**Regular Maintenance:**
+**Regular Updates:**
 
 ```bash
-# Database optimization
-./prosody-manager maintenance database --optimize
+# Update containers
+docker-compose pull && docker-compose up -d
 
-# Clean temporary files
-./prosody-manager maintenance cleanup
+# Check certificate status
+./prosody-manager cert check your-domain.com
 
-# Update system components
-./prosody-manager maintenance update --check
+# Renew certificates if needed
+./prosody-manager cert renew your-domain.com
 ```
 
-**Performance Tuning:**
+**Database Maintenance:**
 
 ```bash
-# Optimize configuration
-./prosody-manager tune performance
+# Check database health
+./prosody-manager health all | grep -i database
 
-# Analyze resource usage
-./prosody-manager tune analyze
+# View database logs
+./prosody-manager deploy logs postgres
 
-# Apply recommended settings
-./prosody-manager tune apply --recommendations
+# Backup database
+./prosody-manager backup create
+```
+
+**Performance Monitoring:**
+
+```bash
+# Check resource usage
+./prosody-manager health all
+
+# Monitor service status
+./prosody-manager deploy status
+
+# View system metrics
+curl http://localhost:5280/metrics
 ```
 
 ## 🔧 Troubleshooting
