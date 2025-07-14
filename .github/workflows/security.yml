@@ -1,0 +1,333 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Build Docker image
+        run: |
+          docker build -t prosody-security-scan:latest .
+          
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'prosody-security-scan:latest'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+  dependency-security:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: 'prosody-security-scan:latest'
+          args: --severity-threshold=medium
+        continue-on-error: true
+        
+      - name: Check for security vulnerabilities in dependencies
+        run: |
+          echo "Checking for known security issues..."
+          
+          # Check for vulnerable Lua packages
+          if [ -f "Dockerfile" ]; then
+            echo "Checking Dockerfile for security issues..."
+            
+            # Look for potential security issues
+            if grep -i "curl.*http://" Dockerfile; then
+              echo "⚠️  Found HTTP downloads in Dockerfile (should use HTTPS)"
+            fi
+            
+            # Check for root user usage
+            if ! grep -q "USER prosody" Dockerfile; then
+              echo "⚠️  Container may be running as root user"
+            fi
+            
+            # Check for latest tag usage
+            if grep -q ":latest" Dockerfile; then
+              echo "⚠️  Using :latest tag in Dockerfile (consider pinning versions)"
+            fi
+          fi
+
+  secrets-scan:
+    name: Secrets Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run GitLeaks secret scanner
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          
+      - name: Custom secrets check
+        run: |
+          echo "Checking for potential secrets and sensitive data..."
+          
+          # Check for common secret patterns
+          secrets_found=0
+          
+          # Check for hardcoded passwords
+          if grep -r -i "password.*=" . --include="*.lua" --include="*.sh" --include="*.yml" --exclude-dir=".git" | grep -v "PROSODY_DB_PASSWORD"; then
+            echo "⚠️  Potential hardcoded passwords found"
+            secrets_found=$((secrets_found + 1))
+          fi
+          
+          # Check for API keys
+          if grep -r -E "(api[_-]?key|secret[_-]?key)" . --include="*.lua" --include="*.sh" --include="*.yml" --exclude-dir=".git" | grep -v "CLOUDFLARE_API"; then
+            echo "⚠️  Potential API keys found"
+            secrets_found=$((secrets_found + 1))
+          fi
+          
+          # Check for private keys
+          if find . -name "*.pem" -o -name "*.key" -o -name "id_rsa" | grep -v ".git"; then
+            echo "⚠️  Private key files found in repository"
+            secrets_found=$((secrets_found + 1))
+          fi
+          
+          # Check for JWT tokens
+          if grep -r -E "eyJ[A-Za-z0-9_-]*\." . --exclude-dir=".git"; then
+            echo "⚠️  Potential JWT tokens found"
+            secrets_found=$((secrets_found + 1))
+          fi
+          
+          if [ $secrets_found -eq 0 ]; then
+            echo "✅ No obvious secrets found"
+          else
+            echo "❌ Found $secrets_found potential security issues"
+            exit 1
+          fi
+
+  prosody-security:
+    name: Prosody Security Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check Prosody security configuration
+        run: |
+          echo "Checking Prosody security configuration..."
+          
+          config_file="core/config/prosody.cfg.lua"
+          security_score=0
+          max_score=10
+          
+          if [ ! -f "$config_file" ]; then
+            echo "❌ Prosody configuration file not found"
+            exit 1
+          fi
+          
+          echo "Analyzing security settings in $config_file..."
+          
+          # Check for TLS configuration
+          if grep -q "ssl.*=.*{" "$config_file"; then
+            echo "✅ SSL/TLS configuration found"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  No SSL/TLS configuration found"
+          fi
+          
+          # Check for secure authentication
+          if grep -q "authentication.*=.*\"internal_hashed\"" "$config_file"; then
+            echo "✅ Secure authentication method configured"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  Secure authentication not configured"
+          fi
+          
+          # Check for c2s_require_encryption
+          if grep -q "c2s_require_encryption.*=.*true" "$config_file"; then
+            echo "✅ Client encryption required"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  Client encryption not required"
+          fi
+          
+          # Check for s2s_require_encryption
+          if grep -q "s2s_require_encryption.*=.*true" "$config_file"; then
+            echo "✅ Server-to-server encryption required"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  Server-to-server encryption not required"
+          fi
+          
+          # Check for rate limiting
+          if grep -q "limits" "$config_file"; then
+            echo "✅ Rate limiting configured"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  No rate limiting found"
+          fi
+          
+          # Check for anti-spam modules
+          if grep -q "anti_spam\|firewall\|spam_reporting" "$config_file"; then
+            echo "✅ Anti-spam modules enabled"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  No anti-spam modules found"
+          fi
+          
+          # Check for admin configuration
+          if grep -q "admins.*=.*{" "$config_file"; then
+            echo "✅ Admin users configured"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  No admin users configured"
+          fi
+          
+          # Check for secure ciphers
+          if grep -q "ciphers.*=.*\"ECDHE" "$config_file"; then
+            echo "✅ Secure cipher suites configured"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  Secure cipher suites not configured"
+          fi
+          
+          # Check for certificate validation
+          if grep -q "s2s_secure_auth.*=.*true" "$config_file"; then
+            echo "✅ Certificate validation enabled"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  Certificate validation not enabled"
+          fi
+          
+          # Check for registration restrictions
+          if grep -q "allow_registration.*=.*false" "$config_file" || ! grep -q "allow_registration" "$config_file"; then
+            echo "✅ Registration properly restricted"
+            security_score=$((security_score + 1))
+          else
+            echo "⚠️  Open registration may be enabled"
+          fi
+          
+          echo ""
+          echo "🔒 Security Score: $security_score/$max_score"
+          
+          if [ $security_score -ge 8 ]; then
+            echo "✅ Excellent security configuration"
+          elif [ $security_score -ge 6 ]; then
+            echo "⚠️  Good security configuration with room for improvement"
+          elif [ $security_score -ge 4 ]; then
+            echo "⚠️  Moderate security configuration - consider improvements"
+          else
+            echo "❌ Poor security configuration - immediate attention required"
+            exit 1
+          fi
+          
+          # Generate security report
+          echo "## Security Configuration Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Security Score: $security_score/$max_score**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recommendations:" >> $GITHUB_STEP_SUMMARY
+          echo "- Ensure TLS 1.2+ is enforced" >> $GITHUB_STEP_SUMMARY
+          echo "- Use strong cipher suites (ECDHE+AESGCM)" >> $GITHUB_STEP_SUMMARY
+          echo "- Enable certificate validation for S2S" >> $GITHUB_STEP_SUMMARY
+          echo "- Configure rate limiting and anti-spam" >> $GITHUB_STEP_SUMMARY
+          echo "- Restrict registration in production" >> $GITHUB_STEP_SUMMARY
+
+  docker-security:
+    name: Docker Security Best Practices
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check Docker security best practices
+        run: |
+          echo "Checking Docker security best practices..."
+          
+          # Check Dockerfile exists
+          if [ ! -f "Dockerfile" ]; then
+            echo "❌ No Dockerfile found"
+            exit 1
+          fi
+          
+          security_issues=0
+          
+          # Check for non-root user
+          if grep -q "USER prosody" Dockerfile; then
+            echo "✅ Running as non-root user"
+          else
+            echo "⚠️  Container may be running as root"
+            security_issues=$((security_issues + 1))
+          fi
+          
+          # Check for COPY vs ADD
+          if grep -q "^ADD " Dockerfile; then
+            echo "⚠️  Using ADD instead of COPY (security risk)"
+            security_issues=$((security_issues + 1))
+          else
+            echo "✅ Using COPY instead of ADD"
+          fi
+          
+          # Check for latest tags
+          if grep -q ":latest" Dockerfile; then
+            echo "⚠️  Using :latest tags (unpredictable)"
+            security_issues=$((security_issues + 1))
+          else
+            echo "✅ Using pinned versions"
+          fi
+          
+          # Check for package updates
+          if grep -q "apt-get update" Dockerfile && grep -q "apt-get install" Dockerfile; then
+            echo "✅ Package installation properly structured"
+          else
+            echo "⚠️  Package installation may not be optimal"
+          fi
+          
+          # Check for cleanup
+          if grep -q "apt-get clean\|rm -rf /var/lib/apt/lists" Dockerfile; then
+            echo "✅ Package cache cleanup found"
+          else
+            echo "⚠️  No package cache cleanup found"
+            security_issues=$((security_issues + 1))
+          fi
+          
+          echo ""
+          if [ $security_issues -eq 0 ]; then
+            echo "✅ Docker security best practices followed"
+          else
+            echo "⚠️  Found $security_issues Docker security issues"
+          fi 
