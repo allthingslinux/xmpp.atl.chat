@@ -347,8 +347,12 @@ trusted_proxies = {
 -- CORS support for web clients
 -- Modern CORS configuration (replaces deprecated cross_domain_* options)
 http_cors_override = {
-	bosh = true,
-	websocket = true,
+	bosh = {
+		enabled = true,
+	},
+	websocket = {
+		enabled = true,
+	},
 }
 
 -- Enhanced HTTP security headers
@@ -498,7 +502,7 @@ modules_enabled = {
 	-- ===============================================
 	-- PUSH NOTIFICATIONS
 	-- ===============================================
-	-- "cloud_notify", -- XEP-0357: Push Notifications (requires external push service)
+	"cloud_notify", -- XEP-0357: Push Notifications (community module from prosody-modules)
 
 	-- ===============================================
 	-- MULTI-USER CHAT (MUC)
@@ -531,11 +535,42 @@ modules_enabled = {
 	"private", -- XEP-0049: Private XML Storage
 
 	-- ===============================================
+	-- COMMUNITY MODULES (from prosody-modules)
+	-- ===============================================
+
+	-- Security and Anti-Spam
+	"firewall", -- Advanced firewall rules and filtering (https://modules.prosody.im/mod_firewall.html)
+	"anti_spam", -- Anti-spam filtering for messages (https://modules.prosody.im/mod_anti_spam.html)
+	"spam_reporting", -- XEP-0377: Spam Reporting (https://modules.prosody.im/mod_spam_reporting.html)
+
+	-- Administrative Tools
+	"admin_blocklist", -- Administrative blocklist management (https://modules.prosody.im/mod_admin_blocklist.html)
+	"server_contact_info", -- XEP-0157: Contact Addresses for XMPP Services (https://modules.prosody.im/mod_server_contact_info.html)
+	"invites", -- User invitation system (https://modules.prosody.im/mod_invites.html)
+
+	-- Mobile and Client Optimizations
+	"csi_battery_saver", -- Enhanced CSI for mobile battery saving (https://modules.prosody.im/mod_csi_battery_saver.html)
+
+	-- MUC Enhancements
+	"muc_notifications", -- Enhanced MUC notifications (https://modules.prosody.im/mod_muc_notifications.html)
+
+	-- Monitoring and Metrics
+	"http_openmetrics", -- Built-in Prometheus/OpenMetrics export
+
+	-- ===============================================
 	-- DEVELOPMENT AND DEBUGGING
 	-- ===============================================
 	"motd", -- Message of the day
 	"welcome", -- Welcome message for new users
 }
+
+-- ===============================================
+-- PERFORMANCE OPTIMIZATIONS
+-- ===============================================
+
+-- Lua memory management
+lua_gc_step_size = 13
+lua_gc_pause = 110
 
 -- Garbage collection tuning for production
 gc = {
@@ -615,7 +650,7 @@ description = "Multi-User Chat rooms and conferences (XEP-0045)"
 -- MUC-specific modules (must be loaded on MUC component)
 modules_enabled = {
 	"muc_mam", -- Message Archive Management for MUC (XEP-0313)
-	-- "pastebin", -- Automatic pastebin for long messages (not available in dev)
+	"pastebin", -- Automatic pastebin for long messages (community module from prosody-modules)
 }
 
 -- Enhanced MUC configuration
@@ -927,14 +962,6 @@ account_cleanup = {
 	inactive_period = 365 * 24 * 3600, -- 1 year
 	grace_period = 30 * 24 * 3600, -- 30 days notice
 }
-
--- ===============================================
--- PERFORMANCE OPTIMIZATIONS
--- ===============================================
-
--- Lua memory management
-lua_gc_step_size = 13
-lua_gc_pause = 110
 
 Lua.log("info", "=== PROFESSIONAL PROSODY XMPP SERVER LOADED ===")
 Lua.log("info", "Domain: %s", Lua.os.getenv("PROSODY_DOMAIN") or "localhost")

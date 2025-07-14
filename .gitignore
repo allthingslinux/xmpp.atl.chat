@@ -11,3 +11,4 @@ certs/
 # Environment configuration
 .env
 cloudflare-credentials.ini
+.env.dev
