@@ -56,7 +56,8 @@ RUN apt-get update && \
     dumb-init \
     gosu \
     wget \
-    jq && \
+    jq \
+    mercurial && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -100,12 +101,34 @@ RUN buildDeps='gcc git libc6-dev libidn2-dev liblua5.4-dev libsqlite3-dev libssl
     \
     apt-get purge -y --auto-remove $buildDeps
 
+# Install community modules from prosody-modules repository
+RUN echo "Installing community modules..." && \
+    cd /tmp && \
+    hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
+    mkdir -p /usr/local/lib/prosody/modules && \
+    \
+    # Install essential community modules
+    cp -r prosody-modules/mod_cloud_notify /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_pastebin /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_firewall /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_anti_spam /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_admin_blocklist /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_spam_reporting /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_csi_battery_saver /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_muc_notifications /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_invites /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_server_contact_info /usr/local/lib/prosody/modules/ && \
+    \
+    # Clean up temporary repository
+    rm -rf /tmp/prosody-modules && \
+    \
+    echo "Community modules installed successfully"
+
 # Create prosody user and directories
 RUN groupadd -r prosody && \
     useradd -r -g prosody prosody && \
     mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody && \
     mkdir -p /certs && \
-    mkdir -p /usr/local/lib/prosody/modules && \
     chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs /usr/local/lib/prosody/modules
 
 # Copy configuration files

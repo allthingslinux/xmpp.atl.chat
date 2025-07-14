@@ -1,245 +1,249 @@
 # Community Modules Setup Guide
 
-This document explains how community modules from the [prosody-modules](https://modules.prosody.im/) repository have been integrated into the Professional Prosody XMPP Server.
+This document explains how community modules from the [prosody-modules](https://modules.prosody.im/) repository are automatically integrated into the Professional Prosody XMPP Server.
 
 ## Overview
 
 Community modules provide additional functionality beyond what's included in the base Prosody installation. These modules are maintained by the community and offer cutting-edge features, experimental functionality, and specialized use cases.
 
-## Installed Community Modules
+**The system now provides fully automated community module installation** through multiple methods:
 
-The following community modules have been installed and configured:
+1. **Build-time Installation**: Essential modules are installed during Docker image build
+2. **Runtime Installation**: Additional modules via environment variables
+3. **Manual Installation**: On-demand installation via prosody-manager
+
+## Automatically Installed Community Modules
+
+The following community modules are **automatically installed during Docker build**:
 
 ### Security and Anti-Spam
 
 - **`mod_cloud_notify`** - XEP-0357: Push Notifications for mobile devices
   - URL: <https://modules.prosody.im/mod_cloud_notify.html>
   - Purpose: Enables push notifications for mobile XMPP clients
-  - Status: ✅ Installed and enabled
+  - Status: ✅ **Pre-installed and enabled**
 
-- **`mod_firewall`** - Advanced firewall rules and filtering
+- **`mod_firewall`** - Advanced filtering and security rules
   - URL: <https://modules.prosody.im/mod_firewall.html>
-  - Purpose: Provides advanced filtering and security rules
-  - Status: ✅ Installed and enabled
+  - Purpose: Sophisticated filtering system for blocking spam and enforcing policies
+  - Status: ✅ **Pre-installed and enabled**
 
-- **`mod_anti_spam`** - Anti-spam filtering for messages
+- **`mod_anti_spam`** - Automatic spam detection and prevention
   - URL: <https://modules.prosody.im/mod_anti_spam.html>
-  - Purpose: Automatic spam detection and filtering
-  - Status: ✅ Installed and enabled
+  - Purpose: Automatically detects and blocks spam messages
+  - Status: ✅ **Pre-installed and enabled**
 
-- **`mod_spam_reporting`** - XEP-0377: Spam Reporting
+- **`mod_spam_reporting`** - XEP-0377: Spam reporting mechanism
   - URL: <https://modules.prosody.im/mod_spam_reporting.html>
   - Purpose: Allows users to report spam messages
-  - Status: ✅ Installed and enabled
+  - Status: ✅ **Pre-installed and enabled**
 
 ### Administrative Tools
 
-- **`mod_admin_blocklist`** - Administrative blocklist management
+- **`mod_admin_blocklist`** - Enhanced administrative blocklist management
   - URL: <https://modules.prosody.im/mod_admin_blocklist.html>
-  - Purpose: Enhanced blocklist management for administrators
-  - Status: ✅ Installed and enabled
+  - Purpose: Advanced user and domain blocking capabilities
+  - Status: ✅ **Pre-installed and enabled**
 
-- **`mod_server_contact_info`** - XEP-0157: Contact Addresses for XMPP Services
+- **`mod_server_contact_info`** - XEP-0157: Server contact information
   - URL: <https://modules.prosody.im/mod_server_contact_info.html>
-  - Purpose: Provides server contact information for compliance
-  - Status: ✅ Installed and enabled
+  - Purpose: Provides server contact information to clients
+  - Status: ✅ **Pre-installed and enabled**
 
 - **`mod_invites`** - User invitation system
   - URL: <https://modules.prosody.im/mod_invites.html>
-  - Purpose: Allows administrators to create user invitation links
-  - Status: ✅ Installed and enabled
+  - Purpose: Allows administrators to generate invitation links
+  - Status: ✅ **Pre-installed and enabled**
 
 ### Mobile and Client Optimizations
 
-- **`mod_csi_battery_saver`** - Enhanced CSI for mobile battery saving
+- **`mod_csi_battery_saver`** - Client State Indication battery optimization
   - URL: <https://modules.prosody.im/mod_csi_battery_saver.html>
-  - Purpose: Advanced battery optimization for mobile clients
-  - Status: ✅ Installed and enabled
+  - Purpose: Reduces battery usage on mobile devices
+  - Status: ✅ **Pre-installed and enabled**
 
-### MUC Enhancements
+### MUC (Multi-User Chat) Enhancements
 
-- **`mod_muc_notifications`** - Enhanced MUC notifications
+- **`mod_muc_notifications`** - Enhanced MUC notification system
   - URL: <https://modules.prosody.im/mod_muc_notifications.html>
-  - Purpose: Improved notification system for group chats
-  - Status: ✅ Installed and enabled
+  - Purpose: Improved notifications for group chat activities
+  - Status: ✅ **Pre-installed and enabled**
 
 - **`mod_pastebin`** - Automatic pastebin for long messages
   - URL: <https://modules.prosody.im/mod_pastebin.html>
   - Purpose: Automatically converts long messages to pastebin links
-  - Status: ✅ Installed and enabled (MUC component)
+  - Status: ✅ **Pre-installed and enabled**
 
-## Installation Process
+## Installation Methods
 
-Community modules were installed using the following process:
+### 1. Automatic Build-Time Installation
 
-1. **Repository Cloning**: The prosody-modules repository was cloned locally
-2. **Module Selection**: Essential modules were selected based on functionality needs
-3. **Manual Installation**: Modules were copied to `/usr/local/lib/prosody/modules/`
-4. **Configuration Update**: Modules were added to the `modules_enabled` list
-5. **Service Restart**: Prosody was restarted to load the new modules
+**Essential community modules are automatically installed during Docker image build.** No manual intervention required.
+
+```dockerfile
+# Community modules are installed automatically during build
+RUN echo "Installing community modules..." && \
+    cd /tmp && \
+    hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
+    # Install essential modules automatically
+    cp -r prosody-modules/mod_cloud_notify /usr/local/lib/prosody/modules/ && \
+    # ... (10+ modules installed automatically)
+```
+
+### 2. Runtime Installation via Environment Variables
+
+**Add additional modules dynamically using environment variables:**
+
+```bash
+# In .env or .env.dev file
+PROSODY_EXTRA_MODULES=mod_register_web,mod_http_upload_external,mod_unified_push
+```
+
+The entrypoint script will automatically:
+
+- Clone the prosody-modules repository
+- Install the specified modules
+- Set proper ownership and permissions
+- Make them available to Prosody
+
+### 3. Manual Installation via prosody-manager
+
+**Install modules on-demand using the management script:**
+
+```bash
+# Search for available modules
+./scripts/prosody-manager module search push
+
+# Install a specific community module
+./scripts/prosody-manager module install mod_unified_push
+
+# List installed modules
+./scripts/prosody-manager module list
+```
 
 ## Module Management
 
-### Using prosody-manager
-
-The `prosody-manager` script provides comprehensive module management:
+The **`prosody-manager`** script provides comprehensive module management with **automatic container detection**:
 
 ```bash
+# Search both official and community repositories
+./scripts/prosody-manager module search <query>
+
 # List all installed modules
 ./scripts/prosody-manager module list
-
-# Search for available modules
-./scripts/prosody-manager module search <query>
 
 # Install a community module
 ./scripts/prosody-manager module install <module_name>
 
-# Get module information
+# Show detailed module information
 ./scripts/prosody-manager module info <module_name>
 ```
 
-### Manual Installation
+### Key Features
 
-For development or custom installations:
+- ✅ **Automatic container detection** (works with dev, production, and custom container names)
+- ✅ **Dual repository support** (official LuaRocks + community prosody-modules)
+- ✅ **Dependency management** (automatic for official, manual guidance for community)
+- ✅ **Real-time installation** (no container rebuild required)
 
-```bash
-# Copy module from repository
-docker cp .prosody-modules/mod_example xmpp-prosody-dev:/usr/local/lib/prosody/modules/
+## Configuration Integration
 
-# Fix ownership
-docker exec -it xmpp-prosody-dev chown -R prosody:prosody /usr/local/lib/prosody/modules/mod_example
+All community modules are **automatically integrated into the Prosody configuration** with:
 
-# Add to configuration and restart
-```
+- ✅ **Detailed descriptions** of what each module does
+- ✅ **XEP references** and documentation links
+- ✅ **Consistent naming** following user preferences [[memory:3030813]]
+- ✅ **Proper categorization** by functionality
 
-## Configuration Details
-
-### Module Loading
-
-Community modules are loaded in the main configuration file (`config/prosody.cfg.lua`) in the dedicated community modules section:
+Example configuration entry:
 
 ```lua
--- ===============================================
--- COMMUNITY MODULES (from prosody-modules)
--- ===============================================
-
--- Security and Anti-Spam
-"firewall", -- Advanced firewall rules and filtering
-"anti_spam", -- Anti-spam filtering for messages
-"spam_reporting", -- XEP-0377: Spam Reporting
-
--- Administrative Tools
-"admin_blocklist", -- Administrative blocklist management
-"server_contact_info", -- XEP-0157: Contact Addresses for XMPP Services
-"invites", -- User invitation system
-
--- Mobile and Client Optimizations
-"csi_battery_saver", -- Enhanced CSI for mobile battery saving
-
--- MUC Enhancements
-"muc_notifications", -- Enhanced MUC notifications
+modules_enabled = {
+    -- COMMUNITY MODULES (from prosody-modules)
+    "cloud_notify", -- XEP-0357: Push Notifications (community module from prosody-modules)
+    "firewall", -- Advanced filtering and security rules (https://modules.prosody.im/mod_firewall.html)
+    -- ... additional modules
+}
 ```
 
-### Module-Specific Configuration
+## Verification and Testing
 
-Some modules have specific configuration options that can be customized via environment variables or direct configuration.
-
-## Verification
-
-### Feature Check
-
-Use Prosody's built-in feature checker to verify functionality:
+### Check Installed Modules
 
 ```bash
-docker exec -it xmpp-prosody-dev prosodyctl check features
+# List all community modules
+docker exec -it xmpp-prosody-dev ls -la /usr/local/lib/prosody/modules/ | grep mod_
+
+# Verify module installation
+./scripts/prosody-manager module list
+
+# Test module functionality
+./scripts/prosody-manager module info mod_cloud_notify
 ```
 
-### Module Status
-
-Check if modules are loading without errors:
+### Container Logs
 
 ```bash
-docker logs xmpp-prosody-dev | grep -E "(error|warn)" | tail -10
+# Check for module loading messages
+docker logs xmpp-prosody-dev | grep -E "(community|module)"
+
+# Monitor real-time logs
+docker logs -f xmpp-prosody-dev
 ```
-
-### Configuration Validation
-
-Verify the configuration is valid:
-
-```bash
-docker exec -it xmpp-prosody-dev prosodyctl check config
-```
-
-## Benefits
-
-### Enhanced Security
-
-- Advanced spam filtering and reporting
-- Sophisticated firewall rules
-- Improved administrative controls
-
-### Better Mobile Experience
-
-- Push notifications for mobile clients
-- Battery optimization features
-- Enhanced client state indication
-
-### Improved Group Chat
-
-- Better notification systems
-- Automatic pastebin for long messages
-- Enhanced administrative features
-
-### Compliance and Administration
-
-- Server contact information for legal compliance
-- User invitation systems
-- Enhanced administrative tools
 
 ## Troubleshooting
 
-### Common Issues
+### Module Not Loading
 
-1. **Module Not Loading**
-   - Check module is in `/usr/local/lib/prosody/modules/`
-   - Verify correct ownership (prosody:prosody)
-   - Check module is listed in `modules_enabled`
+1. **Check if module is installed**: `./scripts/prosody-manager module list`
+2. **Verify configuration**: Ensure module is in `modules_enabled` list
+3. **Check dependencies**: Some modules require specific Lua libraries
+4. **Restart Prosody**: `docker compose restart xmpp-prosody-dev`
 
-2. **Configuration Errors**
-   - Run `prosodyctl check config` to validate
-   - Check logs for specific error messages
-   - Verify module dependencies are met
+### Installation Issues
 
-3. **Feature Not Working**
-   - Use `prosodyctl check features` to verify
-   - Check module-specific configuration
-   - Verify client support for the feature
+1. **Container detection**: The script automatically detects container names
+2. **Repository access**: Ensure internet access for cloning prosody-modules
+3. **Permissions**: Modules are automatically chowned to `prosody:prosody`
 
-### Log Analysis
+### Environment Variables Not Working
 
-Check Prosody logs for module-specific messages:
+1. **File format**: Ensure proper `.env` or `.env.dev` file format
+2. **Docker Compose**: Verify environment file is loaded in docker-compose.yml
+3. **Variable syntax**: Use `PROSODY_EXTRA_MODULES=mod1,mod2,mod3` format
 
-```bash
-docker logs xmpp-prosody-dev | grep -i "module_name"
-```
+## Best Practices
 
-## Future Enhancements
+### Production Environments
 
-Additional community modules that could be considered:
+1. **Use build-time installation** for essential modules (already done)
+2. **Test community modules** thoroughly before enabling
+3. **Monitor performance** impact of additional modules
+4. **Keep modules updated** via regular image rebuilds
 
-- **`mod_http_upload_external`** - External file upload service
-- **`mod_register_web`** - Web-based user registration
-- **`mod_conversejs`** - Integrated web chat client
-- **`mod_measure_*`** - Additional metrics and monitoring
-- **`mod_unified_push`** - Alternative push notification system
+### Development Environments
 
-## References
+1. **Use environment variables** for experimental modules
+2. **Use prosody-manager** for quick testing and iteration
+3. **Check module compatibility** before production deployment
 
-- [Prosody Community Modules](https://modules.prosody.im/)
-- [Module Installation Guide](https://prosody.im/doc/installing_modules)
-- [XEP Standards](https://xmpp.org/extensions/)
-- [Prosody Configuration Guide](https://prosody.im/doc/configure)
+### Module Selection
+
+1. **Essential modules** are pre-installed (security, push notifications, etc.)
+2. **Experimental modules** can be added via environment variables
+3. **Specialized modules** can be installed on-demand via prosody-manager
+
+## Automated Benefits
+
+This automated system provides:
+
+✅ **Zero-configuration setup** - Essential modules work out of the box
+✅ **Flexible expansion** - Add modules via environment variables or management script
+✅ **Production-ready** - All modules properly installed with correct permissions
+✅ **Development-friendly** - Easy testing and iteration without container rebuilds
+✅ **Comprehensive management** - Full-featured module management via prosody-manager
+✅ **Automatic updates** - Modules updated during image rebuilds
 
 ---
 
-**Note**: Community modules are maintained by volunteers and may have varying levels of stability and support. Always test thoroughly in development before deploying to production.
+**🎉 Result**: You now have a fully automated community module system that requires no manual copying or pasting of modules!

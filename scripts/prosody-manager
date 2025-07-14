@@ -69,6 +69,25 @@ get_container_name() {
     if is_docker_environment; then
         echo "prosody"
     else
+        # Dynamically detect the correct container name
+        local container_name
+
+        # Try different possible container names in order of preference
+        for name in "xmpp-prosody-dev" "xmpp-prosody-1" "xmpp-prosody"; do
+            if docker ps --format "{{.Names}}" | grep -q "^${name}$"; then
+                echo "$name"
+                return 0
+            fi
+        done
+
+        # Fallback: find any running container with prosody in the name
+        container_name=$(docker ps --format "{{.Names}}" | grep prosody | head -1)
+        if [[ -n "$container_name" ]]; then
+            echo "$container_name"
+            return 0
+        fi
+
+        # Last resort: default name
         echo "xmpp-prosody-1"
     fi
 }

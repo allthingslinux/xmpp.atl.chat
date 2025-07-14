@@ -225,6 +225,60 @@ validate_configuration() {
     log_info "Configuration validation successful"
 }
 
+setup_community_modules() {
+    log_info "Setting up community modules..."
+
+    # Check if additional modules are requested via environment variable
+    if [[ -n "${PROSODY_EXTRA_MODULES:-}" ]]; then
+        log_info "Installing additional community modules: ${PROSODY_EXTRA_MODULES}"
+
+        # Install mercurial if not already present (for runtime module installation)
+        if ! command -v hg >/dev/null 2>&1; then
+            log_info "Installing mercurial for module management..."
+            apt-get update && apt-get install -y mercurial && apt-get clean && rm -rf /var/lib/apt/lists/*
+        fi
+
+        # Clone or update prosody-modules repository if needed
+        local modules_repo="/tmp/prosody-modules"
+        if [[ ! -d "$modules_repo" ]]; then
+            log_info "Cloning prosody-modules repository..."
+            hg clone https://hg.prosody.im/prosody-modules/ "$modules_repo"
+        else
+            log_info "Updating prosody-modules repository..."
+            (cd "$modules_repo" && hg pull -u)
+        fi
+
+        # Install each requested module
+        IFS=',' read -ra MODULES <<<"$PROSODY_EXTRA_MODULES"
+        for module in "${MODULES[@]}"; do
+            module=$(echo "$module" | xargs) # trim whitespace
+
+            # Add mod_ prefix if not present
+            if [[ "$module" != mod_* ]]; then
+                module="mod_$module"
+            fi
+
+            log_info "Installing community module: $module"
+
+            if [[ -d "$modules_repo/$module" ]]; then
+                cp -r "$modules_repo/$module" "/usr/local/lib/prosody/modules/"
+                chown -R prosody:prosody "/usr/local/lib/prosody/modules/$module"
+                log_info "Successfully installed: $module"
+            else
+                log_warn "Module not found in repository: $module"
+            fi
+        done
+
+        # Clean up temporary repository
+        rm -rf "$modules_repo"
+    fi
+
+    # Ensure proper ownership of all modules
+    chown -R prosody:prosody /usr/local/lib/prosody/modules/
+
+    log_info "Community modules setup complete"
+}
+
 # ============================================================================
 # SIGNAL HANDLERS
 # ============================================================================
@@ -276,6 +330,7 @@ main() {
     setup_certificates
     wait_for_database
     validate_configuration
+    setup_community_modules
 
     # Display configuration summary
     log_info "Configuration summary:"
