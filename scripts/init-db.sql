@@ -2,21 +2,31 @@
 -- PostgreSQL database setup for Prosody
 -- Based on Prosody mod_storage_sql requirements
 
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable required extensions (if available)
+-- Note: Some extensions may not be available in all PostgreSQL installations
+DO $$
+BEGIN
+    -- Try to create uuid-ossp extension if available
+    IF EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'uuid-ossp') THEN
+        CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+        RAISE NOTICE 'uuid-ossp extension enabled';
+    ELSE
+        RAISE NOTICE 'uuid-ossp extension not available, skipping';
+    END IF;
+END $$;
 
 -- Set proper encoding and collation
-ALTER DATABASE prosody SET timezone TO 'UTC';
-
--- Create the main prosody database user if it doesn't exist
--- Note: User creation is handled by environment variables in docker-compose.yml
+-- Note: Database name and user are determined by environment variables
+-- POSTGRES_DB and POSTGRES_USER in docker-compose.yml
 
 -- Prosody Core Tables
 -- These tables are created automatically by Prosody mod_storage_sql
 -- This script ensures proper permissions and indexes
 
--- Grant necessary permissions to prosody user
-GRANT ALL PRIVILEGES ON DATABASE prosody TO prosody;
+-- Grant necessary permissions to the prosody user
+-- The user and database are created automatically by the PostgreSQL container
+-- Note: This script runs in the context of the database specified by POSTGRES_DB
+-- and the user specified by POSTGRES_USER is already created by the container
 
 -- Schema for Prosody data storage
 -- Prosody will create these tables automatically, but we ensure proper setup
@@ -36,10 +46,8 @@ BEGIN
 END $$;
 
 -- Performance optimizations
--- Set recommended PostgreSQL settings for XMPP workloads
-ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';
-ALTER SYSTEM SET log_statement = 'none';  -- Reduce logging for performance
-ALTER SYSTEM SET log_min_duration_statement = 1000;  -- Log slow queries only
+-- Note: System-wide PostgreSQL settings are configured in docker-compose.yml
+-- via the postgres command line arguments for better container compatibility
 
 -- Create function for Prosody table optimization (runs after tables are created)
 CREATE OR REPLACE FUNCTION optimize_prosody_tables()
