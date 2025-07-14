@@ -332,7 +332,7 @@ if Lua.os.getenv("PROSODY_HTTP_FILES_DIR") then
 	http_files_dir = Lua.os.getenv("PROSODY_HTTP_FILES_DIR")
 	http_index_files = { "index.html", "index.htm" }
 	http_dir_listing = (Lua.os.getenv("PROSODY_HTTP_DIR_LISTING") == "true")
-	log("info", "HTTP static files enabled: %s", http_files_dir)
+	Lua.log("info", "HTTP static files enabled: %s", http_files_dir)
 end
 
 -- Trusted proxies for X-Forwarded-For headers (WebSocket/BOSH proxies)
@@ -922,7 +922,7 @@ lua_gc_pause = 110
 
 Lua.log("info", "=== PROFESSIONAL PROSODY XMPP SERVER LOADED ===")
 Lua.log("info", "Domain: %s", Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
-Lua.log("info", "Storage: %s", default_storage)
+Lua.log("info", "Storage: %s", default_storage or "unknown")
 Lua.log("info", "All modern XMPP features enabled - Production ready!")
 -- log("info", "Modules loaded: %d", #modules_enabled) -- Temporarily disabled due to scope issue
 Lua.log("info", "=== Configuration complete ===")
