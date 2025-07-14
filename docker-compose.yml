@@ -264,7 +264,7 @@ services:
     
     volumes:
       - ./certs:/etc/letsencrypt
-      - ./examples/cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
+      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
     # Environment variables automatically loaded from .env file
     command: >
       certonly
@@ -296,7 +296,7 @@ services:
     
     volumes:
       - ./certs:/etc/letsencrypt
-      - ./examples/cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
+      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
     command: renew --quiet
     profiles:
       - renewal
