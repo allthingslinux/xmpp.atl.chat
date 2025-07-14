@@ -36,7 +36,7 @@ After setup completes:
 
 Use any XMPP client with these settings:
 
-```
+```text
 Server: localhost
 Domain: localhost
 Port: 5222 (STARTTLS) or 5223 (Direct TLS)
@@ -124,7 +124,3 @@ docker compose -f docker-compose.dev.yml logs -f
 5. **Check database** at <http://localhost:8080>
 
 For production deployment, see the main [README.md](README.md) and [documentation](docs/).
-
----
-
-**Happy testing! 🎉**
