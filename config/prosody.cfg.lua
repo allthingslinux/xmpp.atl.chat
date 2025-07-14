@@ -970,5 +970,5 @@ log("info", "=== PROFESSIONAL PROSODY XMPP SERVER LOADED ===")
 log("info", "Domain: %s", os.getenv("PROSODY_DOMAIN") or "localhost")
 log("info", "Storage: %s", default_storage)
 log("info", "All modern XMPP features enabled - Production ready!")
-log("info", "Modules loaded: %d", #modules_enabled)
+-- log("info", "Modules loaded: %d", #modules_enabled) -- Temporarily disabled due to scope issue
 log("info", "=== Configuration complete ===")
