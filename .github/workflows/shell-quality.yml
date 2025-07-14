@@ -1,0 +1,216 @@
+name: Shell Script Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.sh'
+      - 'prosody-manager'
+      - '.github/workflows/shell-quality.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.sh'
+      - 'prosody-manager'
+      - '.github/workflows/shell-quality.yml'
+
+jobs:
+  shell-check:
+    name: Shell Script Linting and Formatting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Find shell scripts
+        id: find-scripts
+        run: |
+          # Find all shell scripts in the repository
+          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*" | sort)
+          echo "Found shell scripts:"
+          echo "$scripts"
+          
+          # Create a space-separated list for the matrix
+          script_list=""
+          for script in $scripts; do
+            script_list="$script_list $script"
+          done
+          
+          # Output for matrix strategy
+          echo "scripts<<EOF" >> $GITHUB_OUTPUT
+          echo "$scripts" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          
+      - name: Install shfmt
+        run: |
+          # Install shfmt using go install
+          go install mvdan.cc/sh/v3/cmd/shfmt@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+          
+      - name: Run shellcheck
+        run: |
+          echo "Running shellcheck on all shell scripts..."
+          exit_code=0
+          
+          while IFS= read -r script; do
+            if [ -n "$script" ]; then
+              echo "Checking: $script"
+              if ! shellcheck -f gcc "$script"; then
+                echo "❌ Shellcheck failed for: $script"
+                exit_code=1
+              else
+                echo "✅ Shellcheck passed for: $script"
+              fi
+              echo ""
+            fi
+          done <<< "${{ steps.find-scripts.outputs.scripts }}"
+          
+          if [ $exit_code -ne 0 ]; then
+            echo "❌ Shellcheck found issues in one or more scripts"
+            exit 1
+          else
+            echo "✅ All scripts passed shellcheck"
+          fi
+          
+      - name: Check shfmt formatting
+        run: |
+          echo "Checking shell script formatting with shfmt..."
+          exit_code=0
+          
+          while IFS= read -r script; do
+            if [ -n "$script" ]; then
+              echo "Checking format: $script"
+              if ! shfmt -d -i 4 -ci "$script"; then
+                echo "❌ Format check failed for: $script"
+                exit_code=1
+              else
+                echo "✅ Format check passed for: $script"
+              fi
+              echo ""
+            fi
+          done <<< "${{ steps.find-scripts.outputs.scripts }}"
+          
+          if [ $exit_code -ne 0 ]; then
+            echo "❌ Some scripts need formatting. Run 'shfmt -w -i 4 -ci .' to fix."
+            exit 1
+          else
+            echo "✅ All scripts are properly formatted"
+          fi
+          
+      - name: Generate formatting suggestions
+        if: failure()
+        run: |
+          echo "## Formatting Suggestions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To fix formatting issues, run the following commands:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "# Install shfmt" >> $GITHUB_STEP_SUMMARY
+          echo "go install mvdan.cc/sh/v3/cmd/shfmt@latest" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Format all shell scripts" >> $GITHUB_STEP_SUMMARY
+          echo "shfmt -w -i 4 -ci ." >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This will:" >> $GITHUB_STEP_SUMMARY
+          echo "- Use 4 spaces for indentation (-i 4)" >> $GITHUB_STEP_SUMMARY
+          echo "- Indent switch cases (-ci)" >> $GITHUB_STEP_SUMMARY
+          echo "- Write changes back to files (-w)" >> $GITHUB_STEP_SUMMARY
+
+  shell-security:
+    name: Shell Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          
+      - name: Run security-focused shellcheck
+        run: |
+          echo "Running security-focused shellcheck analysis..."
+          
+          # Find all shell scripts
+          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*")
+          
+          exit_code=0
+          security_issues=0
+          
+          for script in $scripts; do
+            echo "Security analysis: $script"
+            
+            # Run shellcheck with focus on security issues
+            if ! shellcheck -S error -f json "$script" > /tmp/shellcheck_output.json; then
+              # Parse JSON output for security-related issues
+              if command -v jq >/dev/null 2>&1; then
+                jq -r '.[] | select(.level == "error") | "Line \(.line): \(.message)"' /tmp/shellcheck_output.json || true
+              else
+                cat /tmp/shellcheck_output.json
+              fi
+              security_issues=$((security_issues + 1))
+              exit_code=1
+            fi
+          done
+          
+          if [ $security_issues -gt 0 ]; then
+            echo "❌ Found $security_issues security issues"
+            exit 1
+          else
+            echo "✅ No security issues found"
+          fi
+
+  shell-best-practices:
+    name: Shell Best Practices Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check for common shell best practices
+        run: |
+          echo "Checking shell scripts for best practices..."
+          
+          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*")
+          issues=0
+          
+          for script in $scripts; do
+            echo "Checking best practices: $script"
+            
+            # Check for set -euo pipefail
+            if ! grep -q "set -euo pipefail" "$script"; then
+              echo "⚠️  Missing 'set -euo pipefail' in $script"
+              issues=$((issues + 1))
+            fi
+            
+            # Check for proper shebang
+            if ! head -n1 "$script" | grep -q "^#!/bin/bash"; then
+              echo "⚠️  Missing or incorrect shebang in $script"
+              issues=$((issues + 1))
+            fi
+            
+            # Check for unquoted variables (basic check)
+            if grep -n '\$[A-Za-z_][A-Za-z0-9_]*[^"'\''}\]]' "$script" | grep -v '#' | head -5; then
+              echo "⚠️  Potentially unquoted variables found in $script (lines shown above)"
+              issues=$((issues + 1))
+            fi
+          done
+          
+          if [ $issues -gt 0 ]; then
+            echo "⚠️  Found $issues best practice issues (warnings only)"
+          else
+            echo "✅ All scripts follow best practices"
+          fi
+          
+          # Don't fail the job for best practices, just warn
+          exit 0 
