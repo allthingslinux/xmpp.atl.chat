@@ -50,6 +50,17 @@ network_settings = {
 }
 
 -- ===============================================
+-- PLUGIN INSTALLER CONFIGURATION
+-- ===============================================
+
+-- Official Prosody modules repository for prosodyctl install
+-- Reference: https://prosody.im/doc/plugin_installer
+plugin_server = "https://modules.prosody.im/rocks/"
+
+-- Custom plugin installation path (managed by prosody-manager)
+installer_plugin_path = "/usr/local/lib/prosody/modules"
+
+-- ===============================================
 -- TLS/SSL CONFIGURATION
 -- ===============================================
 

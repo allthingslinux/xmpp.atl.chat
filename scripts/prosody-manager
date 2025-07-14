@@ -751,6 +751,7 @@ deploy_status() {
 readonly MODULES_DIR="/usr/local/lib/prosody/modules"
 readonly MODULES_REPO="https://hg.prosody.im/prosody-modules/"
 readonly TEMP_MODULES_DIR="$PROJECT_DIR/.prosody-modules"
+readonly ROCKS_SERVER="https://modules.prosody.im/rocks/"
 
 module_command() {
     local subcommand="${1:-help}"
@@ -778,6 +779,9 @@ module_command() {
     "sync")
         module_sync "$@"
         ;;
+    "rocks")
+        module_rocks "$@"
+        ;;
     "help" | "-h" | "--help")
         module_help
         ;;
@@ -792,35 +796,45 @@ module_command() {
 
 module_list() {
     local filter="${1:-}"
+    local show_rocks="${2:-false}"
 
     log_info "Installed modules:"
 
-    if [[ ! -d "$MODULES_DIR" ]]; then
-        log_warn "Modules directory not found: $MODULES_DIR"
-        return 1
+    # List manually installed modules (from community repo)
+    if [[ -d "$MODULES_DIR" ]]; then
+        local count=0
+        echo -e "${BOLD}Community Modules (from prosody-modules):${NC}"
+        for module_dir in "$MODULES_DIR"/mod_*; do
+            if [[ -d "$module_dir" ]]; then
+                local module_name
+                module_name=$(basename "$module_dir")
+                if [[ -z "$filter" || "$module_name" == *"$filter"* ]]; then
+                    echo -e "  ${GREEN}✓${NC} $module_name ${CYAN}(community)${NC}"
+                    ((count++))
+                fi
+            fi
+        done
+
+        if [[ $count -eq 0 ]]; then
+            echo -e "  ${YELLOW}No community modules installed${NC}"
+        fi
+        echo
     fi
 
-    local count=0
-    for module_dir in "$MODULES_DIR"/mod_*; do
-        if [[ -d "$module_dir" ]]; then
-            local module_name
-            module_name=$(basename "$module_dir")
-            if [[ -z "$filter" || "$module_name" == *"$filter"* ]]; then
-                echo -e "  ${GREEN}✓${NC} $module_name"
-                ((count++))
-            fi
-        fi
-    done
-
-    if [[ $count -eq 0 ]]; then
-        if [[ -n "$filter" ]]; then
-            log_warn "No modules found matching: $filter"
+    # List LuaRocks installed modules (via prosodyctl install)
+    echo -e "${BOLD}Official Modules (via LuaRocks):${NC}"
+    if command_exists prosodyctl; then
+        if run_in_container prosodyctl list 2>/dev/null | grep -q "mod_"; then
+            run_in_container prosodyctl list 2>/dev/null | grep "mod_" | while read -r line; do
+                if [[ -z "$filter" || "$line" == *"$filter"* ]]; then
+                    echo -e "  ${GREEN}✓${NC} $line ${BLUE}(official)${NC}"
+                fi
+            done
         else
-            log_warn "No modules installed"
+            echo -e "  ${YELLOW}No official modules installed via LuaRocks${NC}"
         fi
     else
-        echo
-        log_success "$count module(s) installed"
+        echo -e "  ${YELLOW}prosodyctl not available${NC}"
     fi
 }
 
@@ -834,6 +848,26 @@ module_search() {
     fi
 
     log_info "Searching for modules matching: $query"
+    echo
+
+    # Search official LuaRocks repository
+    echo -e "${BOLD}Official Repository (LuaRocks):${NC}"
+    if command_exists luarocks; then
+        if run_in_container luarocks search --porcelain "$query" 2>/dev/null | grep -q "mod_"; then
+            run_in_container luarocks search --porcelain "$query" 2>/dev/null | grep "mod_" | while read -r name version repo; do
+                echo -e "  ${BLUE}$name${NC} ${CYAN}($version)${NC} - Install with: ${GREEN}prosody-manager module rocks install $name${NC}"
+            done
+        else
+            echo -e "  ${YELLOW}No official modules found${NC}"
+        fi
+    else
+        echo -e "  ${YELLOW}LuaRocks not available${NC}"
+    fi
+
+    echo
+
+    # Search community repository
+    echo -e "${BOLD}Community Repository (prosody-modules):${NC}"
 
     # Clone or update the modules repository
     if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
@@ -854,7 +888,7 @@ module_search() {
                 if [[ -d "$MODULES_DIR/$module_name" ]]; then
                     installed=" ${GREEN}(installed)${NC}"
                 fi
-                echo -e "  ${CYAN}$module_name${NC}$installed"
+                echo -e "  ${CYAN}$module_name${NC}$installed - Install with: ${GREEN}prosody-manager module install $module_name${NC}"
 
                 # Show description if available
                 local readme="$module_dir/README.markdown"
@@ -871,11 +905,12 @@ module_search() {
     done
 
     if [[ $count -eq 0 ]]; then
-        log_warn "No modules found matching: $query"
-    else
-        echo
-        log_success "Found $count module(s)"
+        echo -e "  ${YELLOW}No community modules found${NC}"
     fi
+
+    echo
+    log_info "💡 Tip: Use 'prosody-manager module rocks install <name>' for official modules with dependency handling"
+    log_info "💡 Tip: Use 'prosody-manager module install <name>' for community modules (manual dependency management)"
 }
 
 module_install() {
@@ -884,6 +919,7 @@ module_install() {
     if [[ -z "$module_name" ]]; then
         log_error "Please provide a module name"
         echo "Usage: prosody-manager module install <module_name>"
+        echo "  For official modules with dependencies: prosody-manager module rocks install <module_name>"
         return 1
     fi
 
@@ -892,7 +928,7 @@ module_install() {
         module_name="mod_$module_name"
     fi
 
-    log_info "Installing module: $module_name"
+    log_info "Installing community module: $module_name"
 
     # Check if already installed
     if [[ -d "$MODULES_DIR/$module_name" ]]; then
@@ -919,14 +955,77 @@ module_install() {
     fi
 
     # Create modules directory if it doesn't exist
-    mkdir -p "$MODULES_DIR"
+    run_in_container mkdir -p "$MODULES_DIR"
 
-    # Copy module
-    cp -r "$source_dir" "$MODULES_DIR/"
-    chown -R prosody:prosody "$MODULES_DIR/$module_name" 2>/dev/null || true
+    # Copy module files
+    if is_docker_environment; then
+        cp -r "$source_dir" "$MODULES_DIR/"
+        chown -R prosody:prosody "$MODULES_DIR/$module_name" 2>/dev/null || true
+    else
+        docker cp "$source_dir" "$(get_container_name):$MODULES_DIR/"
+        run_in_container chown -R prosody:prosody "$MODULES_DIR/$module_name"
+    fi
 
-    log_success "Module $module_name installed successfully"
-    log_info "Don't forget to add it to your Prosody configuration and reload"
+    log_success "Community module $module_name installed successfully"
+    log_warn "⚠️  This is a community module - check dependencies manually!"
+    log_info "📖 Read the module documentation for setup instructions"
+    log_info "🔧 Add '$module_name' to your modules_enabled list and reload Prosody"
+}
+
+module_rocks() {
+    local subcmd="${1:-help}"
+    shift || true
+
+    case "$subcmd" in
+    "install")
+        local module_name="${1:-}"
+        if [[ -z "$module_name" ]]; then
+            log_error "Please provide a module name"
+            echo "Usage: prosody-manager module rocks install <module_name>"
+            return 1
+        fi
+
+        log_info "Installing official module via LuaRocks: $module_name"
+        if run_in_container prosodyctl install "$module_name"; then
+            log_success "Official module $module_name installed successfully"
+            log_info "✅ Dependencies handled automatically by LuaRocks"
+            log_info "🔧 Add '$module_name' to your modules_enabled list and reload Prosody"
+        else
+            log_error "Failed to install $module_name via prosodyctl"
+            log_info "💡 Try: prosody-manager module install $module_name (for community modules)"
+        fi
+        ;;
+    "list")
+        run_in_container prosodyctl list "$@"
+        ;;
+    "remove")
+        local module_name="${1:-}"
+        if [[ -z "$module_name" ]]; then
+            log_error "Please provide a module name"
+            echo "Usage: prosody-manager module rocks remove <module_name>"
+            return 1
+        fi
+
+        log_info "Removing official module: $module_name"
+        run_in_container prosodyctl remove "$module_name"
+        ;;
+    "outdated")
+        run_in_container prosodyctl list --outdated
+        ;;
+    "help")
+        echo -e "${BOLD}Official Module Management (LuaRocks)${NC}"
+        echo
+        echo -e "${GREEN}install <module>${NC}    Install official module with dependencies"
+        echo -e "${GREEN}remove <module>${NC}     Remove official module"
+        echo -e "${GREEN}list${NC}               List installed official modules"
+        echo -e "${GREEN}outdated${NC}           List outdated official modules"
+        ;;
+    *)
+        log_error "Unknown rocks subcommand: $subcmd"
+        module_rocks help
+        return 1
+        ;;
+    esac
 }
 
 module_remove() {
@@ -935,6 +1034,7 @@ module_remove() {
     if [[ -z "$module_name" ]]; then
         log_error "Please provide a module name"
         echo "Usage: prosody-manager module remove <module_name>"
+        echo "  For official modules: prosody-manager module rocks remove <module_name>"
         return 1
     fi
 
@@ -944,61 +1044,76 @@ module_remove() {
     fi
 
     local module_path="$MODULES_DIR/$module_name"
-    if [[ ! -d "$module_path" ]]; then
-        log_error "Module not installed: $module_name"
+
+    # Check if it's a community module
+    if run_in_container test -d "$module_path"; then
+        log_warn "This will remove community module: $module_name"
+        read -p "Are you sure? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Removal cancelled"
+            return 0
+        fi
+
+        run_in_container rm -rf "$module_path"
+        log_success "Community module $module_name removed successfully"
+    else
+        log_error "Community module not found: $module_name"
+        log_info "💡 For official modules, use: prosody-manager module rocks remove $module_name"
         return 1
     fi
 
-    log_warn "This will remove module: $module_name"
-    read -p "Are you sure? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        log_info "Removal cancelled"
-        return 0
-    fi
-
-    rm -rf "$module_path"
-    log_success "Module $module_name removed successfully"
-    log_info "Don't forget to remove it from your Prosody configuration and reload"
+    log_info "🔧 Remove '$module_name' from your modules_enabled list and reload Prosody"
 }
 
 module_update() {
     local module_name="${1:-}"
 
     if [[ -n "$module_name" ]]; then
-        # Update specific module
+        # Update specific community module
         if [[ "$module_name" != mod_* ]]; then
             module_name="mod_$module_name"
         fi
 
         if [[ ! -d "$MODULES_DIR/$module_name" ]]; then
-            log_error "Module not installed: $module_name"
+            log_error "Community module not installed: $module_name"
             return 1
         fi
 
-        log_info "Updating module: $module_name"
+        log_info "Updating community module: $module_name"
         module_install "$module_name"
     else
-        # Update all installed modules
-        log_info "Updating all installed modules..."
+        # Update all modules
+        log_info "Updating all modules..."
 
-        if [[ ! -d "$MODULES_DIR" ]]; then
-            log_warn "No modules directory found"
-            return 1
+        # Update community modules
+        if [[ -d "$MODULES_DIR" ]]; then
+            local count=0
+            echo -e "${BOLD}Updating community modules:${NC}"
+            for module_dir in "$MODULES_DIR"/mod_*; do
+                if [[ -d "$module_dir" ]]; then
+                    local module_name
+                    module_name=$(basename "$module_dir")
+                    log_info "Updating $module_name..."
+                    module_install "$module_name"
+                    ((count++))
+                fi
+            done
+            echo -e "${GREEN}Updated $count community module(s)${NC}"
         fi
 
-        local count=0
-        for module_dir in "$MODULES_DIR"/mod_*; do
-            if [[ -d "$module_dir" ]]; then
+        # Update official modules
+        echo -e "${BOLD}Updating official modules:${NC}"
+        if run_in_container prosodyctl list --outdated 2>/dev/null | grep -q "mod_"; then
+            run_in_container prosodyctl list --outdated 2>/dev/null | grep "mod_" | while read -r module_info; do
                 local module_name
-                module_name=$(basename "$module_dir")
-                log_info "Updating $module_name..."
-                module_install "$module_name"
-                ((count++))
-            fi
-        done
-
-        log_success "Updated $count module(s)"
+                module_name=$(echo "$module_info" | awk '{print $1}')
+                log_info "Updating official module: $module_name"
+                run_in_container prosodyctl install "$module_name"
+            done
+        else
+            log_info "All official modules are up to date"
+        fi
     fi
 }
 
@@ -1018,29 +1133,36 @@ module_info() {
 
     log_info "Module information: $module_name"
 
-    # Check if installed
+    # Check if installed as community module
     local installed_path="$MODULES_DIR/$module_name"
-    if [[ -d "$installed_path" ]]; then
-        echo -e "  ${GREEN}Status:${NC} Installed"
+    if run_in_container test -d "$installed_path"; then
+        echo -e "  ${GREEN}Status:${NC} Installed (Community)"
         echo -e "  ${GREEN}Path:${NC} $installed_path"
 
         # Show files
         echo -e "  ${GREEN}Files:${NC}"
-        find "$installed_path" -type f -name "*.lua" | head -10 | while read -r file; do
+        run_in_container find "$installed_path" -type f -name "*.lua" | head -10 | while read -r file; do
             echo "    $(basename "$file")"
         done
     else
-        echo -e "  ${YELLOW}Status:${NC} Not installed"
+        echo -e "  ${YELLOW}Community Status:${NC} Not installed"
     fi
 
-    # Get info from repository
+    # Check if installed as official module
+    if run_in_container prosodyctl list 2>/dev/null | grep -q "$module_name"; then
+        echo -e "  ${BLUE}Official Status:${NC} Installed via LuaRocks"
+    else
+        echo -e "  ${YELLOW}Official Status:${NC} Not installed"
+    fi
+
+    # Get info from community repository
     if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
         hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
     fi
 
     local repo_path="$TEMP_MODULES_DIR/$module_name"
     if [[ -d "$repo_path" ]]; then
-        echo -e "  ${GREEN}Available:${NC} Yes"
+        echo -e "  ${GREEN}Community Available:${NC} Yes"
 
         # Show README if available
         local readme="$repo_path/README.markdown"
@@ -1049,45 +1171,82 @@ module_info() {
             head -n 10 "$readme" | sed 's/^/    /'
         fi
     else
-        echo -e "  ${YELLOW}Available:${NC} No"
+        echo -e "  ${YELLOW}Community Available:${NC} No"
+    fi
+
+    # Check if available in official repository
+    if run_in_container luarocks search --porcelain "$module_name" 2>/dev/null | grep -q "$module_name"; then
+        echo -e "  ${BLUE}Official Available:${NC} Yes (via LuaRocks)"
+        echo -e "  ${BLUE}Install Command:${NC} prosody-manager module rocks install $module_name"
+    else
+        echo -e "  ${YELLOW}Official Available:${NC} No"
     fi
 }
 
 module_sync() {
-    log_info "Synchronizing modules repository..."
+    log_info "Synchronizing community modules repository..."
 
     if [[ -d "$TEMP_MODULES_DIR" ]]; then
         rm -rf "$TEMP_MODULES_DIR"
     fi
 
     hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
-    log_success "Modules repository synchronized"
+    log_success "Community modules repository synchronized"
+
+    # Also update LuaRocks cache
+    log_info "Updating LuaRocks cache..."
+    run_in_container luarocks list --outdated >/dev/null 2>&1 || true
+    log_success "LuaRocks cache updated"
 }
 
 module_help() {
     echo -e "${BOLD}Module Management Commands${NC}"
     echo
+    echo -e "${BOLD}OVERVIEW:${NC}"
+    echo "  Two types of modules are supported:"
+    echo -e "  ${BLUE}• Official modules${NC} - Installed via LuaRocks with automatic dependency handling"
+    echo -e "  ${CYAN}• Community modules${NC} - Installed from prosody-modules repository (manual dependencies)"
+    echo
     echo -e "${BOLD}USAGE:${NC}"
     echo "    prosody-manager module <subcommand> [options]"
     echo
-    echo -e "${BOLD}SUBCOMMANDS:${NC}"
-    echo -e "    ${GREEN}list [filter]${NC}           List installed modules"
-    echo -e "    ${GREEN}search <query>${NC}          Search available modules"
-    echo -e "    ${GREEN}install <module>${NC}        Install a module"
-    echo -e "    ${GREEN}remove <module>${NC}         Remove a module"
+    echo -e "${BOLD}GENERAL COMMANDS:${NC}"
+    echo -e "    ${GREEN}list [filter]${NC}           List all installed modules"
+    echo -e "    ${GREEN}search <query>${NC}          Search both official and community modules"
+    echo -e "    ${GREEN}info <module>${NC}           Show detailed module information"
     echo -e "    ${GREEN}update [module]${NC}         Update module(s)"
-    echo -e "    ${GREEN}info <module>${NC}           Show module information"
-    echo -e "    ${GREEN}sync${NC}                    Sync modules repository"
-    echo -e "    ${GREEN}help${NC}                    Show this help"
+    echo -e "    ${GREEN}sync${NC}                    Sync module repositories"
+    echo
+    echo -e "${BOLD}COMMUNITY MODULES (prosody-modules):${NC}"
+    echo -e "    ${GREEN}install <module>${NC}        Install community module (manual dependencies)"
+    echo -e "    ${GREEN}remove <module>${NC}         Remove community module"
+    echo
+    echo -e "${BOLD}OFFICIAL MODULES (LuaRocks):${NC}"
+    echo -e "    ${GREEN}rocks install <module>${NC}  Install official module with dependencies"
+    echo -e "    ${GREEN}rocks remove <module>${NC}   Remove official module"
+    echo -e "    ${GREEN}rocks list${NC}              List official modules only"
+    echo -e "    ${GREEN}rocks outdated${NC}          List outdated official modules"
     echo
     echo -e "${BOLD}EXAMPLES:${NC}"
-    echo "    prosody-manager module list"
+    echo "    # Search for modules"
     echo "    prosody-manager module search cloud"
-    echo "    prosody-manager module install mod_cloud_notify"
-    echo "    prosody-manager module install cloud_notify"
-    echo "    prosody-manager module remove mod_pastebin"
+    echo
+    echo "    # Install official module (recommended for production)"
+    echo "    prosody-manager module rocks install mod_cloud_notify"
+    echo
+    echo "    # Install community module (bleeding edge)"
+    echo "    prosody-manager module install mod_pastebin"
+    echo
+    echo "    # List all modules"
+    echo "    prosody-manager module list"
+    echo
+    echo "    # Update all modules"
     echo "    prosody-manager module update"
-    echo "    prosody-manager module info mod_smacks"
+    echo
+    echo -e "${BOLD}RECOMMENDATIONS:${NC}"
+    echo -e "  ${BLUE}• Production:${NC} Use 'rocks install' for official modules with dependency handling"
+    echo -e "  ${CYAN}• Development:${NC} Use 'install' for latest community modules"
+    echo -e "  ${YELLOW}• Always:${NC} Read module documentation before enabling"
 }
 
 # ============================================================================
