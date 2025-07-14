@@ -17,7 +17,8 @@ services:
 
     # Environment variables
     env_file:
-      - .env
+      - path: .env
+        required: true
     environment:
       # Override database connection for container-to-container communication
       - PROSODY_DB_HOST=db
@@ -174,6 +175,11 @@ services:
     container_name: prosody-coturn
     restart: unless-stopped
     
+    # Environment variables automatically loaded from .env file
+    env_file:
+      - path: .env
+        required: true
+    
     ports:
       # STUN/TURN ports (environment variables loaded from .env)
       - '${TURN_PORT:-3478}:3478'
@@ -249,9 +255,15 @@ services:
   certbot:
     image: certbot/dns-cloudflare:latest
     container_name: prosody-certbot
+    
+    # Environment variables automatically loaded from .env file
+    env_file:
+      - path: .env
+        required: true
+    
     volumes:
       - ./certs:/etc/letsencrypt
-      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
+      - ./examples/cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
     # Environment variables automatically loaded from .env file
     command: >
       certonly
@@ -274,9 +286,15 @@ services:
   certbot-renew:
     image: certbot/dns-cloudflare:latest
     container_name: prosody-certbot-renew
+    
+    # Environment variables automatically loaded from .env file
+    env_file:
+      - path: .env
+        required: true
+    
     volumes:
       - ./certs:/etc/letsencrypt
-      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
+      - ./examples/cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
     command: renew --quiet
     profiles:
       - renewal
