@@ -293,7 +293,7 @@ main() {
     log_info "Starting Prosody XMPP server..."
 
     # Switch to prosody user and start in foreground
-    exec su-exec "$PROSODY_USER" prosody \
+    exec gosu "$PROSODY_USER" prosody \
         --config="$PROSODY_CONFIG_FILE" \
         --foreground &
 
