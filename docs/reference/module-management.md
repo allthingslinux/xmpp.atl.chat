@@ -203,7 +203,7 @@ prosody-manager module install mod_muc_notifications
 prosody-manager module rocks list
 
 # Verify prosodyctl functionality
-./scripts/prosody-manager prosodyctl status
+./prosody-manager prosodyctl status
 
 # Check for outdated modules
 prosody-manager module rocks outdated

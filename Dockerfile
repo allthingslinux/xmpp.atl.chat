@@ -132,10 +132,10 @@ RUN groupadd -r prosody && \
     chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs /usr/local/lib/prosody/modules
 
 # Copy configuration files
-COPY config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua
-COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY scripts/health-check.sh /usr/local/bin/health-check.sh
-COPY scripts/prosody-manager /usr/local/bin/prosody-manager
+COPY core/config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua
+COPY scripts/setup/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/maintenance/health-check.sh /usr/local/bin/health-check.sh
+COPY prosody-manager /usr/local/bin/prosody-manager
 
 # Make scripts executable
 RUN chmod +x /usr/local/bin/entrypoint.sh \

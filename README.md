@@ -1,123 +1,142 @@
-# 🚀 Professional Prosody XMPP Server
+# XMPP Server (Prosody)
 
-> **Production-ready XMPP server with comprehensive feature set, extensive XEP compliance, and enterprise security**
+Production-ready XMPP server with comprehensive features, extensive XEP compliance, and enterprise security.
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](./docker-compose.yml)
-[![Security](https://img.shields.io/badge/Security-Hardened-green)](#-security-features)
+[![Security](https://img.shields.io/badge/Security-Hardened-green)](#security-features)
 [![XEP Compliance](https://img.shields.io/badge/XEP-50%2B%20Supported-purple)](./docs/reference/xep-compliance.md)
-[![Prosody](https://img.shields.io/badge/Prosody-13.0%2B-orange)](https://prosody.im/)
 
-## ✨ What is This?
+## Overview
 
-A **single, opinionated Prosody XMPP server configuration** designed for professional deployment. Built from extensive research of real-world XMPP deployments, this setup provides enterprise-level features with all modern XMPP capabilities enabled by default.
+Single, opinionated Prosody XMPP server configuration designed for professional deployment. Built from research of real-world XMPP deployments, this setup provides enterprise-level features with modern XMPP capabilities enabled by default.
 
-**No complex layers or environments** - just one comprehensive, production-ready configuration that works out of the box.
+No complex layers or environments - one comprehensive, production-ready configuration that works.
 
-## 🚀 Quick Start
+## Quick Start
 
-### 1. Automated Setup (Recommended)
+### Production Setup
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/allthingslinux/xmpp.atl.chat /opt/xmpp.atl.chat
 cd /opt/xmpp.atl.chat
 
-# Run the setup script - it will guide you through everything!
+# Run setup script
 ./scripts/setup.sh
 ```
 
-The setup script will automatically:
+The setup script will:
 
-- ✅ Check dependencies (Docker, Docker Compose, OpenSSL)
-- ✅ Configure environment variables (.env file)
-- ✅ Set up Cloudflare API credentials
-- ✅ Generate wildcard SSL certificates
-- ✅ Set up automatic certificate renewal
-- ✅ Start all services
-- ✅ Create administrator user
+- Check dependencies (Docker, Docker Compose, OpenSSL)
+- Configure environment variables (.env file)
+- Set up Cloudflare API credentials
+- Generate wildcard SSL certificates
+- Set up automatic certificate renewal
+- Start all services
+- Create administrator user
 
-### 2. Manual Setup
-
-If you prefer to set up manually:
+### Development Setup
 
 ```bash
-# Configure your environment
+# Clone and setup development environment
+git clone https://github.com/allthingslinux/xmpp.atl.chat
+cd xmpp.atl.chat
+./scripts/setup-dev.sh
+```
+
+Development environment includes:
+
+- Full XMPP server with all modern features
+- PostgreSQL database with web admin interface
+- TURN/STUN server for voice/video calls
+- Development tools (log viewer, metrics, admin panel)
+- Test users automatically created
+- Self-signed certificates for localhost testing
+
+### Manual Setup
+
+```bash
+# Configure environment
 cp examples/env.example .env
 # Edit .env with your domain and database password
 
-# Generate wildcard SSL certificate with Cloudflare DNS-01 (ONE-TIME SETUP)
+# Generate SSL certificate (Cloudflare DNS-01)
 cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your Cloudflare API token
 docker compose --profile letsencrypt run --rm xmpp-certbot
 
-# Set up automatic certificate renewal (recommended)
+# Set up certificate renewal
 (crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 
-# Deploy the server
+# Deploy server
 docker compose up -d xmpp-prosody xmpp-postgres
 
 # Check status
 docker compose logs -f xmpp-prosody
 ```
 
-📖 **Complete Setup Guide**: [Docker Deployment Guide](docs/admin/docker-deployment.md)
-
-### 2. Create Users
+## User Management
 
 ```bash
-# Using the unified CLI tool
-./scripts/prosody-manager prosodyctl adduser admin@atl.chat
-./scripts/prosody-manager prosodyctl adduser user@atl.chat
+# Using unified CLI tool
+./prosody-manager prosodyctl adduser admin@atl.chat
+./prosody-manager prosodyctl adduser user@atl.chat
 
 # Or directly with Docker
 docker compose exec xmpp-prosody prosodyctl adduser admin@atl.chat
 ```
 
-### 3. Connect
+## Connection Information
 
-Your XMPP server is now ready! Connect with any XMPP client:
+### Production
 
 - **Server**: `atl.chat`
 - **Ports**: 5222 (STARTTLS), 5223 (Direct TLS)
 - **Web Admin**: `https://xmpp.atl.chat:5281/admin`
 - **WebSocket**: `wss://xmpp.atl.chat:5281/xmpp-websocket`
 
-## 🌟 Key Features
+### Development
 
-### 🔒 **Enterprise Security** (Default Enabled)
+- **Server**: `localhost`
+- **Domain**: `localhost`
+- **Ports**: 5222 (STARTTLS), 5223 (Direct TLS)
+- **Web Admin**: `http://localhost:5280/admin`
+- **Test Users**: `admin@localhost` (admin123), `alice@localhost` (alice123), `bob@localhost` (bob123)
 
-- **TLS 1.3** with perfect forward secrecy
-- **SCRAM-SHA-256** authentication (XEP-0474)
-- **Anti-spam & abuse protection** with DNS blocklists
-- **Certificate validation** with DANE/TLSA support
+## Features
 
-### 📱 **Modern XMPP Features** (Default Enabled)
+### Security (Default Enabled)
 
-- **Message Archive Management** (MAM) - XEP-0313
-- **Message Carbons** - XEP-0280  
-- **Stream Management** (SMACKS) - XEP-0198
-- **Client State Indication** (CSI) - XEP-0352
-- **HTTP File Upload** - XEP-0363
-- **Push Notifications** - XEP-0357
+- TLS 1.3 with perfect forward secrecy
+- SCRAM-SHA-256 authentication (XEP-0474)
+- Anti-spam and abuse protection with DNS blocklists
+- Certificate validation with DANE/TLSA support
 
-### 🚀 **Mobile Optimizations** (Default Enabled)
+### Modern XMPP Features (Default Enabled)
 
-- **Battery-saving CSI configuration**
-- **Mobile presence deduplication**
-- **Optimized offline message handling**
-- **WebSocket and BOSH support**
+- Message Archive Management (MAM) - XEP-0313
+- Message Carbons - XEP-0280
+- Stream Management (SMACKS) - XEP-0198
+- Client State Indication (CSI) - XEP-0352
+- HTTP File Upload - XEP-0363
+- Push Notifications - XEP-0357
 
-### 💼 **Professional Features** (Default Enabled)
+### Mobile Optimizations (Default Enabled)
 
-- **Multi-User Chat** (MUC) - XEP-0045
-- **Publish-Subscribe** (PubSub) - XEP-0060
-- **External Service Discovery** - XEP-0215
-- **TURN/STUN integration** for voice/video calls
-- **Web admin interface** and monitoring
+- Battery-saving CSI configuration
+- Mobile presence deduplication
+- Optimized offline message handling
+- WebSocket and BOSH support
 
-## 🐳 Service Architecture
+### Professional Features (Default Enabled)
 
-This deployment includes multiple services for a complete XMPP solution:
+- Multi-User Chat (MUC) - XEP-0045
+- Publish-Subscribe (PubSub) - XEP-0060
+- External Service Discovery - XEP-0215
+- TURN/STUN integration for voice/video calls
+- Web admin interface and monitoring
+
+## Service Architecture
 
 | Service | Purpose | Port(s) | Status |
 |---------|---------|---------|--------|
@@ -125,9 +144,6 @@ This deployment includes multiple services for a complete XMPP solution:
 | **PostgreSQL** | Database backend | 5432 (internal) | Core |
 | **Adminer** | Database management interface | 8080 | Optional |
 | **Coturn** | TURN/STUN server for voice/video | 3478, 5349, 49152-65535 | Optional |
-| ~~**Prometheus**~~ | ~~Metrics collection~~ | ~~9090~~ | ~~External~~ |
-| ~~**Grafana**~~ | ~~Monitoring dashboards~~ | ~~3000~~ | ~~External~~ |
-| ~~**Node Exporter**~~ | ~~System metrics~~ | ~~9100~~ | ~~External~~ |
 
 ### Deployment Options
 
@@ -141,13 +157,47 @@ docker compose up -d xmpp-prosody xmpp-postgres xmpp-adminer
 # Full deployment (all services)
 docker compose up -d
 
-# Custom service selection
-docker compose up -d xmpp-prosody xmpp-postgres xmpp-adminer xmpp-coturn
+# Development environment
+docker compose -f docker-compose.dev.yml up -d
 ```
 
-## 📊 XEP Compliance
+## Development Environment
 
-This server supports **50+ XMPP Extension Protocols (XEPs)** for maximum client compatibility:
+### Access URLs
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **Development Dashboard** | <http://localhost:8081> | Central hub with all links |
+| **Admin Panel** | <http://localhost:5280/admin> | XMPP server management |
+| **Database Admin** | <http://localhost:8080> | PostgreSQL web interface |
+| **Log Viewer** | <http://localhost:8082> | Real-time log monitoring |
+| **Metrics** | <http://localhost:5280/metrics> | Prometheus metrics |
+
+### Development Tools
+
+```bash
+# Show environment status
+./scripts/dev-tools.sh status
+
+# Test all connectivity
+./scripts/dev-tools.sh test
+
+# Create more users
+./scripts/dev-tools.sh adduser newuser password123
+
+# View logs
+./scripts/dev-tools.sh logs
+
+# Show all URLs
+./scripts/dev-tools.sh urls
+
+# Complete cleanup (removes all data)
+./scripts/dev-tools.sh cleanup
+```
+
+## XEP Compliance
+
+This server supports 50+ XMPP Extension Protocols (XEPs) for maximum client compatibility:
 
 | Category | Key XEPs | Status |
 |----------|----------|---------|
@@ -158,51 +208,23 @@ This server supports **50+ XMPP Extension Protocols (XEPs)** for maximum client 
 | **Mobile** | XEP-0352 (CSI), XEP-0357 (Push), XEP-0198 (Stream Management) | ✅ |
 | **Real-time** | XEP-0215 (External Services), XEP-0167/0176 (Jingle A/V) | ✅ |
 
-**[→ View complete XEP compliance list](./docs/reference/xep-compliance.md)**
+[View complete XEP compliance list](./docs/reference/xep-compliance.md)
 
-## 🔒 Security Features
+## Security Features
 
-- **🛡️ Transport Security**: TLS 1.3, perfect forward secrecy, modern cipher suites
-- **🚫 Anti-Spam**: DNS blocklists, rate limiting, JID reputation scoring  
-- **🔐 Authentication**: Multi-factor auth support, SASL 2.0, SCRAM-SHA-256
-- **📊 Monitoring**: Audit logging, security alerts, compliance reports
-- **🌐 Network**: IPv6 support, DNSSEC validation, SRV record discovery
+- **Transport Security**: TLS 1.3, perfect forward secrecy, modern cipher suites
+- **Anti-Spam**: DNS blocklists, rate limiting, JID reputation scoring
+- **Authentication**: Multi-factor auth support, SASL 2.0, SCRAM-SHA-256
+- **Monitoring**: Audit logging, security alerts, compliance reports
+- **Network**: IPv6 support, DNSSEC validation, SRV record discovery
 
-**[→ View detailed security documentation](./docs/admin/security.md)**
+[View detailed security documentation](./docs/admin/security.md)
 
-## 📚 Documentation
-
-This project includes comprehensive documentation organized by audience:
-
-### 👥 **For Users**
-
-- **[Getting Started Guide](./docs/user/getting-started.md)** - Detailed deployment walkthrough
-- **[Configuration Guide](./docs/user/configuration.md)** - Environment variables and settings
-
-### 🛠️ **For Administrators**
-
-- **[Administrator Guide](./docs/admin/README.md)** - Essential admin documentation and CLI tool
-- **[DNS Setup](./docs/admin/dns-setup.md)** - Required DNS records and security
-- **[Certificate Management](./docs/admin/certificate-management.md)** - SSL/TLS certificates and Let's Encrypt
-- **[Security Hardening](./docs/admin/security.md)** - Production security configuration
-
-### 💻 **For Developers**
-
-- **[Architecture Overview](./docs/dev/architecture.md)** - System design and structure
-- **[Prosody Modern Features](./docs/dev/prosody-modern-features.md)** - Advanced XMPP features
-
-### 📖 **Reference**
-
-- **[Module Reference](./docs/reference/modules.md)** - Complete module documentation
-- **[XEP Compliance](./docs/reference/xep-compliance.md)** - Supported XMPP extensions
-
-**[→ Browse all documentation](./docs/README.md)**
-
-## 🛠️ Management Tools
+## Management Tools
 
 ### Database Management
 
-**Adminer** provides a web-based database management interface:
+Adminer provides a web-based database management interface:
 
 ```bash
 # Start with database management
@@ -212,79 +234,91 @@ docker compose up -d xmpp-prosody xmpp-postgres xmpp-adminer
 # Login credentials are automatically configured from your .env file
 ```
 
-The Adminer interface will automatically connect to your PostgreSQL database with the configured credentials, allowing you to:
-
-- View and edit database tables
-- Execute SQL queries
-- Monitor database performance
-- Backup and restore data
-
-**Theme**: The interface uses the [Hydra Dark Theme](https://github.com/Niyko/Hydra-Dark-Theme-for-Adminer) for improved visibility and a modern Material Design appearance.
-
-**Security**: Auto-login is controlled by the `ADMINER_AUTO_LOGIN` environment variable. Set to `true` for development convenience, but **always set to `false` in production** for security.
-
 ### Unified CLI Tool
 
-The **`prosody-manager`** script provides comprehensive server management:
+The `prosody-manager` script provides comprehensive server management:
 
 ```bash
 # Show all available commands
-./scripts/prosody-manager help
+./prosody-manager help
 
 # User management
-./scripts/prosody-manager prosodyctl adduser alice@atl.chat
-./scripts/prosody-manager prosodyctl passwd alice@atl.chat
+./prosody-manager prosodyctl adduser alice@atl.chat
+./prosody-manager prosodyctl passwd alice@atl.chat
 
 # Health monitoring
-./scripts/prosody-manager health all
+./prosody-manager health all
 
 # Certificate management
-./scripts/prosody-manager cert check atl.chat
-./scripts/prosody-manager cert install atl.chat
+./prosody-manager cert check atl.chat
+./prosody-manager cert install atl.chat
 
 # Backup operations
-./scripts/prosody-manager backup create
-./scripts/prosody-manager backup restore backup.tar.gz
+./prosody-manager backup create
+./prosody-manager backup restore backup.tar.gz
 
 # Deployment management
-./scripts/prosody-manager deploy up full
-./scripts/prosody-manager deploy logs prosody
+./prosody-manager deploy up full
 ```
 
-### Docker-Specific Scripts
+## Documentation
 
-- **`scripts/setup.sh`** - Automated initial setup for fresh repository clones
-- **`scripts/entrypoint.sh`** - Docker container initialization
-- **`scripts/renew-certificates.sh`** - Automated certificate renewal with Prosody reload
-- **`scripts/init-db.sql`** - PostgreSQL database initialization
+### For Users
 
-## 🤝 Contributing
+- [Getting Started Guide](./docs/user/getting-started.md) - Detailed deployment walkthrough
+- [Configuration Guide](./docs/user/configuration.md) - Environment variables and settings
 
-We welcome contributions! Please:
+### For Administrators
 
-- **Open issues** for bugs or feature requests
-- **Submit pull requests** with clear descriptions
-- **Follow conventional commit** style for commit messages
-- **Update documentation** when making changes
+- [Administrator Guide](./docs/admin/README.md) - Essential admin documentation and CLI tool
+- [DNS Setup](./docs/admin/dns-setup.md) - Required DNS records and security
+- [Certificate Management](./docs/admin/certificate-management.md) - SSL/TLS certificates and Let's Encrypt
+- [Security Hardening](./docs/admin/security.md) - Production security configuration
 
-## 📋 Requirements
+### For Developers
 
-- **Docker** 20.10+ and **Docker Compose** 2.0+
-- **2GB RAM** minimum (4GB+ recommended for full deployment)
-- **Valid domain name** with DNS control
-- **SSL certificate** (Let's Encrypt recommended)
+- [Architecture Overview](./docs/dev/architecture.md) - System design and structure
+- [Localhost Testing](./docs/dev/localhost-testing.md) - Development environment guide
+- [Prosody Modern Features](./docs/dev/prosody-modern-features.md) - Advanced XMPP features
 
-## 🙏 Acknowledgments
+### Reference
 
-Built with:
+- [Module Reference](./docs/reference/modules.md) - Complete module documentation
+- [XEP Compliance](./docs/reference/xep-compliance.md) - Supported XMPP extensions
 
-- **[Prosody IM](https://prosody.im/)** - Lightweight XMPP server
-- **[PostgreSQL](https://postgresql.org/)** - Reliable database backend
-- **[Docker](https://docker.com/)** - Containerization platform
-- **Community modules** from the [Prosody Community Modules](https://modules.prosody.im/) project
+[Browse all documentation](./docs/README.md)
 
----
+## Security Notice
 
-**⭐ Star this repository if you find it useful!**
+**Development environment is NOT secure:**
 
-For questions or support, please [open an issue](https://github.com/allthingslinux/xmpp.atl.chat/issues) or check our [documentation](./docs/README.md).
+- Open registration enabled
+- Debug logging active
+- Self-signed certificates
+- Relaxed security settings
+
+**Never expose development environment to the internet!** Use only for localhost testing.
+
+## Project Structure
+
+```
+xmpp.atl.chat/
+├── prosody-manager          # Unified CLI management tool
+├── core/                   # Configuration and database files
+├── web/                    # Registration, admin, assets, themes, webclient
+├── scripts/                # Setup, admin, dev, maintenance scripts
+├── deployment/             # Reverse-proxy, systemd, monitoring configs
+├── templates/              # Environment and configuration examples
+├── docs/                   # Comprehensive documentation
+├── tests/                  # Testing framework
+├── .runtime/               # Runtime data (gitignored)
+└── research/               # Research and notes
+```
+
+## Contributing
+
+See [docs/dev/architecture.md](./docs/dev/architecture.md) for development guidelines and project structure.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

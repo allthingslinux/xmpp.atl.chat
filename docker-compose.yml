@@ -36,24 +36,24 @@ services:
     # Volume mounts
     volumes:
       # Configuration (read-only)
-      - ./config:/etc/prosody/config:ro
+      - ./core/config:/etc/prosody/config:ro
 
       # Data persistence
       - xmpp_prosody_data:/var/lib/prosody/data
       - xmpp_prosody_uploads:/var/lib/prosody/uploads
 
       # SSL certificates (local directory for easier management)
-      - ./certs:/etc/prosody/certs
+      - ./.runtime/certs:/etc/prosody/certs
 
       # Scripts (for certificate management)
       - ./scripts:/opt/prosody/scripts:ro
 
       # Logs (local directory for easier access)
-      - ./logs:/var/log/prosody
+      - ./.runtime/logs:/var/log/prosody
 
     # Health check
     healthcheck:
-      test: ['CMD', '/opt/prosody/scripts/health-check.sh']
+      test: ['CMD', '/usr/local/bin/health-check.sh']
       interval: 30s
       timeout: 10s
       retries: 3

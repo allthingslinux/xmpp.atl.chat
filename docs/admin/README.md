@@ -8,26 +8,26 @@ For most administrative tasks, use the **unified CLI tool**:
 
 ```bash
 # Show all available commands
-./scripts/prosody-manager help
+./prosody-manager help
 
 # User management
-./scripts/prosody-manager prosodyctl adduser alice@atl.chat
-./scripts/prosody-manager prosodyctl passwd alice@atl.chat
+./prosody-manager prosodyctl adduser alice@atl.chat
+./prosody-manager prosodyctl passwd alice@atl.chat
 
 # Health monitoring
-./scripts/prosody-manager health all
+./prosody-manager health all
 
 # Certificate management
-./scripts/prosody-manager cert check atl.chat
-./scripts/prosody-manager cert install atl.chat
+./prosody-manager cert check atl.chat
+./prosody-manager cert install atl.chat
 
 # Backup operations
-./scripts/prosody-manager backup create
-./scripts/prosody-manager backup list
+./prosody-manager backup create
+./prosody-manager backup list
 
 # Deployment management
-./scripts/prosody-manager deploy status
-./scripts/prosody-manager deploy logs prosody
+./prosody-manager deploy status
+./prosody-manager deploy logs prosody
 ```
 
 ## 📚 Administration Guides
@@ -83,25 +83,25 @@ docker compose pull && docker compose up -d
 
 ```bash
 ./scripts/prosody-manager health all
-./scripts/prosody-manager deploy logs prosody
+./prosody-manager deploy logs prosody
 ```
 
 **Certificate issues:**
 
 ```bash
-./scripts/prosody-manager cert check your-domain.com
-./scripts/prosody-manager prosodyctl cert list
+./prosody-manager cert check your-domain.com
+./prosody-manager prosodyctl cert list
 ```
 
 **Connection problems:**
 
 ```bash
-./scripts/prosody-manager health ports
-./scripts/prosody-manager prosodyctl status
+./prosody-manager health ports
+./prosody-manager prosodyctl status
 ```
 
 ### Support Resources
 
-- **Configuration Validation**: `./scripts/prosody-manager health config`
+- **Configuration Validation**: `./prosody-manager health config`
 - **Prosody Documentation**: <https://prosody.im/doc/>
 - **XEP Compliance**: [Reference documentation](../reference/xep-compliance.md)

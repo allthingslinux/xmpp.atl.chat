@@ -40,7 +40,7 @@ services:
     # Volume mounts for development
     volumes:
       # Configuration (read-write for easy editing)
-      - ./config:/etc/prosody/config:rw
+      - ./core/config:/etc/prosody/config:rw
 
       # Data persistence (named volumes for easy cleanup)
       - xmpp_prosody_data_dev:/var/lib/prosody/data
@@ -53,11 +53,11 @@ services:
       - ./scripts:/opt/prosody/scripts:ro
 
       # Logs (local directory for easy access)
-      - ./logs/dev:/var/log/prosody
+      - ./.runtime/logs:/var/log/prosody
 
     # Health check
     healthcheck:
-      test: ['CMD', '/opt/prosody/scripts/health-check.sh']
+      test: ['CMD', '/usr/local/bin/health-check.sh']
       interval: 15s
       timeout: 5s
       retries: 3

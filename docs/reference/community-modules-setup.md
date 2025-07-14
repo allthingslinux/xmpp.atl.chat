@@ -112,13 +112,13 @@ The entrypoint script will automatically:
 
 ```bash
 # Search for available modules
-./scripts/prosody-manager module search push
+./prosody-manager module search push
 
 # Install a specific community module
-./scripts/prosody-manager module install mod_unified_push
+./prosody-manager module install mod_unified_push
 
 # List installed modules
-./scripts/prosody-manager module list
+./prosody-manager module list
 ```
 
 ## Module Management
@@ -127,16 +127,16 @@ The **`prosody-manager`** script provides comprehensive module management with *
 
 ```bash
 # Search both official and community repositories
-./scripts/prosody-manager module search <query>
+./prosody-manager module search <query>
 
 # List all installed modules
-./scripts/prosody-manager module list
+./prosody-manager module list
 
 # Install a community module
-./scripts/prosody-manager module install <module_name>
+./prosody-manager module install <module_name>
 
 # Show detailed module information
-./scripts/prosody-manager module info <module_name>
+./prosody-manager module info <module_name>
 ```
 
 ### Key Features
@@ -175,10 +175,10 @@ modules_enabled = {
 docker exec -it xmpp-prosody-dev ls -la /usr/local/lib/prosody/modules/ | grep mod_
 
 # Verify module installation
-./scripts/prosody-manager module list
+./prosody-manager module list
 
 # Test module functionality
-./scripts/prosody-manager module info mod_cloud_notify
+./prosody-manager module info mod_cloud_notify
 ```
 
 ### Container Logs
@@ -195,7 +195,7 @@ docker logs -f xmpp-prosody-dev
 
 ### Module Not Loading
 
-1. **Check if module is installed**: `./scripts/prosody-manager module list`
+1. **Check if module is installed**: `./prosody-manager module list`
 2. **Verify configuration**: Ensure module is in `modules_enabled` list
 3. **Check dependencies**: Some modules require specific Lua libraries
 4. **Restart Prosody**: `docker compose restart xmpp-prosody-dev`
