@@ -6,12 +6,26 @@ on:
     paths:
       - '**/*.sh'
       - 'prosody-manager'
+      - '**/*.lua'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.json'
+      - '**/*.md'
+      - 'Dockerfile'
+      - '**/*.sql'
       - '.github/workflows/ci.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
       - '**/*.sh'
       - 'prosody-manager'
+      - '**/*.lua'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.json'
+      - '**/*.md'
+      - 'Dockerfile'
+      - '**/*.sql'
       - '.github/workflows/ci.yml'
 
 jobs:
@@ -258,4 +272,244 @@ jobs:
           fi
           
           # Don't fail the job for best practices, just warn
-          exit 0 
+          exit 0
+
+  lua-check:
+    name: Lua Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install luacheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luarocks
+          sudo luarocks install luacheck
+          
+      - name: Find Lua files
+        id: find-lua
+        run: |
+          lua_files=$(find . -name "*.lua" -not -path "./.git/*" | sort)
+          echo "Found Lua files:"
+          echo "$lua_files"
+          
+          if [ -z "$lua_files" ]; then
+            echo "No Lua files found"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Run luacheck
+        if: steps.find-lua.outputs.skip == 'false'
+        run: |
+          echo "Running luacheck on Lua files..."
+          
+          # Create luacheck config for Prosody
+          cat > .luacheckrc << 'EOF'
+          -- Luacheck configuration for Prosody XMPP server
+          std = "lua54"
+          
+          -- Prosody globals
+          globals = {
+            "prosody", "hosts", "module", "require", "VirtualHost", "Component",
+            "log", "error", "warn", "info", "debug"
+          }
+          
+          -- Ignore some common patterns
+          ignore = {
+            "212", -- Unused argument (common in Prosody modules)
+            "213", -- Unused loop variable
+          }
+          
+          -- File-specific settings
+          files["core/config/prosody.cfg.lua"] = {
+            globals = {"ssl", "authentication", "modules_enabled", "modules_disabled"}
+          }
+          EOF
+          
+          if ! luacheck .; then
+            echo "❌ Luacheck found issues"
+            exit 1
+          else
+            echo "✅ All Lua files passed luacheck"
+          fi
+
+  yaml-lint:
+    name: YAML Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install yamllint
+        run: |
+          pip install yamllint
+          
+      - name: Create yamllint config
+        run: |
+          cat > .yamllint.yml << 'EOF'
+          extends: default
+          
+          rules:
+            line-length:
+              max: 120
+              level: warning
+            comments:
+              min-spaces-from-content: 1
+            document-start: disable
+            truthy:
+              allowed-values: ['true', 'false', 'yes', 'no']
+          EOF
+          
+      - name: Run yamllint
+        run: |
+          echo "Running yamllint on YAML files..."
+          
+          # Find YAML files
+          yaml_files=$(find . -name "*.yml" -o -name "*.yaml" | grep -v ".git")
+          
+          if [ -z "$yaml_files" ]; then
+            echo "No YAML files found"
+            exit 0
+          fi
+          
+          if ! yamllint $yaml_files; then
+            echo "❌ YAML linting failed"
+            exit 1
+          else
+            echo "✅ All YAML files passed yamllint"
+          fi
+
+  json-lint:
+    name: JSON Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          
+      - name: Run JSON validation
+        run: |
+          echo "Validating JSON files..."
+          
+          json_files=$(find . -name "*.json" | grep -v ".git")
+          
+          if [ -z "$json_files" ]; then
+            echo "No JSON files found"
+            exit 0
+          fi
+          
+          exit_code=0
+          for file in $json_files; do
+            echo "Checking: $file"
+            if ! jq empty "$file" >/dev/null 2>&1; then
+              echo "❌ Invalid JSON: $file"
+              exit_code=1
+            else
+              echo "✅ Valid JSON: $file"
+            fi
+          done
+          
+          if [ $exit_code -ne 0 ]; then
+            echo "❌ JSON validation failed"
+            exit 1
+          else
+            echo "✅ All JSON files are valid"
+          fi
+
+  markdown-lint:
+    name: Markdown Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          config: |
+            {
+              "line-length": {
+                "line_length": 120,
+                "code_blocks": false,
+                "tables": false
+              },
+              "no-duplicate-heading": false,
+              "no-inline-html": {
+                "allowed_elements": ["br", "img", "details", "summary"]
+              }
+            }
+          globs: '**/*.md'
+
+  dockerfile-lint:
+    name: Dockerfile Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          config: |
+            ignored:
+              - DL3008  # Pin versions in apt get install (we use specific package versions)
+              - DL3009  # Delete apt cache (we do clean up)
+              - SC2086  # Double quote to prevent globbing (shellcheck overlap)
+
+  sql-lint:
+    name: SQL Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install sqlfluff
+        run: |
+          pip install sqlfluff
+          
+      - name: Create sqlfluff config
+        run: |
+          cat > .sqlfluff << 'EOF'
+          [sqlfluff]
+          dialect = postgres
+          templater = jinja
+          
+          [sqlfluff:rules]
+          max_line_length = 120
+          
+          [sqlfluff:rules:capitalisation.keywords]
+          capitalisation_policy = upper
+          EOF
+          
+      - name: Run sqlfluff
+        run: |
+          echo "Running sqlfluff on SQL files..."
+          
+          sql_files=$(find . -name "*.sql" | grep -v ".git")
+          
+          if [ -z "$sql_files" ]; then
+            echo "No SQL files found"
+            exit 0
+          fi
+          
+          if ! sqlfluff lint $sql_files; then
+            echo "❌ SQL linting failed"
+            echo "Run 'sqlfluff fix .' to auto-fix issues"
+            exit 1
+          else
+            echo "✅ All SQL files passed sqlfluff"
+          fi 
