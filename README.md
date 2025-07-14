@@ -15,17 +15,35 @@ A **single, opinionated Prosody XMPP server configuration** designed for profess
 
 ## 🚀 Quick Start
 
-### 1. Deploy with Docker
+### 1. Automated Setup (Recommended)
 
 ```bash
 # Clone the repository
 git clone https://github.com/allthingslinux/xmpp.atl.chat
 cd xmpp.atl.chat
 
+# Run the setup script - it will guide you through everything!
+./scripts/setup.sh
+```
+
+The setup script will automatically:
+
+- ✅ Check dependencies (Docker, Docker Compose, OpenSSL)
+- ✅ Configure environment variables (.env file)
+- ✅ Set up Cloudflare API credentials
+- ✅ Generate wildcard SSL certificates
+- ✅ Set up automatic certificate renewal
+- ✅ Start all services
+- ✅ Create administrator user
+
+### 2. Manual Setup
+
+If you prefer to set up manually:
+
+```bash
 # Configure your environment
 cp examples/env.example .env
 # Edit .env with your domain and database password
-# All configuration is done via environment variables in .env
 
 # Generate wildcard SSL certificate with Cloudflare DNS-01 (ONE-TIME SETUP)
 cp cloudflare-credentials.ini.example cloudflare-credentials.ini
@@ -208,8 +226,8 @@ The **`prosody-manager`** script provides comprehensive server management:
 
 ### Docker-Specific Scripts
 
+- **`scripts/setup.sh`** - Automated initial setup for fresh repository clones
 - **`scripts/entrypoint.sh`** - Docker container initialization
-
 - **`scripts/renew-certificates.sh`** - Automated certificate renewal with Prosody reload
 - **`scripts/init-db.sql`** - PostgreSQL database initialization
 
