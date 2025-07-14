@@ -377,7 +377,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your Cloudflare API token
 
 # 2. Generate wildcard certificate
-docker compose --profile letsencrypt run --rm certbot
+docker compose --profile letsencrypt run --rm xmpp-certbot
 
 # 3. Extract TLSA hash for DNS records
 docker compose exec xmpp-prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -pubkey -noout | \

@@ -214,7 +214,7 @@ generate_certificates() {
 
     cd "$PROJECT_DIR"
 
-    if docker compose --profile letsencrypt run --rm certbot; then
+    if docker compose --profile letsencrypt run --rm xmpp-certbot; then
         log_info "SSL certificates generated successfully ✓"
     else
         log_error "Certificate generation failed"

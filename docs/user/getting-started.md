@@ -97,7 +97,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Permissions needed: Zone:Zone:Read, Zone:DNS:Edit
 
 # 2. Generate wildcard certificate
-docker compose --profile letsencrypt run --rm certbot
+docker compose --profile letsencrypt run --rm xmpp-certbot
 
 # 3. Start the server
 docker compose up -d xmpp-prosody xmpp-postgres

@@ -134,7 +134,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Permissions needed: Zone:Zone:Read, Zone:DNS:Edit
 
 # 2. Generate wildcard certificate
-docker compose --profile letsencrypt run --rm certbot
+docker compose --profile letsencrypt run --rm xmpp-certbot
 
 # 3. Set up automatic renewal
 (crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -

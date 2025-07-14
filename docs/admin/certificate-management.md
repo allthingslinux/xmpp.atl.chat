@@ -36,7 +36,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 
 ```bash
 # Generate wildcard certificate for all subdomains
-docker compose --profile letsencrypt run --rm certbot
+docker compose --profile letsencrypt run --rm xmpp-certbot
 
 # Start the server
 docker compose up -d

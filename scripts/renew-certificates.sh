@@ -63,7 +63,7 @@ renew_certificates() {
     cd "$PROJECT_DIR"
 
     # Try to renew certificates
-    if docker compose --profile renewal run --rm certbot-renew; then
+    if docker compose --profile renewal run --rm xmpp-certbot-renew; then
         log_info "Certificate renewal completed successfully"
         return 0
     else

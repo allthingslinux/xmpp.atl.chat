@@ -48,7 +48,7 @@ cp examples/env.example .env
 # Generate wildcard SSL certificate with Cloudflare DNS-01 (ONE-TIME SETUP)
 cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your Cloudflare API token
-docker compose --profile letsencrypt run --rm certbot
+docker compose --profile letsencrypt run --rm xmpp-certbot
 
 # Set up automatic certificate renewal (recommended)
 (crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -

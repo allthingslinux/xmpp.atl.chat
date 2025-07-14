@@ -72,7 +72,7 @@ Choose one of the following methods:
 
    ```bash
    # Generate wildcard certificate for all subdomains
-   docker compose --profile letsencrypt run --rm certbot
+   docker compose --profile letsencrypt run --rm xmpp-certbot
    ```
 
 #### Option B: Manual Certificate
@@ -250,8 +250,8 @@ deploy:
 
 ```bash
 # Renew certificates manually
-docker compose --profile letsencrypt run --rm certbot
-docker compose restart prosody
+docker compose --profile letsencrypt run --rm xmpp-certbot
+docker compose restart xmpp-prosody
 
 # Check certificate expiration
 docker compose exec xmpp-prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -noout -dates

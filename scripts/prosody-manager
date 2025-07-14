@@ -420,7 +420,7 @@ renew_certificate() {
     # Check if using Let's Encrypt
     if run_in_container test -f "/etc/letsencrypt/live/$domain/fullchain.pem"; then
         log_info "Renewing Let's Encrypt certificate..."
-        run_in_container certbot renew --cert-name "$domain"
+        run_in_container xmpp-certbot renew --cert-name "$domain"
 
         # Copy renewed certificate
         run_in_container cp "/etc/letsencrypt/live/$domain/fullchain.pem" "/etc/prosody/certs/$domain.crt"
