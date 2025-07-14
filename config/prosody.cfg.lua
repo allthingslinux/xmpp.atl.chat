@@ -464,8 +464,6 @@ modules_enabled = {
 	"tls", -- Transport Layer Security (RFC 6120)
 	"dialback", -- Server dialback (XEP-0220)
 	"presence", -- Presence management (RFC 6121)
-	"presence_dedup", -- Deduplicate presence stanzas
-	"presence_cache", -- Cache presence information
 	"message", -- Message handling (RFC 6121)
 	"iq", -- Info/Query processing (RFC 6120)
 
@@ -479,133 +477,52 @@ modules_enabled = {
 	"version", -- XEP-0092: Software Version
 	"lastactivity", -- XEP-0012: Last Activity
 	"last", -- XEP-0012: Last Activity (core module)
-	"idle", -- XEP-0319: Last User Interaction in Presence
-	"server_info", -- XEP-0157: Contact Addresses
-	"extdisco", -- XEP-0215: External Service Discovery
 
 	-- ===============================================
-	-- MODERN MESSAGING FEATURES
+	-- MODERN MESSAGING FEATURES (Built-in only)
 	-- ===============================================
 	"mam", -- XEP-0313: Message Archive Management
 	"carbons", -- XEP-0280: Message Carbons
 	"smacks", -- XEP-0198: Stream Management
-	"smacks_offline", -- Offline message handling with SM
 	"csi_simple", -- XEP-0352: Client State Indication
-	"csi_battery_saver", -- Battery optimization for mobile clients
 	"offline", -- Offline message storage
-	"addressing", -- XEP-0033: Extended Stanza Addressing
-	"receipts", -- XEP-0184: Message Delivery Receipts
 
 	-- ===============================================
 	-- MULTI-USER CHAT (MUC)
 	-- ===============================================
-	"muc", -- XEP-0045: Multi-User Chat
-	"muc_mam", -- XEP-0313: MAM for MUC
-	"muc_unique", -- XEP-0307: Unique Room Names
+	"muc_mam", -- XEP-0313: Message Archive Management for MUC
 
 	-- ===============================================
-	-- PERSONAL EVENTING PROTOCOL (PEP)
+	-- FILE TRANSFER AND MEDIA
 	-- ===============================================
-	"pep", -- XEP-0163: Personal Eventing Protocol
-	"pubsub", -- XEP-0060: Publish-Subscribe
-	"bookmarks", -- XEP-0402: PEP Native Bookmarks
-	"vcard4", -- XEP-0292: vCard4 Over XMPP
-	"vcard_legacy", -- Legacy vCard support
+	"http_file_share", -- XEP-0363: HTTP File Upload
+
+	-- ===============================================
+	-- ADMINISTRATION AND MANAGEMENT
+	-- ===============================================
+	"admin_adhoc", -- XEP-0050: Ad-Hoc Commands for administration
+	"admin_shell", -- Administrative shell interface
+	"console", -- Console access for debugging
+
+	-- ===============================================
+	-- WEB SERVICES
+	-- ===============================================
+	"http", -- HTTP server for web services
+	"websocket", -- XEP-0156: WebSocket support for web clients
+	"bosh", -- XEP-0124/0206: BOSH support for web clients
+
+	-- ===============================================
+	-- SECURITY AND PRIVACY
+	-- ===============================================
+	"blocklist", -- XEP-0191: Blocking Command
 	"private", -- XEP-0049: Private XML Storage
 
 	-- ===============================================
-	-- FILE TRANSFER AND SHARING
+	-- DEVELOPMENT AND DEBUGGING
 	-- ===============================================
-	"http_file_share", -- XEP-0363: HTTP File Upload (recommended)
-	"proxy65", -- XEP-0065: SOCKS5 Bytestreams
-
-	-- ===============================================
-	-- PUSH NOTIFICATIONS AND MOBILE
-	-- ===============================================
-	"cloud_notify", -- XEP-0357: Push Notifications
-
-	-- ===============================================
-	-- PRIVACY AND BLOCKING
-	-- ===============================================
-	"blocklist", -- XEP-0191: Blocking Command
-	"privacy", -- XEP-0016: Privacy Lists (legacy support)
-
-	-- ===============================================
-	-- HTTP SERVICES AND WEB CLIENTS
-	-- ===============================================
-	"http", -- Core HTTP server
-	"http_files", -- Static file serving
-	"bosh", -- XEP-0124: BOSH (HTTP binding)
-	"websocket", -- RFC 7395: WebSocket support
-	"http_altconnect", -- XEP-0156: Alternative connection methods
-
-	-- ===============================================
-	-- EXTERNAL SERVICES
-	-- ===============================================
-	"external_services", -- XEP-0215: External Service Discovery
-	"turncredentials", -- TURN credentials for WebRTC
-
-	-- ===============================================
-	-- SECURITY AND ANTI-SPAM
-	-- ===============================================
-	"limits", -- Rate limiting and abuse prevention
-	"firewall", -- Advanced stanza firewall
-	"filter_chatstates", -- Filter chat state notifications
-	"spam_reporting", -- XEP-0377: Spam Reporting
-
-	-- ===============================================
-	-- COMPONENT PROTOCOL SUPPORT
-	-- ===============================================
-	"component", -- XEP-0114: Component Protocol
-
-	-- ===============================================
-	-- ADMINISTRATION AND MONITORING
-	-- ===============================================
-	"admin_web", -- Web administration interface
-	"http_openmetrics", -- Prometheus metrics
-	"statistics", -- Basic statistics
-	"posix", -- POSIX system integration
+	"motd", -- Message of the day
+	"welcome", -- Welcome message for new users
 	"watchdog", -- Process monitoring
-	"uptime", -- Server uptime tracking
-
-	-- ===============================================
-	-- ENHANCED MONITORING (Production)
-	-- ===============================================
-	"measure_client_connections", -- Connection metrics
-	"measure_stanza_counts", -- Stanza processing metrics
-	"measure_message_e2ee", -- E2E encryption metrics
-	"stanza_counter", -- Count and monitor stanzas
-
-	-- ===============================================
-	-- ACCOUNT MANAGEMENT (Prosody 13.0+)
-	-- ===============================================
-	"user_account_management", -- Enhanced account management
-	"account_activity", -- Last login/logout tracking (13.0+)
-
-	-- ===============================================
-	-- PRODUCTION-SPECIFIC MODULES
-	-- ===============================================
-	"watchregistrations", -- Monitor registrations
-	"tombstones", -- User deletion handling
-	"server_contact_info", -- Server contact information
-	"register_limits", -- Registration rate limiting
-	"register_ibr", -- In-band registration support
-
-	-- ===============================================
-	-- PROSODY 13.0+ FEATURES
-	-- ===============================================
-	"flags", -- Enhanced metadata tracking
-	"s2s_auth_dane_in", -- DANE authentication for S2S
-
-	-- ===============================================
-	-- COMPRESSION AND OPTIMIZATION
-	-- ===============================================
-	"compression", -- XEP-0138: Stream Compression
-
-	-- ===============================================
-	-- COMPONENT SUPPORT
-	-- ===============================================
-	"component", -- XEP-0114: Component Protocol
 }
 
 -- ===============================================
