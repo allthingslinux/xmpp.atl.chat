@@ -152,8 +152,8 @@ services:
       - '3478:3478/udp'
       - '5349:5349'
       - '5349:5349/udp'
-      # Simplified relay port range for development
-      - '49152-49200:49152-49200/udp'
+      # Simplified relay port range for development (shifted to avoid conflicts)
+      - '49300-49350:49152-49202/udp'
     
     environment:
       - TURN_NO_LOOPBACK_PEERS=false  # Allow loopback for development
