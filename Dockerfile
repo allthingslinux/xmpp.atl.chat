@@ -100,16 +100,13 @@ RUN buildDeps='gcc git libc6-dev libidn2-dev liblua5.4-dev libsqlite3-dev libssl
     \
     apt-get purge -y --auto-remove $buildDeps
 
-# Prepare module directories (modules will be mounted externally)
-RUN mkdir -p /usr/local/lib/prosody/modules && \
-    chown -R prosody:prosody /usr/local/lib/prosody/modules
-
 # Create prosody user and directories
 RUN groupadd -r prosody && \
     useradd -r -g prosody prosody && \
     mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody && \
     mkdir -p /certs && \
-    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs
+    mkdir -p /usr/local/lib/prosody/modules && \
+    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs /usr/local/lib/prosody/modules
 
 # Copy configuration files
 COPY config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua
