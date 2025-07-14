@@ -144,7 +144,7 @@ REQUIREMENTS:
 
 CRON EXAMPLE:
     # Run every day at 3 AM
-    0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh
+    0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh
 
 LOG FILE:
     Certificate renewal logs are written to: $LOG_FILE

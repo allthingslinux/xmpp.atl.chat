@@ -14,8 +14,8 @@ Deploy a professional Prosody XMPP server in 5 minutes using Docker Compose. Thi
 
 ```bash
 # Clone the repository
-git clone https://github.com/allthingslinux/xmpp.atl.chat
-cd xmpp.atl.chat
+git clone https://github.com/allthingslinux/xmpp.atl.chat /opt/xmpp.atl.chat
+cd /opt/xmpp.atl.chat
 
 # Copy and edit configuration
 cp examples/env.example .env

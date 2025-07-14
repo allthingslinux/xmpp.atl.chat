@@ -67,7 +67,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 docker compose --profile letsencrypt run --rm certbot
 
 # 3. Set up automatic renewal
-(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 ```
 
 **Manual Certificate Setup:**

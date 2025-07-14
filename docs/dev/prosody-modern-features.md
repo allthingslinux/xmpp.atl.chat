@@ -174,7 +174,7 @@ For containerized environments:
 
 ```bash
 # Podman with secrets
-podman secret create prosody_db_password /path/to/password/file
+podman secret create prosody_db_password /opt/xmpp.atl.chat/.env
 podman run --secret prosody_db_password \
            -e CREDENTIALS_DIRECTORY=/run/secrets \
            prosody:latest

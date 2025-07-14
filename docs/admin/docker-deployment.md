@@ -15,8 +15,8 @@ Complete guide for deploying the Professional Prosody XMPP Server using Docker.
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd xmpp.atl.chat
+git clone https://github.com/allthingslinux/xmpp.atl.chat /opt/xmpp.atl.chat
+cd /opt/xmpp.atl.chat
 
 # Copy and configure environment
 cp examples/env.example .env
@@ -232,7 +232,7 @@ deploy:
 
 ```bash
 # Set up automated renewal (run once)
-(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 
 # Test the renewal script
 ./scripts/renew-certificates.sh --help
@@ -243,7 +243,7 @@ deploy:
 
 ```bash
 # Add to crontab
-0 3 * * * cd /path/to/xmpp.atl.chat && docker compose --profile renewal run --rm certbot-renew && docker compose restart prosody
+0 3 * * * cd /opt/xmpp.atl.chat && docker compose --profile renewal run --rm xmpp-prosody
 ```
 
 #### Manual Renewal

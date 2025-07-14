@@ -19,8 +19,8 @@ A **single, opinionated Prosody XMPP server configuration** designed for profess
 
 ```bash
 # Clone the repository
-git clone https://github.com/allthingslinux/xmpp.atl.chat
-cd xmpp.atl.chat
+git clone https://github.com/allthingslinux/xmpp.atl.chat /opt/xmpp.atl.chat
+cd /opt/xmpp.atl.chat
 
 # Run the setup script - it will guide you through everything!
 ./scripts/setup.sh
@@ -51,7 +51,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 docker compose --profile letsencrypt run --rm certbot
 
 # Set up automatic certificate renewal (recommended)
-(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 
 # Deploy the server
 docker compose up -d xmpp-prosody xmpp-postgres
@@ -273,10 +273,6 @@ We welcome contributions! Please:
 - **2GB RAM** minimum (4GB+ recommended for full deployment)
 - **Valid domain name** with DNS control
 - **SSL certificate** (Let's Encrypt recommended)
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 

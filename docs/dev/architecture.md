@@ -327,8 +327,8 @@ Local Server → DNS SRV Lookup → Remote Server Connection → TLS Verificatio
 
 ```bash
 # Clone repository
-git clone https://github.com/allthingslinux/xmpp.atl.chat
-cd xmpp.atl.chat
+git clone https://github.com/allthingslinux/xmpp.atl.chat /opt/xmpp.atl.chat
+cd /opt/xmpp.atl.chat
 
 # Set up development environment
 cp examples/env.example .env

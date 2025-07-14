@@ -46,7 +46,7 @@ docker compose up -d
 
 ```bash
 # Add to crontab for daily renewal check
-(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 ```
 
 **That's it!** Everything else is automated.

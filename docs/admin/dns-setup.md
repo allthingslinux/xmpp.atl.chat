@@ -264,7 +264,7 @@ Create a script to update TLSA records when certificates are renewed:
 
 ```bash
 #!/bin/bash
-# /path/to/xmpp.atl.chat/scripts/update-tlsa-records.sh
+# /opt/xmpp.atl.chat/scripts/update-tlsa-records.sh
 # Hook script to update TLSA records after certificate renewal
 
 DOMAIN="atl.chat"
@@ -394,7 +394,7 @@ The certificate renewal script automatically handles:
 
 ```bash
 # Set up automatic renewal
-(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 ```
 
 Remember to update TLSA records whenever you renew your SSL certificates!

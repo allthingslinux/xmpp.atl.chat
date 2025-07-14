@@ -199,7 +199,7 @@ When using a reverse proxy, static files can be served directly by nginx/Apache 
 ```nginx
 # nginx configuration
 location /files/ {
-    alias /path/to/static-files/;
+            alias /opt/xmpp.atl.chat/static-files/;
     expires 1d;
     add_header Cache-Control "public, immutable";
 }
