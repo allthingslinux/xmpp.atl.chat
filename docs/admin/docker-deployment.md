@@ -61,7 +61,7 @@ Choose one of the following methods:
 
    ```bash
    # Copy the credentials template
-   cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+   cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
    
    # Edit with your Cloudflare API token
    # Get token from: https://dash.cloudflare.com/profile/api-tokens

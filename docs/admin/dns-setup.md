@@ -373,7 +373,7 @@ This DNS configuration works seamlessly with the wildcard Cloudflare certificate
 
 ```bash
 # 1. Configure Cloudflare API
-cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your Cloudflare API token
 
 # 2. Generate wildcard certificate

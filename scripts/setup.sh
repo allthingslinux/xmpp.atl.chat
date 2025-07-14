@@ -165,7 +165,7 @@ setup_cloudflare() {
     fi
 
     # Copy example file
-    cp "$PROJECT_DIR/cloudflare-credentials.ini.example" "$CLOUDFLARE_CREDS"
+    cp "$PROJECT_DIR/examples/cloudflare-credentials.ini.example" "$CLOUDFLARE_CREDS"
 
     echo
     log_info "Cloudflare API Token Setup:"

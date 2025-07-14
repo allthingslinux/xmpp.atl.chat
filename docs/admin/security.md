@@ -60,7 +60,7 @@ PROSODY_CERT_OCSP=true           # OCSP stapling
 ```bash
 # Wildcard certificate with DNS-01 challenges
 # 1. Configure Cloudflare API credentials
-cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your API token
 
 # 2. Generate wildcard certificate

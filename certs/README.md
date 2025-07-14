@@ -12,7 +12,7 @@ The server uses **wildcard certificates** generated via **Cloudflare DNS-01 chal
 
 ## Structure
 
-```
+```text
 certs/
 ├── live/
 │   └── atl.chat/              # Let's Encrypt wildcard certificate
@@ -32,7 +32,7 @@ certs/
 
 ```bash
 # 1. Configure Cloudflare API credentials
-cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your Cloudflare API token
 
 # 2. Generate wildcard certificate (ONE-TIME SETUP)

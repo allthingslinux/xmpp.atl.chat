@@ -46,7 +46,7 @@ cp examples/env.example .env
 # Edit .env with your domain and database password
 
 # Generate wildcard SSL certificate with Cloudflare DNS-01 (ONE-TIME SETUP)
-cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your Cloudflare API token
 docker compose --profile letsencrypt run --rm certbot
 

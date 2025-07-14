@@ -129,7 +129,7 @@ PROSODY_LOG_LEVEL=info
 
 ```bash
 # 1. Configure Cloudflare API
-cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 # Edit with your Cloudflare API token from https://dash.cloudflare.com/profile/api-tokens
 # Permissions needed: Zone:Zone:Read, Zone:DNS:Edit
 
