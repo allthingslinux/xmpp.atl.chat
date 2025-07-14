@@ -15,11 +15,11 @@ services:
     hostname: prosody
     restart: unless-stopped
 
-    # Environment variables loaded from .env file
-    # Create a .env file in the same directory as docker-compose.yml
-    # All PROSODY_* variables will be automatically loaded
+    # Environment variables
+    env_file:
+      - .env
     environment:
-      # Fixed database connection (container-to-container)
+      # Override database connection for container-to-container communication
       - PROSODY_DB_HOST=db
       - PROSODY_DB_PORT=5432
 
