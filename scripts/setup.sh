@@ -264,33 +264,14 @@ setup_systemd_timer() {
     if [[ ! -w /etc/systemd/system/ ]]; then
         log_info "Creating systemd service and timer files (requires sudo)..."
 
-        # Create service file
-        sudo tee "$service_file" >/dev/null <<EOF
-[Unit]
-Description=XMPP Certificate Renewal
-After=network.target
+        # Create service file from template
+        local service_template="$PROJECT_DIR/examples/systemd/xmpp-cert-renewal.service"
+        local timer_template="$PROJECT_DIR/examples/systemd/xmpp-cert-renewal.timer"
 
-[Service]
-Type=oneshot
-ExecStart=$PROJECT_DIR/scripts/renew-certificates.sh
-User=$USER
-Group=$USER
-EOF
+        sed -e "s|PROJECT_DIR|$PROJECT_DIR|g" -e "s|USER_NAME|$USER|g" "$service_template" | sudo tee "$service_file" >/dev/null
 
-        # Create timer file
-        sudo tee "$timer_file" >/dev/null <<EOF
-[Unit]
-Description=XMPP Certificate Renewal Timer
-Requires=xmpp-cert-renewal.service
-
-[Timer]
-OnCalendar=daily
-RandomizedDelaySec=1h
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-EOF
+        # Create timer file from template
+        sudo cp "$timer_template" "$timer_file"
 
         # Enable and start the timer
         sudo systemctl daemon-reload
