@@ -8,8 +8,10 @@ set -euo pipefail
 # Consolidates multiple management scripts into a single interface
 
 readonly VERSION="1.0.0"
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+readonly SCRIPT_DIR
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_DIR
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 readonly CONFIG_DIR="$PROJECT_DIR/config"
 readonly DOCKER_DIR="$PROJECT_DIR/docker"
 
@@ -466,7 +468,8 @@ backup_command() {
 }
 
 create_backup() {
-    local backup_name="${1:-prosody_backup_$(date +%Y%m%d_%H%M%S)}"
+    local backup_name
+    backup_name="${1:-prosody_backup_$(date +%Y%m%d_%H%M%S)}"
     local backup_dir="${BACKUP_DIR:-$PROJECT_DIR/backups}"
     local backup_path="$backup_dir/$backup_name"
 
@@ -606,8 +609,8 @@ list_backups() {
 
     log_info "Available backups in $backup_dir:"
 
-    if ls "$backup_dir"/*.tar.gz >/dev/null 2>&1; then
-        ls -lah "$backup_dir"/*.tar.gz | while read -r line; do
+    if find "$backup_dir" -name "*.tar.gz" -type f | head -1 >/dev/null 2>&1; then
+        find "$backup_dir" -name "*.tar.gz" -type f -exec ls -lah {} \; | while read -r line; do
             echo "  $line"
         done
     else
@@ -742,6 +745,352 @@ deploy_status() {
 }
 
 # ============================================================================
+# MODULE MANAGEMENT FUNCTIONS
+# ============================================================================
+
+readonly MODULES_DIR="/usr/local/lib/prosody/modules"
+readonly MODULES_REPO="https://hg.prosody.im/prosody-modules/"
+readonly TEMP_MODULES_DIR="/tmp/prosody-modules"
+
+module_command() {
+    local subcommand="${1:-help}"
+    shift || true
+
+    case "$subcommand" in
+    "list")
+        module_list "$@"
+        ;;
+    "search")
+        module_search "$@"
+        ;;
+    "install")
+        module_install "$@"
+        ;;
+    "remove")
+        module_remove "$@"
+        ;;
+    "update")
+        module_update "$@"
+        ;;
+    "info")
+        module_info "$@"
+        ;;
+    "sync")
+        module_sync "$@"
+        ;;
+    "help" | "-h" | "--help")
+        module_help
+        ;;
+    *)
+        log_error "Unknown module subcommand: $subcommand"
+        echo
+        module_help
+        exit 1
+        ;;
+    esac
+}
+
+module_list() {
+    local filter="${1:-}"
+
+    log_info "Installed modules:"
+
+    if [[ ! -d "$MODULES_DIR" ]]; then
+        log_warn "Modules directory not found: $MODULES_DIR"
+        return 1
+    fi
+
+    local count=0
+    for module_dir in "$MODULES_DIR"/mod_*; do
+        if [[ -d "$module_dir" ]]; then
+            local module_name
+            module_name=$(basename "$module_dir")
+            if [[ -z "$filter" || "$module_name" == *"$filter"* ]]; then
+                echo -e "  ${GREEN}✓${NC} $module_name"
+                ((count++))
+            fi
+        fi
+    done
+
+    if [[ $count -eq 0 ]]; then
+        if [[ -n "$filter" ]]; then
+            log_warn "No modules found matching: $filter"
+        else
+            log_warn "No modules installed"
+        fi
+    else
+        echo
+        log_success "$count module(s) installed"
+    fi
+}
+
+module_search() {
+    local query="${1:-}"
+
+    if [[ -z "$query" ]]; then
+        log_error "Please provide a search term"
+        echo "Usage: prosody-manager module search <query>"
+        return 1
+    fi
+
+    log_info "Searching for modules matching: $query"
+
+    # Clone or update the modules repository
+    if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
+        log_info "Downloading modules repository..."
+        git clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+    else
+        log_info "Updating modules repository..."
+        (cd "$TEMP_MODULES_DIR" && git pull >/dev/null 2>&1)
+    fi
+
+    local count=0
+    for module_dir in "$TEMP_MODULES_DIR"/mod_*; do
+        if [[ -d "$module_dir" ]]; then
+            local module_name
+            module_name=$(basename "$module_dir")
+            if [[ "$module_name" == *"$query"* ]]; then
+                local installed=""
+                if [[ -d "$MODULES_DIR/$module_name" ]]; then
+                    installed=" ${GREEN}(installed)${NC}"
+                fi
+                echo -e "  ${CYAN}$module_name${NC}$installed"
+
+                # Show description if available
+                local readme="$module_dir/README.markdown"
+                if [[ -f "$readme" ]]; then
+                    local desc
+                    desc=$(head -n 5 "$readme" | grep -E "^[A-Z].*" | head -n 1 | cut -c1-80)
+                    if [[ -n "$desc" ]]; then
+                        echo -e "    ${desc}..."
+                    fi
+                fi
+                ((count++))
+            fi
+        fi
+    done
+
+    if [[ $count -eq 0 ]]; then
+        log_warn "No modules found matching: $query"
+    else
+        echo
+        log_success "Found $count module(s)"
+    fi
+}
+
+module_install() {
+    local module_name="${1:-}"
+
+    if [[ -z "$module_name" ]]; then
+        log_error "Please provide a module name"
+        echo "Usage: prosody-manager module install <module_name>"
+        return 1
+    fi
+
+    # Add mod_ prefix if not present
+    if [[ "$module_name" != mod_* ]]; then
+        module_name="mod_$module_name"
+    fi
+
+    log_info "Installing module: $module_name"
+
+    # Check if already installed
+    if [[ -d "$MODULES_DIR/$module_name" ]]; then
+        log_warn "Module $module_name is already installed"
+        read -p "Overwrite? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Installation cancelled"
+            return 0
+        fi
+    fi
+
+    # Clone or update the modules repository
+    if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
+        log_info "Downloading modules repository..."
+        git clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+    fi
+
+    local source_dir="$TEMP_MODULES_DIR/$module_name"
+    if [[ ! -d "$source_dir" ]]; then
+        log_error "Module not found: $module_name"
+        log_info "Use 'prosody-manager module search <term>' to find available modules"
+        return 1
+    fi
+
+    # Create modules directory if it doesn't exist
+    mkdir -p "$MODULES_DIR"
+
+    # Copy module
+    cp -r "$source_dir" "$MODULES_DIR/"
+    chown -R prosody:prosody "$MODULES_DIR/$module_name" 2>/dev/null || true
+
+    log_success "Module $module_name installed successfully"
+    log_info "Don't forget to add it to your Prosody configuration and reload"
+}
+
+module_remove() {
+    local module_name="${1:-}"
+
+    if [[ -z "$module_name" ]]; then
+        log_error "Please provide a module name"
+        echo "Usage: prosody-manager module remove <module_name>"
+        return 1
+    fi
+
+    # Add mod_ prefix if not present
+    if [[ "$module_name" != mod_* ]]; then
+        module_name="mod_$module_name"
+    fi
+
+    local module_path="$MODULES_DIR/$module_name"
+    if [[ ! -d "$module_path" ]]; then
+        log_error "Module not installed: $module_name"
+        return 1
+    fi
+
+    log_warn "This will remove module: $module_name"
+    read -p "Are you sure? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Removal cancelled"
+        return 0
+    fi
+
+    rm -rf "$module_path"
+    log_success "Module $module_name removed successfully"
+    log_info "Don't forget to remove it from your Prosody configuration and reload"
+}
+
+module_update() {
+    local module_name="${1:-}"
+
+    if [[ -n "$module_name" ]]; then
+        # Update specific module
+        if [[ "$module_name" != mod_* ]]; then
+            module_name="mod_$module_name"
+        fi
+
+        if [[ ! -d "$MODULES_DIR/$module_name" ]]; then
+            log_error "Module not installed: $module_name"
+            return 1
+        fi
+
+        log_info "Updating module: $module_name"
+        module_install "$module_name"
+    else
+        # Update all installed modules
+        log_info "Updating all installed modules..."
+
+        if [[ ! -d "$MODULES_DIR" ]]; then
+            log_warn "No modules directory found"
+            return 1
+        fi
+
+        local count=0
+        for module_dir in "$MODULES_DIR"/mod_*; do
+            if [[ -d "$module_dir" ]]; then
+                local module_name
+                module_name=$(basename "$module_dir")
+                log_info "Updating $module_name..."
+                module_install "$module_name"
+                ((count++))
+            fi
+        done
+
+        log_success "Updated $count module(s)"
+    fi
+}
+
+module_info() {
+    local module_name="${1:-}"
+
+    if [[ -z "$module_name" ]]; then
+        log_error "Please provide a module name"
+        echo "Usage: prosody-manager module info <module_name>"
+        return 1
+    fi
+
+    # Add mod_ prefix if not present
+    if [[ "$module_name" != mod_* ]]; then
+        module_name="mod_$module_name"
+    fi
+
+    log_info "Module information: $module_name"
+
+    # Check if installed
+    local installed_path="$MODULES_DIR/$module_name"
+    if [[ -d "$installed_path" ]]; then
+        echo -e "  ${GREEN}Status:${NC} Installed"
+        echo -e "  ${GREEN}Path:${NC} $installed_path"
+
+        # Show files
+        echo -e "  ${GREEN}Files:${NC}"
+        find "$installed_path" -type f -name "*.lua" | head -10 | while read -r file; do
+            echo "    $(basename "$file")"
+        done
+    else
+        echo -e "  ${YELLOW}Status:${NC} Not installed"
+    fi
+
+    # Get info from repository
+    if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
+        git clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+    fi
+
+    local repo_path="$TEMP_MODULES_DIR/$module_name"
+    if [[ -d "$repo_path" ]]; then
+        echo -e "  ${GREEN}Available:${NC} Yes"
+
+        # Show README if available
+        local readme="$repo_path/README.markdown"
+        if [[ -f "$readme" ]]; then
+            echo -e "  ${GREEN}Description:${NC}"
+            head -n 10 "$readme" | sed 's/^/    /'
+        fi
+    else
+        echo -e "  ${YELLOW}Available:${NC} No"
+    fi
+}
+
+module_sync() {
+    log_info "Synchronizing modules repository..."
+
+    if [[ -d "$TEMP_MODULES_DIR" ]]; then
+        rm -rf "$TEMP_MODULES_DIR"
+    fi
+
+    git clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+    log_success "Modules repository synchronized"
+}
+
+module_help() {
+    echo -e "${BOLD}Module Management Commands${NC}"
+    echo
+    echo -e "${BOLD}USAGE:${NC}"
+    echo "    prosody-manager module <subcommand> [options]"
+    echo
+    echo -e "${BOLD}SUBCOMMANDS:${NC}"
+    echo -e "    ${GREEN}list [filter]${NC}           List installed modules"
+    echo -e "    ${GREEN}search <query>${NC}          Search available modules"
+    echo -e "    ${GREEN}install <module>${NC}        Install a module"
+    echo -e "    ${GREEN}remove <module>${NC}         Remove a module"
+    echo -e "    ${GREEN}update [module]${NC}         Update module(s)"
+    echo -e "    ${GREEN}info <module>${NC}           Show module information"
+    echo -e "    ${GREEN}sync${NC}                    Sync modules repository"
+    echo -e "    ${GREEN}help${NC}                    Show this help"
+    echo
+    echo -e "${BOLD}EXAMPLES:${NC}"
+    echo "    prosody-manager module list"
+    echo "    prosody-manager module search cloud"
+    echo "    prosody-manager module install mod_cloud_notify"
+    echo "    prosody-manager module install cloud_notify"
+    echo "    prosody-manager module remove mod_pastebin"
+    echo "    prosody-manager module update"
+    echo "    prosody-manager module info mod_smacks"
+}
+
+# ============================================================================
 # MAIN COMMAND DISPATCHER
 # ============================================================================
 
@@ -781,6 +1130,15 @@ show_help() {
     echo "        restart [service]                   Restart services"
     echo "        logs [service]                      View logs"
     echo "        status                              Show service status"
+    echo
+    echo -e "    ${GREEN}module${NC}          Module management"
+    echo "        list [filter]                       List installed modules"
+    echo "        search <query>                      Search available modules"
+    echo "        install <module>                    Install a module"
+    echo "        remove <module>                     Remove a module"
+    echo "        update [module]                     Update module(s)"
+    echo "        info <module>                       Show module information"
+    echo "        sync                                Sync modules repository"
     echo
     echo -e "    ${GREEN}help${NC}            Show this help message"
     echo -e "    ${GREEN}version${NC}         Show version information"
@@ -824,6 +1182,9 @@ main() {
         ;;
     "deploy")
         deploy_command "$@"
+        ;;
+    "module")
+        module_command "$@"
         ;;
     "help" | "-h" | "--help")
         show_help
