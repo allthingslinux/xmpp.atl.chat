@@ -471,12 +471,10 @@ modules_enabled = {
 	-- SERVICE DISCOVERY AND CAPABILITIES
 	-- ===============================================
 	"disco", -- XEP-0030: Service Discovery
-	"caps", -- XEP-0115: Entity Capabilities
 	"ping", -- XEP-0199: XMPP Ping
 	"time", -- XEP-0202: Entity Time
 	"version", -- XEP-0092: Software Version
 	"lastactivity", -- XEP-0012: Last Activity
-	"last", -- XEP-0012: Last Activity (core module)
 
 	-- ===============================================
 	-- MODERN MESSAGING FEATURES (Built-in only)
@@ -502,7 +500,6 @@ modules_enabled = {
 	-- ===============================================
 	"admin_adhoc", -- XEP-0050: Ad-Hoc Commands for administration
 	"admin_shell", -- Administrative shell interface
-	"console", -- Console access for debugging
 
 	-- ===============================================
 	-- WEB SERVICES
@@ -522,7 +519,6 @@ modules_enabled = {
 	-- ===============================================
 	"motd", -- Message of the day
 	"welcome", -- Welcome message for new users
-	"watchdog", -- Process monitoring
 }
 
 -- ===============================================
@@ -589,7 +585,7 @@ description = "Multi-User Chat rooms"
 
 -- MUC-specific modules (must be loaded on MUC component)
 modules_enabled = {
-	"pastebin", -- Automatic pastebin for long messages
+	-- "pastebin", -- Automatic pastebin for long messages (not available)
 }
 
 -- Enhanced MUC configuration
