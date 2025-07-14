@@ -838,10 +838,10 @@ module_search() {
     # Clone or update the modules repository
     if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
         log_info "Downloading modules repository..."
-        git clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
     else
         log_info "Updating modules repository..."
-        (cd "$TEMP_MODULES_DIR" && git pull >/dev/null 2>&1)
+        (cd "$TEMP_MODULES_DIR" && hg pull -u >/dev/null 2>&1)
     fi
 
     local count=0
@@ -908,7 +908,7 @@ module_install() {
     # Clone or update the modules repository
     if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
         log_info "Downloading modules repository..."
-        git clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
     fi
 
     local source_dir="$TEMP_MODULES_DIR/$module_name"
@@ -1035,7 +1035,7 @@ module_info() {
 
     # Get info from repository
     if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
-        git clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
     fi
 
     local repo_path="$TEMP_MODULES_DIR/$module_name"
@@ -1060,7 +1060,7 @@ module_sync() {
         rm -rf "$TEMP_MODULES_DIR"
     fi
 
-    git clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+    hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
     log_success "Modules repository synchronized"
 }
 
