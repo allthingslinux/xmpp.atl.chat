@@ -101,62 +101,9 @@ RUN buildDeps='gcc git libc6-dev libidn2-dev liblua5.4-dev libsqlite3-dev libssl
     \
     apt-get purge -y --auto-remove $buildDeps
 
-# Clone and install community modules
-RUN git clone https://hg.prosody.im/prosody-modules/ /usr/src/prosody-modules && \
-    cd /usr/src/prosody-modules && \
-    for module in \
-    mod_pastebin \
-    mod_http_openmetrics \
-    mod_cloud_notify \
-    mod_smacks \
-    mod_csi_simple \
-    mod_csi_battery_saver \
-    mod_filter_chatstates \
-    mod_spam_reporting \
-    mod_measure_client_connections \
-    mod_measure_stanza_counts \
-    mod_measure_message_e2ee \
-    mod_stanza_counter \
-    mod_watchregistrations \
-    mod_tombstones \
-    mod_server_contact_info \
-    mod_register_limits \
-    mod_flags \
-    mod_s2s_auth_dane_in \
-    mod_user_account_management \
-    mod_account_activity \
-    mod_extdisco \
-    mod_turncredentials \
-    mod_external_services \
-    mod_http_altconnect \
-    mod_compression \
-    mod_bookmarks \
-    mod_vcard4 \
-    mod_vcard_legacy \
-    mod_http_file_share \
-    mod_proxy65 \
-    mod_muc_mam \
-    mod_muc_unique \
-    mod_addressing \
-    mod_receipts \
-    mod_blocklist \
-    mod_privacy \
-    mod_limits \
-    mod_firewall \
-    mod_admin_web \
-    mod_statistics \
-    mod_watchdog \
-    mod_uptime \
-    mod_posix \
-    mod_register_ibr \
-    mod_e2e_policy \
-    mod_throttle_presence \
-    mod_vcard_muc; do \
-    if [ -d "$module" ]; then \
-    cp -r "$module" /usr/local/lib/prosody/modules/ || true; \
-    fi; \
-    done && \
-    rm -rf /usr/src/prosody-modules
+# Prepare module directories (modules will be mounted externally)
+RUN mkdir -p /usr/local/lib/prosody/modules && \
+    chown -R prosody:prosody /usr/local/lib/prosody/modules
 
 # Create prosody user and directories
 RUN groupadd -r prosody && \
@@ -190,7 +137,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD /usr/local/bin/health-check.sh
 
 # Volume mounts
-VOLUME ["/var/lib/prosody", "/var/log/prosody", "/certs"]
+VOLUME ["/var/lib/prosody", "/var/log/prosody", "/certs", "/usr/local/lib/prosody/modules"]
 
 # Environment variables for proper logging
 ENV __FLUSH_LOG=yes \
