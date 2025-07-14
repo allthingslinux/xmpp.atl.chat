@@ -255,7 +255,7 @@ services:
       --dns-cloudflare
       --dns-cloudflare-credentials=/etc/letsencrypt/cloudflare-credentials.ini
       --dns-cloudflare-propagation-seconds=60
-      --email admin@${PROSODY_DOMAIN:-atl.chat}
+      --email admin@allthingslinux.org
       --agree-tos
       --no-eff-email
       --expand
