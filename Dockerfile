@@ -149,12 +149,10 @@ ENV __FLUSH_LOG=yes \
 ENV LUA_GC_STEP=13 \
     LUA_GC_PAUSE=110
 
-# Switch to prosody user for security
-USER prosody
-
 # Set working directory
 WORKDIR /var/lib/prosody
 
 # Use dumb-init for proper signal handling
+# Note: entrypoint.sh handles user switching internally
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/usr/local/bin/entrypoint.sh"]

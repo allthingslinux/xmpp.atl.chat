@@ -66,9 +66,9 @@ validate_environment() {
     fi
 
     # Set default admin if not provided
-    if [[ -z "${PROSODY_ADMINS:-}" ]]; then
-        export PROSODY_ADMINS="admin@${PROSODY_DOMAIN}"
-        log_info "Using default admin: ${PROSODY_ADMINS}"
+    if [[ -z "${PROSODY_ADMIN_JID:-}" ]]; then
+        export PROSODY_ADMIN_JID="admin@${PROSODY_DOMAIN}"
+        log_info "Using default admin: ${PROSODY_ADMIN_JID}"
     fi
 
     # Validate database configuration for SQL storage
@@ -113,8 +113,10 @@ setup_directories() {
             mkdir -p "$dir"
         fi
 
-        # Ensure proper ownership
-        chown -R "$PROSODY_USER:$PROSODY_USER" "$dir" 2>/dev/null || true
+        # Ensure proper ownership (only if running as root)
+        if [[ $EUID -eq 0 ]]; then
+            chown -R "$PROSODY_USER:$PROSODY_USER" "$dir" 2>/dev/null || true
+        fi
     done
 
     log_info "Directory setup complete"
@@ -127,8 +129,8 @@ setup_certificates() {
     local key_file="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}.key"
 
     # Check for Let's Encrypt certificates (preferred)
-    local le_cert="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}/fullchain.pem"
-    local le_key="${PROSODY_CERT_DIR}/${PROSODY_DOMAIN}/privkey.pem"
+    local le_cert="${PROSODY_CERT_DIR}/live/${PROSODY_DOMAIN}/fullchain.pem"
+    local le_key="${PROSODY_CERT_DIR}/live/${PROSODY_DOMAIN}/privkey.pem"
 
     if [[ -f "$le_cert" && -f "$le_key" ]]; then
         log_info "Let's Encrypt certificates found for ${PROSODY_DOMAIN}"
@@ -161,8 +163,10 @@ setup_certificates() {
         -addext "subjectAltName=DNS:${PROSODY_DOMAIN},DNS:*.${PROSODY_DOMAIN},DNS:muc.${PROSODY_DOMAIN},DNS:upload.${PROSODY_DOMAIN}" \
         2>/dev/null
 
-    # Set proper permissions
-    chown "$PROSODY_USER:$PROSODY_USER" "$cert_file" "$key_file"
+    # Set proper permissions (only if running as root)
+    if [[ $EUID -eq 0 ]]; then
+        chown "$PROSODY_USER:$PROSODY_USER" "$cert_file" "$key_file"
+    fi
     chmod 644 "$cert_file"
     chmod 600 "$key_file"
 
@@ -271,7 +275,7 @@ main() {
     # Display configuration summary
     log_info "Configuration summary:"
     log_info "  Domain: ${PROSODY_DOMAIN}"
-    log_info "  Admins: ${PROSODY_ADMINS}"
+    log_info "  Admins: ${PROSODY_ADMIN_JID}"
     log_info "  Storage: ${PROSODY_STORAGE:-sql}"
     log_info "  Log level: ${PROSODY_LOG_LEVEL:-info}"
     log_info "  Allow registration: ${PROSODY_ALLOW_REGISTRATION:-false}"
