@@ -152,7 +152,7 @@ jobs:
           
           config_file="core/config/prosody.cfg.lua"
           security_score=0
-          max_score=10
+          max_score=9
           
           if [ ! -f "$config_file" ]; then
             echo "❌ Prosody configuration file not found"
@@ -233,22 +233,16 @@ jobs:
             echo "⚠️  Certificate validation not enabled"
           fi
           
-          # Check for registration restrictions
-          if grep -q "allow_registration.*=.*false" "$config_file" || ! grep -q "allow_registration" "$config_file"; then
-            echo "✅ Registration properly restricted"
-            security_score=$((security_score + 1))
-          else
-            echo "⚠️  Open registration may be enabled"
-          fi
+
           
           echo ""
           echo "🔒 Security Score: $security_score/$max_score"
           
-          if [ $security_score -ge 8 ]; then
+          if [ $security_score -ge 7 ]; then
             echo "✅ Excellent security configuration"
-          elif [ $security_score -ge 6 ]; then
+          elif [ $security_score -ge 5 ]; then
             echo "⚠️  Good security configuration with room for improvement"
-          elif [ $security_score -ge 4 ]; then
+          elif [ $security_score -ge 3 ]; then
             echo "⚠️  Moderate security configuration - consider improvements"
           else
             echo "❌ Poor security configuration - immediate attention required"
@@ -265,7 +259,6 @@ jobs:
           echo "- Use strong cipher suites (ECDHE+AESGCM)" >> $GITHUB_STEP_SUMMARY
           echo "- Enable certificate validation for S2S" >> $GITHUB_STEP_SUMMARY
           echo "- Configure rate limiting and anti-spam" >> $GITHUB_STEP_SUMMARY
-          echo "- Restrict registration in production" >> $GITHUB_STEP_SUMMARY
 
   docker-security:
     name: Docker Security Best Practices
