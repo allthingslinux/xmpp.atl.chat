@@ -141,11 +141,14 @@ setup_environment() {
         log_info "Generated database password: $db_password"
     fi
 
-    # Update .env file
-    sed -i "s/^PROSODY_DOMAIN=.*/PROSODY_DOMAIN=$domain/" "$ENV_FILE"
-    sed -i "s/^LETSENCRYPT_EMAIL=.*/LETSENCRYPT_EMAIL=$admin_email/" "$ENV_FILE"
-    sed -i "s/^PROSODY_ADMINS=.*/PROSODY_ADMINS=$admin_jid/" "$ENV_FILE"
-    sed -i "s/^PROSODY_DB_PASSWORD=.*/PROSODY_DB_PASSWORD=$db_password/" "$ENV_FILE"
+    # Update .env file (using awk to safely handle any characters)
+    awk -v domain="$domain" -v email="$admin_email" -v jid="$admin_jid" -v password="$db_password" '
+        /^PROSODY_DOMAIN=/ { print "PROSODY_DOMAIN=" domain; next }
+        /^LETSENCRYPT_EMAIL=/ { print "LETSENCRYPT_EMAIL=" email; next }
+        /^PROSODY_ADMINS=/ { print "PROSODY_ADMINS=" jid; next }
+        /^PROSODY_DB_PASSWORD=/ { print "PROSODY_DB_PASSWORD=" password; next }
+        { print }
+    ' "$ENV_FILE" >"$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
 
     log_info "Environment configuration saved to $ENV_FILE ✓"
 }
@@ -174,8 +177,11 @@ setup_cloudflare() {
     local cf_token
     cf_token=$(prompt_password "Cloudflare API Token")
 
-    # Update credentials file
-    sed -i "s/dns_cloudflare_api_token = .*/dns_cloudflare_api_token = $cf_token/" "$CLOUDFLARE_CREDS"
+    # Update credentials file (using awk to safely handle any characters)
+    awk -v token="$cf_token" '
+        /^dns_cloudflare_api_token = / { print "dns_cloudflare_api_token = " token; next }
+        { print }
+    ' "$CLOUDFLARE_CREDS" >"$CLOUDFLARE_CREDS.tmp" && mv "$CLOUDFLARE_CREDS.tmp" "$CLOUDFLARE_CREDS"
 
     # Secure the credentials file
     chmod 600 "$CLOUDFLARE_CREDS"

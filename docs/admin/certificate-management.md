@@ -73,7 +73,7 @@ Prosody automatically detects certificates in this order:
 
 ### Directory Structure
 
-```
+```text
 certs/
 ├── live/
 │   └── atl.chat/
