@@ -299,7 +299,7 @@ The `prosody-manager` script provides comprehensive server management:
 
 ## Project Structure
 
-```
+```text
 xmpp.atl.chat/
 ├── prosody-manager          # Unified CLI management tool
 ├── core/                   # Configuration and database files
@@ -310,13 +310,8 @@ xmpp.atl.chat/
 ├── docs/                   # Comprehensive documentation
 ├── tests/                  # Testing framework
 ├── .runtime/               # Runtime data (gitignored)
-└── research/               # Research and notes
 ```
 
 ## Contributing
 
 See [docs/dev/architecture.md](./docs/dev/architecture.md) for development guidelines and project structure.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
