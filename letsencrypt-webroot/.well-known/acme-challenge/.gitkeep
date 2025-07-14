@@ -1,0 +1,2 @@
+# This file ensures the acme-challenge directory is preserved in git
+# Let's Encrypt will create temporary challenge files here during validation 
