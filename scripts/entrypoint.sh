@@ -210,11 +210,16 @@ validate_configuration() {
         exit 1
     fi
 
-    # Validate configuration using prosodyctl
-    if ! prosodyctl check config 2>/dev/null; then
+    # Validate configuration using prosodyctl (allow warnings in development)
+    log_info "Validating Prosody configuration..."
+    if ! prosodyctl check config; then
         log_error "Prosody configuration validation failed"
         log_error "Please check your configuration file: $PROSODY_CONFIG_FILE"
-        exit 1
+        if [[ "${PROSODY_DEVELOPMENT_MODE:-false}" != "true" ]]; then
+            exit 1
+        else
+            log_warn "Development mode: continuing despite configuration warnings"
+        fi
     fi
 
     log_info "Configuration validation successful"
