@@ -123,6 +123,7 @@ This deployment includes multiple services for a complete XMPP solution:
 |---------|---------|---------|--------|
 | **Prosody** | XMPP server with PostgreSQL | 5222, 5223, 5269, 5280, 5281 | Core |
 | **PostgreSQL** | Database backend | 5432 (internal) | Core |
+| **Adminer** | Database management interface | 8080 | Optional |
 | **Coturn** | TURN/STUN server for voice/video | 3478, 5349, 49152-65535 | Optional |
 | ~~**Prometheus**~~ | ~~Metrics collection~~ | ~~9090~~ | ~~External~~ |
 | ~~**Grafana**~~ | ~~Monitoring dashboards~~ | ~~3000~~ | ~~External~~ |
@@ -134,11 +135,14 @@ This deployment includes multiple services for a complete XMPP solution:
 # Minimal deployment (XMPP + Database only)
 docker compose up -d prosody db
 
+# With database management
+docker compose up -d prosody db adminer
+
 # Full deployment (all services)
 docker compose up -d
 
 # Custom service selection
-docker compose up -d prosody db prometheus grafana
+docker compose up -d prosody db adminer coturn
 ```
 
 ## 📊 XEP Compliance
@@ -195,6 +199,25 @@ This project includes comprehensive documentation organized by audience:
 **[→ Browse all documentation](./docs/README.md)**
 
 ## 🛠️ Management Tools
+
+### Database Management
+
+**Adminer** provides a web-based database management interface:
+
+```bash
+# Start with database management
+docker compose up -d prosody db adminer
+
+# Access Adminer at http://localhost:8080
+# Login credentials are automatically configured from your .env file
+```
+
+The Adminer interface will automatically connect to your PostgreSQL database with the configured credentials, allowing you to:
+
+- View and edit database tables
+- Execute SQL queries
+- Monitor database performance
+- Backup and restore data
 
 ### Unified CLI Tool
 

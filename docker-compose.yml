@@ -280,6 +280,34 @@ services:
     networks:
       - prosody_network
 
+  # ============================================================================
+  # ADMINER - DATABASE MANAGEMENT
+  # ============================================================================
+  adminer:
+    image: adminer
+    container_name: prosody_adminer
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      ADMINER_DEFAULT_DRIVER: "pgsql"
+      ADMINER_DEFAULT_SERVER: "db"
+      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
+      ADMINER_DEFAULT_USERNAME: ${POSTGRES_USER}
+      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+    command: ["sh", "-c", "php -S 0.0.0.0:8080 -t /var/www/html"]
+    configs:
+      - source: adminer-index.php
+        target: /var/www/html/index.php
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - prosody_network
+
 # ============================================================================
 # VOLUMES
 # ============================================================================
@@ -298,3 +326,22 @@ volumes:
 # ============================================================================
 networks:
   prosody_network:
+
+# ============================================================================
+# CONFIGS
+# ============================================================================
+configs:
+  adminer-index.php:
+    content: |
+      <?php
+        if(!count($_GET)) {
+          $_POST['auth'] = [
+            'server' => $_ENV['ADMINER_DEFAULT_SERVER'],
+            'username' => $_ENV['ADMINER_DEFAULT_USERNAME'],
+            'password' => $_ENV['ADMINER_DEFAULT_PASSWORD'],
+            'driver' => $_ENV['ADMINER_DEFAULT_DRIVER'],
+            'db'    => $_ENV['ADMINER_DEFAULT_DB'],
+          ];
+        }
+        include './adminer.php';
+      ?>
