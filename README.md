@@ -209,7 +209,7 @@ The **`prosody-manager`** script provides comprehensive server management:
 ### Docker-Specific Scripts
 
 - **`scripts/entrypoint.sh`** - Docker container initialization
-- **`scripts/generate-dhparam.sh`** - DH parameter generation for TLS
+
 - **`scripts/renew-certificates.sh`** - Automated certificate renewal with Prosody reload
 - **`scripts/init-db.sql`** - PostgreSQL database initialization
 
