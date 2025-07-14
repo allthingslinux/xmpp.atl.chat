@@ -54,17 +54,23 @@ docker compose up -d prosody db
 
 Choose one of the following methods:
 
-#### Option A: Let's Encrypt Certificate (Recommended)
+#### Option A: Wildcard Certificate with Cloudflare DNS-01 (Recommended)
 
-1. **Set up webroot directory**:
+1. **Configure Cloudflare API**:
 
    ```bash
-   mkdir -p letsencrypt-webroot
+   # Copy the credentials template
+   cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+   
+   # Edit with your Cloudflare API token
+   # Get token from: https://dash.cloudflare.com/profile/api-tokens
+   # Permissions needed: Zone:Zone:Read, Zone:DNS:Edit
    ```
 
-2. **Generate certificate**:
+2. **Generate wildcard certificate**:
 
    ```bash
+   # Generate wildcard certificate for all subdomains
    docker compose --profile letsencrypt run --rm certbot
    ```
 
@@ -73,19 +79,13 @@ Choose one of the following methods:
 1. **Copy existing certificates**:
 
    ```bash
-   # Create temporary container
-   docker create --name temp-cert -v prosody_certs:/certs debian:bookworm-slim
+   # Copy certificates to the certs directory
+   cp your-wildcard.crt ./certs/atl.chat.crt
+   cp your-wildcard.key ./certs/atl.chat.key
    
-   # Copy certificates
-   docker cp your-wildcard.crt temp-cert:/certs/atl.chat.crt
-   docker cp your-wildcard.key temp-cert:/certs/atl.chat.key
-   
-   # Set permissions
-   docker run --rm -v prosody_certs:/certs debian:bookworm-slim \
-     bash -c "chown 999:999 /certs/* && chmod 600 /certs/*.key"
-   
-   # Clean up
-   docker rm temp-cert
+   # Set proper permissions
+   chmod 644 ./certs/atl.chat.crt
+   chmod 600 ./certs/atl.chat.key
    ```
 
 ### Step 3: Deploy Services
@@ -253,8 +253,7 @@ docker compose --profile letsencrypt run --rm certbot
 docker compose restart prosody
 
 # Check certificate expiration
-docker run --rm -v prosody_certs:/certs debian:bookworm-slim \
-  openssl x509 -in /certs/atl.chat.crt -noout -dates
+docker compose exec prosody openssl x509 -in /etc/prosody/certs/live/atl.chat/fullchain.pem -noout -dates
 ```
 
 ### Backup Strategy

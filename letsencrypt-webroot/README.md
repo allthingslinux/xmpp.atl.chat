@@ -1,65 +1,47 @@
-# Let's Encrypt Webroot Directory
+# Let's Encrypt Webroot Directory (DEPRECATED)
 
-This directory serves as the webroot for Let's Encrypt HTTP-01 challenge validation in the Docker setup.
+⚠️ **This directory is no longer needed with the new DNS-01 challenge setup.**
 
-## Purpose
+## Migration to DNS-01 Challenges
 
-When using Let's Encrypt with webroot validation, this directory is where:
+This setup now uses **Cloudflare DNS-01 challenges** for wildcard certificate support, which is:
 
-1. **Let's Encrypt places challenge files** during domain validation
-2. **Prosody serves these files** via HTTP on port 5280
-3. **Let's Encrypt retrieves the files** to verify domain ownership
+- **More secure**: No need to expose port 80 publicly
+- **Simpler**: No webroot directory management needed
+- **Better coverage**: Wildcard certificates cover all subdomains
+- **More reliable**: No dependency on HTTP accessibility
 
-## How It Works
+## New Certificate Setup
 
-The Docker setup automatically:
-
-1. **Mounts this directory** to `/var/www/certbot` inside containers
-2. **Configures Prosody** to serve `/.well-known/acme-challenge/` from this location
-3. **Runs certbot** with webroot validation using this directory
-
-## Usage
-
-### Generate Certificates
+Use the new DNS-01 approach instead:
 
 ```bash
-# Set your domain in .env file
-PROSODY_DOMAIN=atl.chat
+# 1. Configure Cloudflare API
+cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+# Edit with your Cloudflare API token
 
-# Generate certificates (uses this webroot automatically)
+# 2. Generate wildcard certificate
 docker compose --profile letsencrypt run --rm certbot
+
+# 3. Start the server
+docker compose up -d
 ```
 
-### Directory Structure During Validation
+## Legacy Information
 
-```
-letsencrypt-webroot/
-└── .well-known/
-    └── acme-challenge/
-        └── [challenge-token]    # Temporary file created by certbot
-```
+This directory was previously used for Let's Encrypt HTTP-01 challenge validation. The HTTP-01 challenge required:
 
-## Configuration
+1. **Let's Encrypt placing challenge files** in this directory during domain validation
+2. **Prosody serving these files** via HTTP on port 5280
+3. **Let's Encrypt retrieving the files** to verify domain ownership
 
-The setup is fully automated via:
+**This approach had limitations:**
 
-- **Docker Compose**: Mounts `./letsencrypt-webroot:/var/www/certbot`
-- **Prosody Config**: Serves `/.well-known/acme-challenge/` from `/var/www/certbot/.well-known/acme-challenge/`
-- **Certbot**: Uses `--webroot-path=/var/www/certbot` for challenges
+- Required port 80 to be publicly accessible
+- Could not generate wildcard certificates
+- More complex setup and maintenance
+- Security concerns with HTTP exposure
 
-## Requirements
+## Removal
 
-- **Port 80 must be open** for HTTP-01 challenges
-- **Domain must resolve** to your server's IP address
-- **Directory must be writable** by the certbot container
-
-## Security
-
-- This directory only contains **temporary challenge files**
-- Files are **automatically cleaned up** after validation
-- **No sensitive data** is stored here
-- Directory is **ignored by git** (see `.gitignore`)
-
----
-
-**Note**: This directory is essential for Let's Encrypt certificate generation. Do not delete it.
+This directory will be removed in a future version. The new DNS-01 approach is recommended for all deployments.

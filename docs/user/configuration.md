@@ -120,6 +120,33 @@ PROSODY_LOG_LEVEL=info
 # Configure your external Prometheus to scrape this endpoint
 ```
 
+## 🔒 SSL Certificate Setup
+
+### Wildcard Certificate with Cloudflare DNS-01 (Recommended)
+
+```bash
+# 1. Configure Cloudflare API
+cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+# Edit with your Cloudflare API token from https://dash.cloudflare.com/profile/api-tokens
+# Permissions needed: Zone:Zone:Read, Zone:DNS:Edit
+
+# 2. Generate wildcard certificate
+docker compose --profile letsencrypt run --rm certbot
+
+# 3. Set up automatic renewal
+(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+```
+
+### Manual Certificate
+
+```bash
+# Copy your wildcard certificate
+cp your-wildcard.crt ./certs/atl.chat.crt
+cp your-wildcard.key ./certs/atl.chat.key
+chmod 644 ./certs/atl.chat.crt
+chmod 600 ./certs/atl.chat.key
+```
+
 ## 🚀 Deployment Modes
 
 ### Minimal Deployment (Recommended for Start)
@@ -132,16 +159,13 @@ docker compose up -d prosody db
 ### Full Deployment
 
 ```bash
-# Deploy all services (XMPP, Database, Monitoring, TURN)
+# Deploy all services (XMPP, Database, TURN)
 docker compose up -d
 ```
 
 ### Custom Service Selection
 
 ```bash
-# XMPP + Database (monitoring is external)
-docker compose up -d prosody db
-
 # XMPP + Database + TURN server
 docker compose up -d prosody db coturn
 ```

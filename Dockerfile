@@ -109,10 +109,8 @@ RUN mkdir -p /usr/local/lib/prosody/modules && \
 RUN groupadd -r prosody && \
     useradd -r -g prosody prosody && \
     mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody && \
-    mkdir -p /var/www/certbot/.well-known/acme-challenge && \
     mkdir -p /certs && \
-    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs && \
-    chmod 755 /var/www/certbot/.well-known/acme-challenge
+    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs
 
 # Copy configuration files
 COPY config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua

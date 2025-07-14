@@ -271,6 +271,14 @@ Client → TLS Connection → SASL Auth → Resource Binding → Message Routing
 Archive Storage ← Database ← Message Carbons ← Stream Management
 ```
 
+### Certificate Management Flow
+
+```text
+DNS-01 Challenge → Cloudflare API → TXT Record Creation → Let's Encrypt Validation → Wildcard Certificate
+                                                                    ↓
+                    Prosody Restart ← Certificate Storage ← Automatic Renewal Check
+```
+
 ### File Upload Flow
 
 ```text

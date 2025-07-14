@@ -55,21 +55,29 @@ PROSODY_CERT_OCSP=true           # OCSP stapling
 
 ### Certificate Management
 
-**Let's Encrypt Integration:**
+**Cloudflare DNS-01 Integration (Recommended):**
 
 ```bash
-# Automatic certificate management
-PROSODY_AUTO_CERT=true
-PROSODY_CERT_EMAIL=admin@your-domain.com
-PROSODY_CERT_CHALLENGE=http       # http, dns, tls-alpn
+# Wildcard certificate with DNS-01 challenges
+# 1. Configure Cloudflare API credentials
+cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+# Edit with your API token
+
+# 2. Generate wildcard certificate
+docker compose --profile letsencrypt run --rm certbot
+
+# 3. Set up automatic renewal
+(crontab -l 2>/dev/null; echo "0 3 * * * /path/to/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
 ```
 
 **Manual Certificate Setup:**
 
 ```bash
-# Manual certificate paths
-PROSODY_TLS_CERT_PATH=/etc/prosody/certs/
-PROSODY_TLS_KEY_PATH=/etc/prosody/certs/
+# Manual certificate paths (wildcard recommended)
+cp your-wildcard.crt ./certs/your-domain.crt
+cp your-wildcard.key ./certs/your-domain.key
+chmod 644 ./certs/your-domain.crt
+chmod 600 ./certs/your-domain.key
 PROSODY_TLS_CA_PATH=/etc/prosody/certs/ca/
 ```
 

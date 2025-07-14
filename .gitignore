@@ -7,11 +7,6 @@ research/
 # Runtime data directories (local bind mounts)
 logs/
 certs/
-letsencrypt-webroot/*
-!letsencrypt-webroot/README.md
-!letsencrypt-webroot/.well-known/
-letsencrypt-webroot/.well-known/acme-challenge/*
-!letsencrypt-webroot/.well-known/acme-challenge/.gitkeep
 
 # Environment configuration
 .env

@@ -84,31 +84,55 @@ xmpp.atl.chat.               3600  IN  A    YOUR.SERVER.IP.ADDRESS
 
 ## 🔒 SSL Certificates
 
-### Option 1: Let's Encrypt (Recommended)
+### Wildcard Certificate with Cloudflare DNS-01 (Recommended)
+
+The easiest and most secure approach uses Cloudflare's DNS API to automatically generate wildcard certificates:
 
 ```bash
-# Install certbot
-sudo apt install certbot
+# 1. Configure Cloudflare API
+cp cloudflare-credentials.ini.example cloudflare-credentials.ini
+# Edit with your Cloudflare API token
+# Get token from: https://dash.cloudflare.com/profile/api-tokens
+# Permissions needed: Zone:Zone:Read, Zone:DNS:Edit
 
-# Get certificate
-sudo certbot certonly --standalone -d atl.chat
+# 2. Generate wildcard certificate
+docker compose --profile letsencrypt run --rm certbot
 
-# Copy certificates to prosody
-sudo cp /etc/letsencrypt/live/atl.chat/fullchain.pem /path/to/prosody/certs/
-sudo cp /etc/letsencrypt/live/atl.chat/privkey.pem /path/to/prosody/certs/
-sudo chown prosody:prosody /path/to/prosody/certs/*
+# 3. Start the server
+docker compose up -d prosody db
 ```
 
-### Option 2: Existing Certificates
+**Benefits:**
+
+- **Wildcard coverage**: `*.atl.chat` covers all subdomains automatically
+- **No port 80 needed**: Uses DNS validation instead of HTTP
+- **Automatic renewal**: Set up once and forget
+- **More secure**: No need to expose HTTP port publicly
+
+### Manual Certificate (Advanced)
+
+If you have existing certificates:
 
 ```bash
-# Copy your certificates
-cp your-cert.pem /path/to/prosody/certs/atl.chat.crt
-cp your-key.pem /path/to/prosody/certs/atl.chat.key
+# Copy your certificates to the certs directory
+cp your-wildcard.crt ./certs/atl.chat.crt
+cp your-wildcard.key ./certs/atl.chat.key
 
-# Set permissions
-sudo chown prosody:prosody /path/to/prosody/certs/*
-sudo chmod 600 /path/to/prosody/certs/*.key
+# Set proper permissions
+chmod 644 ./certs/atl.chat.crt
+chmod 600 ./certs/atl.chat.key
+
+# Start the server
+docker compose up -d prosody db
+```
+
+### Development Mode
+
+For development, no certificate setup is needed:
+
+```bash
+# Start server - self-signed certificates generated automatically
+docker compose up -d prosody db
 ```
 
 ## 📱 Connect XMPP Clients
