@@ -29,7 +29,7 @@ c2s_ports = { tonumber(os.getenv("PROSODY_C2S_PORT")) or 5222 } -- Client-to-ser
 c2s_direct_tls_ports = { tonumber(os.getenv("PROSODY_C2S_DIRECT_TLS_PORT")) or 5223 } -- Direct TLS
 s2s_ports = { tonumber(os.getenv("PROSODY_S2S_PORT")) or 5269 } -- Server-to-server
 s2s_direct_tls_ports = { tonumber(os.getenv("PROSODY_S2S_DIRECT_TLS_PORT")) or 5270 } -- Server-to-server Direct TLS
-component_ports = { 5347 } -- External components
+component_ports = { 5347 } -- External components (XEP-0114: Jabber Component Protocol)
 
 -- HTTP services
 http_ports = { tonumber(os.getenv("PROSODY_HTTP_PORT")) or 5280 } -- HTTP (BOSH, file upload, admin)
@@ -541,8 +541,13 @@ ssl = {
 -- ===============================================
 
 -- Service discovery items - clients can discover these services automatically
+-- Components are automatically linked to VirtualHosts if they are direct subdomains
+-- For example: muc.example.com is automatically linked to example.com
+-- Manual linking via disco_items is needed for non-subdomain components
+-- Reference: https://prosody.im/doc/components#discovery
+
 disco_items = {
-	-- Multi-User Chat service
+	-- Multi-User Chat service (XEP-0045)
 	{ "muc." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "Multi-User Chat Rooms" },
 
 	-- File upload service (XEP-0363)
@@ -579,13 +584,17 @@ end
 disco_expose_admins = (os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true") -- Default: false for privacy
 
 -- MUC (Multi-User Chat) domain
+-- XEP-0045: Multi-User Chat - Group chat rooms and conferences
+-- https://xmpp.org/extensions/xep-0045.html
 Component("muc." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
 name = "Multi-User Chat"
-description = "Multi-User Chat rooms"
+description = "Multi-User Chat rooms and conferences (XEP-0045)"
 
 -- MUC-specific modules (must be loaded on MUC component)
 modules_enabled = {
-	-- "pastebin", -- Automatic pastebin for long messages (not available)
+	-- Note: Additional MUC modules like muc_mam would go here when available
+	-- "muc_mam", -- Message Archive Management for MUC (XEP-0313)
+	-- "pastebin", -- Automatic pastebin for long messages (not available in dev)
 }
 
 -- Enhanced MUC configuration
@@ -726,15 +735,48 @@ if pastebin_path_env then
 end
 
 -- File upload domain
+-- XEP-0363: HTTP File Upload - Allows clients to upload files via HTTP
+-- https://xmpp.org/extensions/xep-0363.html
 Component("upload." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "http_file_share")
 name = "File Upload Service"
-description = "HTTP file upload and sharing service"
+description = "HTTP file upload and sharing service (XEP-0363)"
+
+-- File upload specific modules (if any additional modules are needed)
+-- modules_enabled = {
+--     -- Additional file upload modules would go here
+-- }
 
 -- Proxy domain for file transfers
+-- XEP-0065: SOCKS5 Bytestreams - File transfer proxy service
+-- https://xmpp.org/extensions/xep-0065.html
 Component("proxy." .. (os.getenv("PROSODY_DOMAIN") or "localhost"), "proxy65")
 name = "SOCKS5 Proxy"
-description = "File transfer proxy service"
+description = "File transfer proxy service (XEP-0065)"
 proxy65_address = os.getenv("PROSODY_DOMAIN") or "localhost"
+
+-- ===============================================
+-- EXTERNAL COMPONENTS (XEP-0114)
+-- ===============================================
+
+-- External components connect to Prosody using the component protocol (XEP-0114)
+-- They run as separate processes and connect to Prosody on port 5347 (default)
+-- Reference: https://prosody.im/doc/components#adding-an-external-component
+
+-- Example external component configuration (commented out):
+-- Component "bridge.example.com"
+--     component_secret = "your-secret-password-here"
+--     -- This would allow an external bridge (like Slidge) to connect
+
+-- Example Telegram bridge component:
+-- Component "telegram.example.com"
+--     component_secret = "telegram-bridge-secret"
+
+-- Example Discord bridge component:
+-- Component "discord.example.com"
+--     component_secret = "discord-bridge-secret"
+
+-- Note: External components must be configured with the same domain and secret
+-- in both Prosody's config and the external component's configuration
 
 -- ===============================================
 -- FIREWALL RULES
