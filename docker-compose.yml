@@ -339,6 +339,15 @@ configs:
   adminer-index.php:
     content: |
       <?php
+        if (empty($$_GET)) {
+          $$_POST['auth'] = [
+            'server' => getenv('ADMINER_DEFAULT_SERVER'),
+            'username' => getenv('ADMINER_DEFAULT_USERNAME'),
+            'password' => getenv('ADMINER_DEFAULT_PASSWORD'),
+            'driver' => getenv('ADMINER_DEFAULT_DRIVER'),
+            'db' => getenv('ADMINER_DEFAULT_DB'),
+          ];
+        }
         include './adminer.php';
       ?>
 
