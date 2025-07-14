@@ -219,6 +219,8 @@ The Adminer interface will automatically connect to your PostgreSQL database wit
 - Monitor database performance
 - Backup and restore data
 
+**Theme**: The interface uses the [Hydra Dark Theme](https://github.com/Niyko/Hydra-Dark-Theme-for-Adminer) for improved visibility and a modern Material Design appearance.
+
 ### Unified CLI Tool
 
 The **`prosody-manager`** script provides comprehensive server management:
