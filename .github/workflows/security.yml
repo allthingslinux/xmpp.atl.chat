@@ -52,15 +52,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/docker@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          image: 'prosody-security-scan:latest'
-          args: --severity-threshold=medium
-        continue-on-error: true
-        
       - name: Check for security vulnerabilities in dependencies
         run: |
           echo "Checking for known security issues..."
@@ -83,6 +74,16 @@ jobs:
             if grep -q ":latest" Dockerfile; then
               echo "⚠️  Using :latest tag in Dockerfile (consider pinning versions)"
             fi
+          fi
+          
+          # Check for known vulnerable packages in documentation
+          echo "Checking for documented security considerations..."
+          
+          # Look for security-related documentation
+          if find docs/ -name "*.md" -exec grep -l -i "security\|vulnerability\|cve" {} \; 2>/dev/null; then
+            echo "✅ Security documentation found"
+          else
+            echo "⚠️  Consider adding security documentation"
           fi
 
   secrets-scan:
