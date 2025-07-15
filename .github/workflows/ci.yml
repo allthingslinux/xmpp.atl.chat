@@ -473,8 +473,6 @@ jobs:
           [sqlfluff]
           dialect = postgres
           templater = jinja
-          
-          [sqlfluff:rules]
           max_line_length = 120
           
           [sqlfluff:rules:capitalisation.keywords]
