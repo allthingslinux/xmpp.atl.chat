@@ -115,7 +115,7 @@ setup_directories() {
 
         # Ensure proper ownership (only if running as root)
         if [[ $EUID -eq 0 ]]; then
-            chown -R "$PROSODY_USER:$PROSODY_USER" "$dir" 2>/dev/null || true
+            chown -R "$PROSODY_USER:$PROSODY_USER" "$dir" 2> /dev/null || true
         fi
     done
 
@@ -142,7 +142,7 @@ setup_certificates() {
         log_info "Standard certificates found for ${PROSODY_DOMAIN}"
 
         # Check certificate validity
-        if openssl x509 -in "$cert_file" -noout -checkend 86400 >/dev/null 2>&1; then
+        if openssl x509 -in "$cert_file" -noout -checkend 86400 > /dev/null 2>&1; then
             log_info "Certificate is valid for at least 24 hours"
         else
             log_warn "Certificate expires within 24 hours - consider renewal"
@@ -155,13 +155,13 @@ setup_certificates() {
     log_warn "This is suitable for development only - use proper certificates in production"
 
     # Generate private key
-    openssl genrsa -out "$key_file" 4096 2>/dev/null
+    openssl genrsa -out "$key_file" 4096 2> /dev/null
 
     # Generate certificate with proper Subject Alternative Names
     openssl req -new -x509 -key "$key_file" -out "$cert_file" -days 365 \
         -subj "/CN=${PROSODY_DOMAIN}" \
         -addext "subjectAltName=DNS:${PROSODY_DOMAIN},DNS:*.${PROSODY_DOMAIN},DNS:muc.${PROSODY_DOMAIN},DNS:upload.${PROSODY_DOMAIN}" \
-        2>/dev/null
+        2> /dev/null
 
     # Set proper permissions (only if running as root)
     if [[ $EUID -eq 0 ]]; then
@@ -187,7 +187,7 @@ wait_for_database() {
     log_info "Waiting for database connection to ${host}:${port}..."
 
     while [[ $attempt -le $max_attempts ]]; do
-        if timeout 5 bash -c "</dev/tcp/${host}/${port}" 2>/dev/null; then
+        if timeout 5 bash -c "</dev/tcp/${host}/${port}" 2> /dev/null; then
             log_info "Database connection established"
             return 0
         fi
@@ -233,7 +233,7 @@ setup_community_modules() {
         log_info "Installing additional community modules: ${PROSODY_EXTRA_MODULES}"
 
         # Install mercurial if not already present (for runtime module installation)
-        if ! command -v hg >/dev/null 2>&1; then
+        if ! command -v hg > /dev/null 2>&1; then
             log_info "Installing mercurial for module management..."
             apt-get update && apt-get install -y mercurial && apt-get clean && rm -rf /var/lib/apt/lists/*
         fi
@@ -249,7 +249,7 @@ setup_community_modules() {
         fi
 
         # Install each requested module
-        IFS=',' read -ra MODULES <<<"$PROSODY_EXTRA_MODULES"
+        IFS=',' read -ra MODULES <<< "$PROSODY_EXTRA_MODULES"
         for module in "${MODULES[@]}"; do
             module=$(echo "$module" | xargs) # trim whitespace
 
@@ -287,21 +287,21 @@ setup_community_modules() {
 cleanup() {
     log_info "Received shutdown signal, stopping Prosody..."
 
-    if [[ -n "${PROSODY_PID:-}" ]] && kill -0 "$PROSODY_PID" 2>/dev/null; then
+    if [[ -n "${PROSODY_PID:-}" ]] && kill -0 "$PROSODY_PID" 2> /dev/null; then
         # Send SIGTERM for graceful shutdown
-        kill -TERM "$PROSODY_PID" 2>/dev/null || true
+        kill -TERM "$PROSODY_PID" 2> /dev/null || true
 
         # Wait for graceful shutdown (max 30 seconds)
         local timeout=30
-        while kill -0 "$PROSODY_PID" 2>/dev/null && [[ $timeout -gt 0 ]]; do
+        while kill -0 "$PROSODY_PID" 2> /dev/null && [[ $timeout -gt 0 ]]; do
             sleep 1
             ((timeout--))
         done
 
         # Force kill if still running
-        if kill -0 "$PROSODY_PID" 2>/dev/null; then
+        if kill -0 "$PROSODY_PID" 2> /dev/null; then
             log_warn "Prosody did not shut down gracefully, forcing termination"
-            kill -KILL "$PROSODY_PID" 2>/dev/null || true
+            kill -KILL "$PROSODY_PID" 2> /dev/null || true
         fi
     fi
 
@@ -321,7 +321,7 @@ main() {
 
     # Display version information
     local prosody_version
-    prosody_version=$(prosody --version 2>/dev/null | head -n1 || echo "Unknown")
+    prosody_version=$(prosody --version 2> /dev/null | head -n1 || echo "Unknown")
     log_info "Prosody version: $prosody_version"
 
     # Environment and setup

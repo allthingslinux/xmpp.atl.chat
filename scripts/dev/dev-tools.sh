@@ -107,14 +107,14 @@ test_connectivity() {
     echo -e "${BLUE}Testing XMPP Ports:${NC}"
 
     # Test C2S port
-    if timeout 3 bash -c "</dev/tcp/localhost/5222" 2>/dev/null; then
+    if timeout 3 bash -c "</dev/tcp/localhost/5222" 2> /dev/null; then
         echo "  ✅ C2S (5222): Reachable"
     else
         echo "  ❌ C2S (5222): Not reachable"
     fi
 
     # Test C2S Direct TLS port
-    if timeout 3 bash -c "</dev/tcp/localhost/5223" 2>/dev/null; then
+    if timeout 3 bash -c "</dev/tcp/localhost/5223" 2> /dev/null; then
         echo "  ✅ C2S Direct TLS (5223): Reachable"
     else
         echo "  ❌ C2S Direct TLS (5223): Not reachable"
@@ -276,7 +276,7 @@ cleanup_dev() {
         echo
 
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            docker volume rm -f xmpp_prosody_data_dev xmpp_prosody_uploads_dev xmpp_postgres_data_dev xmpp_coturn_data_dev xmpp_certs_dev 2>/dev/null || true
+            docker volume rm -f xmpp_prosody_data_dev xmpp_prosody_uploads_dev xmpp_postgres_data_dev xmpp_coturn_data_dev xmpp_certs_dev 2> /dev/null || true
             log_info "Development volumes removed ✓"
         fi
 
@@ -287,7 +287,8 @@ cleanup_dev() {
 }
 
 backup_dev_data() {
-    local backup_dir="$PROJECT_DIR/backups/dev-$(date +%Y%m%d-%H%M%S)"
+    local backup_dir
+    backup_dir="$PROJECT_DIR/backups/dev-$(date +%Y%m%d-%H%M%S)"
 
     log_step "Backing Up Development Data"
 
@@ -297,7 +298,7 @@ backup_dev_data() {
 
     # Backup database
     log_info "Backing up PostgreSQL database..."
-    docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-postgres-dev pg_dump -U prosody prosody >"$backup_dir/database.sql"
+    docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-postgres-dev pg_dump -U prosody prosody > "$backup_dir/database.sql"
 
     # Backup Prosody data
     log_info "Backing up Prosody data..."
@@ -319,8 +320,10 @@ run_performance_test() {
 
     # Simple connection test
     for i in {1..10}; do
+        local start_time
         start_time=$(date +%s%N)
-        timeout 5 bash -c "</dev/tcp/localhost/5222" 2>/dev/null
+        timeout 5 bash -c "</dev/tcp/localhost/5222" 2> /dev/null
+        local end_time
         end_time=$(date +%s%N)
         duration=$(((end_time - start_time) / 1000000))
         echo "  Connection $i: ${duration}ms"
@@ -328,7 +331,7 @@ run_performance_test() {
 
     echo
     echo -e "${BLUE}Memory usage:${NC}"
-    docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}" $(docker compose -f "$DEV_COMPOSE_FILE" ps -q)
+    docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}" "$(docker compose -f "$DEV_COMPOSE_FILE" ps -q)"
 }
 
 # ============================================================================
@@ -375,68 +378,68 @@ main() {
     cd "$PROJECT_DIR"
 
     case "${1:-help}" in
-    "status")
-        show_status
-        ;;
-    "urls")
-        show_urls
-        ;;
-    "test")
-        test_connectivity
-        ;;
-    "config")
-        test_prosody_config
-        ;;
-    "users")
-        list_users
-        ;;
-    "adduser")
-        if [[ -z "${2:-}" ]]; then
-            log_error "Username required"
-            echo "Usage: $0 adduser <username> [password]"
+        "status")
+            show_status
+            ;;
+        "urls")
+            show_urls
+            ;;
+        "test")
+            test_connectivity
+            ;;
+        "config")
+            test_prosody_config
+            ;;
+        "users")
+            list_users
+            ;;
+        "adduser")
+            if [[ -z "${2:-}" ]]; then
+                log_error "Username required"
+                echo "Usage: $0 adduser <username> [password]"
+                exit 1
+            fi
+            create_user "$2" "${3:-}"
+            ;;
+        "deluser")
+            if [[ -z "${2:-}" ]]; then
+                log_error "Username required"
+                echo "Usage: $0 deluser <username>"
+                exit 1
+            fi
+            delete_user "$2"
+            ;;
+        "passwd")
+            if [[ -z "${2:-}" ]]; then
+                log_error "Username required"
+                echo "Usage: $0 passwd <username>"
+                exit 1
+            fi
+            change_password "$2"
+            ;;
+        "logs")
+            show_logs "${2:-}" "${3:-50}"
+            ;;
+        "restart")
+            restart_service "${2:-xmpp-prosody-dev}"
+            ;;
+        "cleanup")
+            cleanup_dev
+            ;;
+        "backup")
+            backup_dev_data
+            ;;
+        "perf")
+            run_performance_test
+            ;;
+        "help" | "-h" | "--help")
+            show_help
+            ;;
+        *)
+            log_error "Unknown command: $1"
+            show_help
             exit 1
-        fi
-        create_user "$2" "${3:-}"
-        ;;
-    "deluser")
-        if [[ -z "${2:-}" ]]; then
-            log_error "Username required"
-            echo "Usage: $0 deluser <username>"
-            exit 1
-        fi
-        delete_user "$2"
-        ;;
-    "passwd")
-        if [[ -z "${2:-}" ]]; then
-            log_error "Username required"
-            echo "Usage: $0 passwd <username>"
-            exit 1
-        fi
-        change_password "$2"
-        ;;
-    "logs")
-        show_logs "${2:-}" "${3:-50}"
-        ;;
-    "restart")
-        restart_service "${2:-xmpp-prosody-dev}"
-        ;;
-    "cleanup")
-        cleanup_dev
-        ;;
-    "backup")
-        backup_dev_data
-        ;;
-    "perf")
-        run_performance_test
-        ;;
-    "help" | "-h" | "--help")
-        show_help
-        ;;
-    *)
-        log_error "Unknown command: $1"
-        show_help
-        exit 1
-        ;;
+            ;;
     esac
 }
 

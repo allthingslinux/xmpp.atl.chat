@@ -114,82 +114,82 @@ prosodyctl_command() {
     shift
 
     case "$cmd" in
-    "adduser" | "user")
-        if [[ $# -lt 1 ]]; then
-            log_error "Usage: prosody-manager prosodyctl adduser <user@domain> [password]"
-            return 1
-        fi
-        local user="$1"
-        local password="${2:-}"
-
-        if [[ -z "$password" ]]; then
-            run_in_container prosodyctl adduser "$user"
-        else
-            echo "$password" | run_in_container prosodyctl adduser "$user"
-        fi
-        ;;
-    "deluser")
-        if [[ $# -lt 1 ]]; then
-            log_error "Usage: prosody-manager prosodyctl deluser <user@domain>"
-            return 1
-        fi
-        run_in_container prosodyctl deluser "$1"
-        ;;
-    "passwd")
-        if [[ $# -lt 1 ]]; then
-            log_error "Usage: prosody-manager prosodyctl passwd <user@domain> [password]"
-            return 1
-        fi
-        local user="$1"
-        local password="${2:-}"
-
-        if [[ -z "$password" ]]; then
-            run_in_container prosodyctl passwd "$user"
-        else
-            echo "$password" | run_in_container prosodyctl passwd "$user"
-        fi
-        ;;
-    "status")
-        run_in_container prosodyctl status
-        ;;
-    "reload")
-        run_in_container prosodyctl reload
-        ;;
-    "restart")
-        if is_docker_environment; then
-            log_warn "In Docker, use 'docker compose restart prosody' instead"
-            return 1
-        else
-            docker compose -f "$DOCKER_DIR/docker-compose.yml" restart prosody
-        fi
-        ;;
-    "cert")
-        local subcmd="${1:-list}"
-        shift || true
-
-        case "$subcmd" in
-        "import")
+        "adduser" | "user")
             if [[ $# -lt 1 ]]; then
-                log_error "Usage: prosody-manager prosodyctl cert import <domain> [cert_path]"
+                log_error "Usage: prosody-manager prosodyctl adduser <user@domain> [password]"
                 return 1
             fi
-            run_in_container prosodyctl cert import "$@"
+            local user="$1"
+            local password="${2:-}"
+
+            if [[ -z "$password" ]]; then
+                run_in_container prosodyctl adduser "$user"
+            else
+                echo "$password" | run_in_container prosodyctl adduser "$user"
+            fi
             ;;
-        "generate")
+        "deluser")
             if [[ $# -lt 1 ]]; then
-                log_error "Usage: prosody-manager prosodyctl cert generate <domain>"
+                log_error "Usage: prosody-manager prosodyctl deluser <user@domain>"
                 return 1
             fi
-            run_in_container prosodyctl cert generate "$@"
+            run_in_container prosodyctl deluser "$1"
             ;;
-        "list" | *)
-            run_in_container prosodyctl cert list
+        "passwd")
+            if [[ $# -lt 1 ]]; then
+                log_error "Usage: prosody-manager prosodyctl passwd <user@domain> [password]"
+                return 1
+            fi
+            local user="$1"
+            local password="${2:-}"
+
+            if [[ -z "$password" ]]; then
+                run_in_container prosodyctl passwd "$user"
+            else
+                echo "$password" | run_in_container prosodyctl passwd "$user"
+            fi
             ;;
-        esac
-        ;;
-    *)
-        run_in_container prosodyctl "$cmd" "$@"
-        ;;
+        "status")
+            run_in_container prosodyctl status
+            ;;
+        "reload")
+            run_in_container prosodyctl reload
+            ;;
+        "restart")
+            if is_docker_environment; then
+                log_warn "In Docker, use 'docker compose restart prosody' instead"
+                return 1
+            else
+                docker compose -f "$DOCKER_DIR/docker-compose.yml" restart prosody
+            fi
+            ;;
+        "cert")
+            local subcmd="${1:-list}"
+            shift || true
+
+            case "$subcmd" in
+                "import")
+                    if [[ $# -lt 1 ]]; then
+                        log_error "Usage: prosody-manager prosodyctl cert import <domain> [cert_path]"
+                        return 1
+                    fi
+                    run_in_container prosodyctl cert import "$@"
+                    ;;
+                "generate")
+                    if [[ $# -lt 1 ]]; then
+                        log_error "Usage: prosody-manager prosodyctl cert generate <domain>"
+                        return 1
+                    fi
+                    run_in_container prosodyctl cert generate "$@"
+                    ;;
+                "list" | *)
+                    run_in_container prosodyctl cert list
+                    ;;
+            esac
+            ;;
+        *)
+            run_in_container prosodyctl "$cmd" "$@"
+            ;;
     esac
 }
 
@@ -204,35 +204,35 @@ health_check() {
     log_info "Running Prosody health check..."
 
     case "$check_type" in
-    "process" | "all")
-        if ! check_process; then
-            exit_code=1
-        fi
-        ;;
+        "process" | "all")
+            if ! check_process; then
+                exit_code=1
+            fi
+            ;;
     esac
 
     case "$check_type" in
-    "ports" | "all")
-        if ! check_ports; then
-            exit_code=1
-        fi
-        ;;
+        "ports" | "all")
+            if ! check_ports; then
+                exit_code=1
+            fi
+            ;;
     esac
 
     case "$check_type" in
-    "config" | "all")
-        if ! check_config; then
-            exit_code=1
-        fi
-        ;;
+        "config" | "all")
+            if ! check_config; then
+                exit_code=1
+            fi
+            ;;
     esac
 
     case "$check_type" in
-    "certs" | "certificates" | "all")
-        if ! check_certificates_health; then
-            exit_code=1
-        fi
-        ;;
+        "certs" | "certificates" | "all")
+            if ! check_certificates_health; then
+                exit_code=1
+            fi
+            ;;
     esac
 
     if [[ $exit_code -eq 0 ]]; then
@@ -335,36 +335,36 @@ cert_command() {
     shift
 
     case "$cmd" in
-    "check")
-        local domain="${1:-${PROSODY_DOMAIN:-}}"
-        if [[ -z "$domain" ]]; then
-            log_error "Domain required. Usage: prosody-manager cert check <domain>"
+        "check")
+            local domain="${1:-${PROSODY_DOMAIN:-}}"
+            if [[ -z "$domain" ]]; then
+                log_error "Domain required. Usage: prosody-manager cert check <domain>"
+                return 1
+            fi
+            check_certificates_detailed "$domain"
+            ;;
+        "install")
+            local domain="${1:-}"
+            local cert_path="${2:-}"
+            if [[ -z "$domain" ]]; then
+                log_error "Domain required. Usage: prosody-manager cert install <domain> [cert_path]"
+                return 1
+            fi
+            install_certificate "$domain" "$cert_path"
+            ;;
+        "renew")
+            local domain="${1:-${PROSODY_DOMAIN:-}}"
+            if [[ -z "$domain" ]]; then
+                log_error "Domain required. Usage: prosody-manager cert renew <domain>"
+                return 1
+            fi
+            renew_certificate "$domain"
+            ;;
+        *)
+            log_error "Unknown certificate command: $cmd"
+            log_info "Available commands: check, install, renew"
             return 1
-        fi
-        check_certificates_detailed "$domain"
-        ;;
-    "install")
-        local domain="${1:-}"
-        local cert_path="${2:-}"
-        if [[ -z "$domain" ]]; then
-            log_error "Domain required. Usage: prosody-manager cert install <domain> [cert_path]"
-            return 1
-        fi
-        install_certificate "$domain" "$cert_path"
-        ;;
-    "renew")
-        local domain="${1:-${PROSODY_DOMAIN:-}}"
-        if [[ -z "$domain" ]]; then
-            log_error "Domain required. Usage: prosody-manager cert renew <domain>"
-            return 1
-        fi
-        renew_certificate "$domain"
-        ;;
-    *)
-        log_error "Unknown certificate command: $cmd"
-        log_info "Available commands: check, install, renew"
-        return 1
-        ;;
+            ;;
     esac
 }
 
@@ -469,20 +469,20 @@ backup_command() {
     shift || true
 
     case "$cmd" in
-    "create")
-        create_backup "$@"
-        ;;
-    "restore")
-        restore_backup "$@"
-        ;;
-    "list")
-        list_backups
-        ;;
-    *)
-        log_error "Unknown backup command: $cmd"
-        log_info "Available commands: create, restore, list"
-        return 1
-        ;;
+        "create")
+            create_backup "$@"
+            ;;
+        "restore")
+            restore_backup "$@"
+            ;;
+        "list")
+            list_backups
+            ;;
+        *)
+            log_error "Unknown backup command: $cmd"
+            log_info "Available commands: create, restore, list"
+            return 1
+            ;;
     esac
 }
 
@@ -646,26 +646,26 @@ deploy_command() {
     shift || true
 
     case "$cmd" in
-    "up" | "start")
-        deploy_up "$@"
-        ;;
-    "down" | "stop")
-        deploy_down "$@"
-        ;;
-    "restart")
-        deploy_restart "$@"
-        ;;
-    "logs")
-        deploy_logs "$@"
-        ;;
-    "status")
-        deploy_status
-        ;;
-    *)
-        log_error "Unknown deploy command: $cmd"
-        log_info "Available commands: up, down, restart, logs, status"
-        return 1
-        ;;
+        "up" | "start")
+            deploy_up "$@"
+            ;;
+        "down" | "stop")
+            deploy_down "$@"
+            ;;
+        "restart")
+            deploy_restart "$@"
+            ;;
+        "logs")
+            deploy_logs "$@"
+            ;;
+        "status")
+            deploy_status
+            ;;
+        *)
+            log_error "Unknown deploy command: $cmd"
+            log_info "Available commands: up, down, restart, logs, status"
+            return 1
+            ;;
     esac
 }
 
@@ -700,14 +700,14 @@ deploy_up() {
 
     # Deploy based on mode
     case "$mode" in
-    "minimal")
-        log_info "Starting minimal deployment (Prosody only)..."
-        docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d xmpp-prosody
-        ;;
-    "full" | *)
-        log_info "Starting full deployment (all services)..."
-        docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d
-        ;;
+        "minimal")
+            log_info "Starting minimal deployment (Prosody only)..."
+            docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d xmpp-prosody
+            ;;
+        "full" | *)
+            log_info "Starting full deployment (all services)..."
+            docker compose -f "$DOCKER_DIR/docker-compose.yml" up -d
+            ;;
     esac
 
     # Wait for services to be ready
@@ -770,52 +770,53 @@ deploy_status() {
 readonly MODULES_DIR="/usr/local/lib/prosody/modules"
 readonly MODULES_REPO="https://hg.prosody.im/prosody-modules/"
 readonly TEMP_MODULES_DIR="$PROJECT_DIR/.prosody-modules"
-readonly ROCKS_SERVER="https://modules.prosody.im/rocks/"
+# Change: export ROCKS_SERVER if used externally, otherwise remove if unused
+export ROCKS_SERVER="https://modules.prosody.im/rocks/"
 
 module_command() {
     local subcommand="${1:-help}"
     shift || true
 
     case "$subcommand" in
-    "list")
-        module_list "$@"
-        ;;
-    "search")
-        module_search "$@"
-        ;;
-    "install")
-        module_install "$@"
-        ;;
-    "remove")
-        module_remove "$@"
-        ;;
-    "update")
-        module_update "$@"
-        ;;
-    "info")
-        module_info "$@"
-        ;;
-    "sync")
-        module_sync "$@"
-        ;;
-    "rocks")
-        module_rocks "$@"
-        ;;
-    "help" | "-h" | "--help")
-        module_help
-        ;;
-    *)
-        log_error "Unknown module subcommand: $subcommand"
-        echo
-        module_help
-        exit 1
-        ;;
+        "list")
+            module_list "$@"
+            ;;
+        "search")
+            module_search "$@"
+            ;;
+        "install")
+            module_install "$@"
+            ;;
+        "remove")
+            module_remove "$@"
+            ;;
+        "update")
+            module_update "$@"
+            ;;
+        "info")
+            module_info "$@"
+            ;;
+        "sync")
+            module_sync "$@"
+            ;;
+        "rocks")
+            module_rocks "$@"
+            ;;
+        "help" | "-h" | "--help")
+            module_help
+            ;;
+        *)
+            log_error "Unknown module subcommand: $subcommand"
+            echo
+            module_help
+            exit 1
+            ;;
     esac
 }
 
 module_list() {
     local filter="${1:-}"
-    local show_rocks="${2:-false}"
+    # local show_rocks="${2:-false}"  # Removed as unused
 
     log_info "Installed modules:"
 
@@ -873,7 +874,7 @@ module_search() {
     echo -e "${BOLD}Official Repository (LuaRocks):${NC}"
     if command_exists luarocks; then
         if run_in_container luarocks search --porcelain "$query" 2>/dev/null | grep -q "mod_"; then
-            run_in_container luarocks search --porcelain "$query" 2>/dev/null | grep "mod_" | while read -r name version repo; do
+            run_in_container luarocks search --porcelain "$query" 2>/dev/null | grep "mod_" | while read -r name version; do
                 echo -e "  ${BLUE}$name${NC} ${CYAN}($version)${NC} - Install with: ${GREEN}prosody-manager module rocks install $name${NC}"
             done
         else
@@ -996,54 +997,54 @@ module_rocks() {
     shift || true
 
     case "$subcmd" in
-    "install")
-        local module_name="${1:-}"
-        if [[ -z "$module_name" ]]; then
-            log_error "Please provide a module name"
-            echo "Usage: prosody-manager module rocks install <module_name>"
-            return 1
-        fi
+        "install")
+            local module_name="${1:-}"
+            if [[ -z "$module_name" ]]; then
+                log_error "Please provide a module name"
+                echo "Usage: prosody-manager module rocks install <module_name>"
+                return 1
+            fi
 
-        log_info "Installing official module via LuaRocks: $module_name"
-        if run_in_container prosodyctl install "$module_name"; then
-            log_success "Official module $module_name installed successfully"
-            log_info "✅ Dependencies handled automatically by LuaRocks"
-            log_info "🔧 Add '$module_name' to your modules_enabled list and reload Prosody"
-        else
-            log_error "Failed to install $module_name via prosodyctl"
-            log_info "💡 Try: prosody-manager module install $module_name (for community modules)"
-        fi
-        ;;
-    "list")
-        run_in_container prosodyctl list "$@"
-        ;;
-    "remove")
-        local module_name="${1:-}"
-        if [[ -z "$module_name" ]]; then
-            log_error "Please provide a module name"
-            echo "Usage: prosody-manager module rocks remove <module_name>"
-            return 1
-        fi
+            log_info "Installing official module via LuaRocks: $module_name"
+            if run_in_container prosodyctl install "$module_name"; then
+                log_success "Official module $module_name installed successfully"
+                log_info "✅ Dependencies handled automatically by LuaRocks"
+                log_info "🔧 Add '$module_name' to your modules_enabled list and reload Prosody"
+            else
+                log_error "Failed to install $module_name via prosodyctl"
+                log_info "💡 Try: prosody-manager module install $module_name (for community modules)"
+            fi
+            ;;
+        "list")
+            run_in_container prosodyctl list "$@"
+            ;;
+        "remove")
+            local module_name="${1:-}"
+            if [[ -z "$module_name" ]]; then
+                log_error "Please provide a module name"
+                echo "Usage: prosody-manager module rocks remove <module_name>"
+                return 1
+            fi
 
-        log_info "Removing official module: $module_name"
-        run_in_container prosodyctl remove "$module_name"
-        ;;
-    "outdated")
-        run_in_container prosodyctl list --outdated
-        ;;
-    "help")
-        echo -e "${BOLD}Official Module Management (LuaRocks)${NC}"
-        echo
-        echo -e "${GREEN}install <module>${NC}    Install official module with dependencies"
-        echo -e "${GREEN}remove <module>${NC}     Remove official module"
-        echo -e "${GREEN}list${NC}               List installed official modules"
-        echo -e "${GREEN}outdated${NC}           List outdated official modules"
-        ;;
-    *)
-        log_error "Unknown rocks subcommand: $subcmd"
-        module_rocks help
-        return 1
-        ;;
+            log_info "Removing official module: $module_name"
+            run_in_container prosodyctl remove "$module_name"
+            ;;
+        "outdated")
+            run_in_container prosodyctl list --outdated
+            ;;
+        "help")
+            echo -e "${BOLD}Official Module Management (LuaRocks)${NC}"
+            echo
+            echo -e "${GREEN}install <module>${NC}    Install official module with dependencies"
+            echo -e "${GREEN}remove <module>${NC}     Remove official module"
+            echo -e "${GREEN}list${NC}               List installed official modules"
+            echo -e "${GREEN}outdated${NC}           List outdated official modules"
+            ;;
+        *)
+            log_error "Unknown rocks subcommand: $subcmd"
+            module_rocks help
+            return 1
+            ;;
     esac
 }
 
@@ -1346,36 +1347,36 @@ main() {
     shift || true
 
     case "$command" in
-    "prosodyctl")
-        prosodyctl_command "$@"
-        ;;
-    "health")
-        health_check "$@"
-        ;;
-    "cert" | "certificate" | "certificates")
-        cert_command "$@"
-        ;;
-    "backup")
-        backup_command "$@"
-        ;;
-    "deploy")
-        deploy_command "$@"
-        ;;
-    "module")
-        module_command "$@"
-        ;;
-    "help" | "-h" | "--help")
-        show_help
-        ;;
-    "version" | "-v" | "--version")
-        show_version
-        ;;
-    *)
-        log_error "Unknown command: $command"
-        echo
-        show_help
-        exit 1
-        ;;
+        "prosodyctl")
+            prosodyctl_command "$@"
+            ;;
+        "health")
+            health_check "$@"
+            ;;
+        "cert" | "certificate" | "certificates")
+            cert_command "$@"
+            ;;
+        "backup")
+            backup_command "$@"
+            ;;
+        "deploy")
+            deploy_command "$@"
+            ;;
+        "module")
+            module_command "$@"
+            ;;
+        "help" | "-h" | "--help")
+            show_help
+            ;;
+        "version" | "-v" | "--version")
+            show_version
+            ;;
+        *)
+            log_error "Unknown command: $command"
+            echo
+            show_help
+            exit 1
+            ;;
     esac
 }
 

@@ -20,14 +20,14 @@ log() {
 check_process() {
     if [[ -f "$PROSODY_PID_FILE" ]]; then
         local pid
-        pid=$(cat "$PROSODY_PID_FILE" 2>/dev/null || echo "")
-        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+        pid=$(cat "$PROSODY_PID_FILE" 2> /dev/null || echo "")
+        if [[ -n "$pid" ]] && kill -0 "$pid" 2> /dev/null; then
             return 0
         fi
     fi
 
     # Fallback: check if prosody process exists
-    if pgrep -f "prosody" >/dev/null 2>&1; then
+    if pgrep -f "prosody" > /dev/null 2>&1; then
         return 0
     fi
 
@@ -36,7 +36,7 @@ check_process() {
 
 # Check if Prosody is responding on C2S port
 check_c2s_port() {
-    if timeout 5 bash -c "</dev/tcp/localhost/${PROSODY_C2S_PORT}" 2>/dev/null; then
+    if timeout 5 bash -c "</dev/tcp/localhost/${PROSODY_C2S_PORT}" 2> /dev/null; then
         return 0
     fi
     return 1
@@ -45,13 +45,13 @@ check_c2s_port() {
 # Check if HTTP services are responding
 check_http_services() {
     # Check if HTTP port is open
-    if ! timeout 5 bash -c "</dev/tcp/localhost/${PROSODY_HTTP_PORT}" 2>/dev/null; then
+    if ! timeout 5 bash -c "</dev/tcp/localhost/${PROSODY_HTTP_PORT}" 2> /dev/null; then
         return 1
     fi
 
     # Try to get a basic HTTP response
-    if command -v curl >/dev/null 2>&1; then
-        if curl -f -s -m 5 "http://localhost:${PROSODY_HTTP_PORT}/" >/dev/null 2>&1; then
+    if command -v curl > /dev/null 2>&1; then
+        if curl -f -s -m 5 "http://localhost:${PROSODY_HTTP_PORT}/" > /dev/null 2>&1; then
             return 0
         fi
         # Even a 404 is fine - means HTTP is responding
@@ -71,8 +71,8 @@ check_configuration() {
     fi
 
     # Quick syntax check
-    if command -v prosodyctl >/dev/null 2>&1; then
-        if ! prosodyctl check config 2>/dev/null; then
+    if command -v prosodyctl > /dev/null 2>&1; then
+        if ! prosodyctl check config 2> /dev/null; then
             log "Configuration validation failed"
             return 1
         fi

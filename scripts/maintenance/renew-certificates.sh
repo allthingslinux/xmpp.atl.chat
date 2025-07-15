@@ -8,8 +8,10 @@ set -euo pipefail
 # CONFIGURATION
 # ============================================================================
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+readonly SCRIPT_DIR
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_DIR
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 readonly LOG_FILE="/var/log/prosody-cert-renewal.log"
 
 # Colors for output
@@ -46,7 +48,7 @@ check_requirements() {
     fi
 
     # Check if Docker is running
-    if ! docker info >/dev/null 2>&1; then
+    if ! docker info > /dev/null 2>&1; then
         log_error "Docker is not running or not accessible"
         exit 1
     fi
@@ -92,8 +94,8 @@ cleanup_old_logs() {
     # Keep only last 30 days of logs
     if [[ -f "$LOG_FILE" ]]; then
         # Create a temporary file with recent logs
-        tail -n 1000 "$LOG_FILE" >"${LOG_FILE}.tmp" 2>/dev/null || true
-        mv "${LOG_FILE}.tmp" "$LOG_FILE" 2>/dev/null || true
+        tail -n 1000 "$LOG_FILE" > "${LOG_FILE}.tmp" 2> /dev/null || true
+        mv "${LOG_FILE}.tmp" "$LOG_FILE" 2> /dev/null || true
     fi
 }
 
@@ -105,7 +107,7 @@ main() {
     log_info "=== Certificate Renewal Process Started ==="
 
     # Create log file if it doesn't exist
-    touch "$LOG_FILE" 2>/dev/null || true
+    touch "$LOG_FILE" 2> /dev/null || true
 
     # Check requirements
     check_requirements
@@ -127,7 +129,7 @@ main() {
 
 # Show usage if help requested
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-    cat <<EOF
+    cat << EOF
 Professional Prosody XMPP Server - Certificate Renewal Script
 
 USAGE:

@@ -74,19 +74,19 @@ check_dependencies() {
     local missing_deps=()
 
     # Check for required tools
-    if ! command -v docker >/dev/null 2>&1; then
+    if ! command -v docker > /dev/null 2>&1; then
         missing_deps+=("docker")
     fi
 
-    if ! command -v docker-compose >/dev/null 2>&1 && ! docker compose version >/dev/null 2>&1; then
+    if ! command -v docker-compose > /dev/null 2>&1 && ! docker compose version > /dev/null 2>&1; then
         missing_deps+=("docker-compose")
     fi
 
-    if ! command -v openssl >/dev/null 2>&1; then
+    if ! command -v openssl > /dev/null 2>&1; then
         missing_deps+=("openssl")
     fi
 
-    if ! command -v hg >/dev/null 2>&1; then
+    if ! command -v hg > /dev/null 2>&1; then
         missing_deps+=("mercurial")
     fi
 
@@ -97,7 +97,7 @@ check_dependencies() {
     fi
 
     # Check if Docker is running
-    if ! docker info >/dev/null 2>&1; then
+    if ! docker info > /dev/null 2>&1; then
         log_error "Docker is not running. Please start Docker and try again."
         exit 1
     fi
@@ -150,7 +150,7 @@ setup_environment() {
         /^PROSODY_ADMINS=/ { print "PROSODY_ADMINS=" jid; next }
         /^PROSODY_DB_PASSWORD=/ { print "PROSODY_DB_PASSWORD=" password; next }
         { print }
-    ' "$ENV_FILE" >"$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
+    ' "$ENV_FILE" > "$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
 
     log_info "Environment configuration saved to $ENV_FILE ✓"
 }
@@ -186,7 +186,7 @@ setup_cloudflare() {
     awk -v token="$cf_token" '
         /^dns_cloudflare_api_token = / { print "dns_cloudflare_api_token = " token; next }
         { print }
-    ' "$CLOUDFLARE_CREDS" >"$CLOUDFLARE_CREDS.tmp" && mv "$CLOUDFLARE_CREDS.tmp" "$CLOUDFLARE_CREDS"
+    ' "$CLOUDFLARE_CREDS" > "$CLOUDFLARE_CREDS.tmp" && mv "$CLOUDFLARE_CREDS.tmp" "$CLOUDFLARE_CREDS"
 
     # Secure the credentials file
     chmod 600 "$CLOUDFLARE_CREDS"
@@ -241,9 +241,9 @@ setup_renewal() {
     log_step "Setting up automatic certificate renewal..."
 
     # Check if systemd is available
-    if command -v systemctl >/dev/null 2>&1; then
+    if command -v systemctl > /dev/null 2>&1; then
         setup_systemd_timer
-    elif command -v crontab >/dev/null 2>&1; then
+    elif command -v crontab > /dev/null 2>&1; then
         setup_cron_job
     else
         log_warn "Neither systemd nor cron is available"
@@ -268,7 +268,7 @@ setup_systemd_timer() {
         local service_template="$PROJECT_DIR/examples/systemd/xmpp-cert-renewal.service"
         local timer_template="$PROJECT_DIR/examples/systemd/xmpp-cert-renewal.timer"
 
-        sed -e "s|PROJECT_DIR|$PROJECT_DIR|g" -e "s|USER_NAME|$USER|g" "$service_template" | sudo tee "$service_file" >/dev/null
+        sed -e "s|PROJECT_DIR|$PROJECT_DIR|g" -e "s|USER_NAME|$USER|g" "$service_template" | sudo tee "$service_file" > /dev/null
 
         # Create timer file from template
         sudo cp "$timer_template" "$timer_file"
@@ -291,7 +291,7 @@ setup_cron_job() {
 
     local cron_job="0 3 * * * $PROJECT_DIR/scripts/renew-certificates.sh"
 
-    if crontab -l 2>/dev/null | grep -q "renew-certificates.sh"; then
+    if crontab -l 2> /dev/null | grep -q "renew-certificates.sh"; then
         log_warn "Certificate renewal cron job already exists"
         if ! prompt_user "Do you want to update it? (y/N)" "n" | grep -qi "^y"; then
             log_info "Skipping cron setup"
@@ -299,12 +299,12 @@ setup_cron_job() {
         fi
 
         # Remove existing job
-        crontab -l 2>/dev/null | grep -v "renew-certificates.sh" | crontab -
+        crontab -l 2> /dev/null | grep -v "renew-certificates.sh" | crontab -
     fi
 
     # Add new job
     (
-        crontab -l 2>/dev/null
+        crontab -l 2> /dev/null
         echo "$cron_job"
     ) | crontab -
 
@@ -417,7 +417,7 @@ main() {
 
 # Show usage if help requested
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-    cat <<EOF
+    cat << EOF
 Professional Prosody XMPP Server - Initial Setup Script
 
 USAGE:
@@ -426,7 +426,7 @@ USAGE:
 DESCRIPTION:
     Automates the complete setup process for a fresh repository clone.
     This script will guide you through:
-    
+
     1. Environment configuration (.env file)
     2. Cloudflare API credentials setup
     3. SSL certificate generation

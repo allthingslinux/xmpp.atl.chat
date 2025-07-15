@@ -65,11 +65,11 @@ check_dependencies() {
     local missing_deps=()
 
     # Check for required tools
-    if ! command -v docker >/dev/null 2>&1; then
+    if ! command -v docker > /dev/null 2>&1; then
         missing_deps+=("docker")
     fi
 
-    if ! command -v docker-compose >/dev/null 2>&1 && ! docker compose version >/dev/null 2>&1; then
+    if ! command -v docker-compose > /dev/null 2>&1 && ! docker compose version > /dev/null 2>&1; then
         missing_deps+=("docker-compose")
     fi
 
@@ -80,7 +80,7 @@ check_dependencies() {
     fi
 
     # Check if Docker is running
-    if ! docker info >/dev/null 2>&1; then
+    if ! docker info > /dev/null 2>&1; then
         log_error "Docker is not running. Please start Docker and try again."
         exit 1
     fi
@@ -130,7 +130,7 @@ setup_dev_tools() {
     log_step "Setting up development tools..."
 
     # Create nginx configuration for web client
-    cat >"$DEV_TOOLS_DIR/nginx-webclient.conf" <<'EOF'
+    cat > "$DEV_TOOLS_DIR/nginx-webclient.conf" << 'EOF'
 server {
     listen 80;
     server_name localhost;
@@ -147,11 +147,11 @@ server {
         add_header Access-Control-Allow-Origin "*";
         add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
         add_header Access-Control-Allow-Headers "Content-Type, Authorization";
-        
+
         if ($request_method = 'OPTIONS') {
             return 204;
         }
-        
+
         proxy_pass http://xmpp-prosody-dev:5280;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -170,7 +170,7 @@ server {
 EOF
 
     # Create simple web client for testing
-    cat >"$DEV_TOOLS_DIR/webclient/index.html" <<'EOF'
+    cat > "$DEV_TOOLS_DIR/webclient/index.html" << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -274,7 +274,7 @@ EOF
                 BOSH: http://localhost:5280/http-bind
             </div>
             <div class="status warning">
-                <strong>Note:</strong> Self-signed certificates are used in development. 
+                <strong>Note:</strong> Self-signed certificates are used in development.
                 Your XMPP client may show certificate warnings - this is expected.
             </div>
         </div>
@@ -296,7 +296,7 @@ EOF
             <div class="code">
                 # Create admin user<br>
                 docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev prosodyctl adduser admin@localhost<br><br>
-                
+
                 # Create test users<br>
                 docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev prosodyctl adduser alice@localhost<br>
                 docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev prosodyctl adduser bob@localhost
@@ -327,7 +327,7 @@ EOF
         </div>
 
         <div class="status success">
-            <strong>Development Environment Ready!</strong> 
+            <strong>Development Environment Ready!</strong>
             Your XMPP server is running with all features enabled for testing.
         </div>
     </div>
@@ -340,14 +340,14 @@ EOF
                 { name: 'Database Admin', url: 'http://localhost:8080' },
                 { name: 'Log Viewer', url: 'http://localhost:8082' }
             ];
-            
+
             // This would need CORS to work properly, but gives users the idea
             console.log('Development services should be available at:');
             services.forEach(service => {
                 console.log(`- ${service.name}: ${service.url}`);
             });
         }
-        
+
         // Check services when page loads
         document.addEventListener('DOMContentLoaded', checkServices);
     </script>
@@ -362,7 +362,7 @@ setup_static_files() {
     log_step "Setting up static file serving..."
 
     # Create a simple index page for static file serving
-    cat >"$PROJECT_DIR/static-files/index.html" <<'EOF'
+    cat > "$PROJECT_DIR/static-files/index.html" << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -386,14 +386,14 @@ setup_static_files() {
     <div class="logo">💬</div>
     <h1>XMPP Development Server</h1>
     <p>Professional Prosody XMPP Server running in development mode</p>
-    
+
     <div class="info">
         <h3>Connect with:</h3>
         <p><strong>Server:</strong> localhost</p>
         <p><strong>Domain:</strong> localhost</p>
         <p><strong>Ports:</strong> 5222 (STARTTLS), 5223 (Direct TLS)</p>
     </div>
-    
+
     <p><a href="http://localhost:8081">→ Development Tools</a></p>
 </body>
 </html>
@@ -406,7 +406,7 @@ cleanup_previous() {
     log_step "Cleaning up previous development environment..."
 
     # Stop and remove previous development containers
-    if docker compose -f "$DEV_COMPOSE_FILE" ps -q >/dev/null 2>&1; then
+    if docker compose -f "$DEV_COMPOSE_FILE" ps -q > /dev/null 2>&1; then
         log_info "Stopping existing development containers..."
         docker compose -f "$DEV_COMPOSE_FILE" down
     fi
@@ -414,7 +414,7 @@ cleanup_previous() {
     # Optionally remove development volumes
     if prompt_user "Do you want to remove development data volumes? (y/N)" "n" | grep -qi "^y"; then
         log_info "Removing development volumes..."
-        docker volume rm -f xmpp_prosody_data_dev xmpp_prosody_uploads_dev xmpp_postgres_data_dev xmpp_coturn_data_dev xmpp_certs_dev 2>/dev/null || true
+        docker volume rm -f xmpp_prosody_data_dev xmpp_prosody_uploads_dev xmpp_postgres_data_dev xmpp_coturn_data_dev xmpp_certs_dev 2> /dev/null || true
         log_info "Development volumes removed ✓"
     else
         log_info "Keeping existing development volumes"
@@ -456,7 +456,7 @@ create_test_users() {
 
     # Create admin user
     log_info "Creating admin user..."
-    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser admin@localhost <<<"admin123"; then
+    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser admin@localhost <<< "admin123"; then
         log_info "Admin user created: admin@localhost (password: admin123) ✓"
     else
         log_warn "Failed to create admin user (may already exist)"
@@ -464,13 +464,13 @@ create_test_users() {
 
     # Create test users
     log_info "Creating test users..."
-    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser alice@localhost <<<"alice123"; then
+    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser alice@localhost <<< "alice123"; then
         log_info "Test user created: alice@localhost (password: alice123) ✓"
     else
         log_warn "Failed to create alice user (may already exist)"
     fi
 
-    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser bob@localhost <<<"bob123"; then
+    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser bob@localhost <<< "bob123"; then
         log_info "Test user created: bob@localhost (password: bob123) ✓"
     else
         log_warn "Failed to create bob user (may already exist)"
