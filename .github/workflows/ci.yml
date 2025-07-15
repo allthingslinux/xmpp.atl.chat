@@ -437,18 +437,8 @@ jobs:
       - name: Run markdownlint
         uses: DavidAnson/markdownlint-cli2-action@v20
         with:
-          config: |
-            {
-              "line-length": {
-                "line_length": 120,
-                "code_blocks": false,
-                "tables": false
-              },
-              "no-duplicate-heading": false,
-              "no-inline-html": {
-                "allowed_elements": ["br", "img", "details", "summary"]
-              }
-            }
+          config: .markdownlint.yml
+          fix: true
           globs: '**/*.md'
 
   dockerfile-lint:
@@ -463,11 +453,7 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-          config: |
-            ignored:
-              - DL3008  # Pin versions in apt get install (we use specific package versions)
-              - DL3009  # Delete apt cache (we do clean up)
-              - SC2086  # Double quote to prevent globbing (shellcheck overlap)
+          config: .hadolint.yaml
 
   sql-lint:
     name: SQL Linting

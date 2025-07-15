@@ -1,0 +1,4 @@
+ignored:
+  - DL3008 # Pin versions in apt get install (we use specific package versions)
+  - DL3009 # Delete apt cache (we do clean up)
+  - SC2086 # Double quote to prevent globbing (shellcheck overlap)
