@@ -105,7 +105,7 @@ services:
 
     volumes:
       - xmpp_postgres_data_dev:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./core/database/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
 
     # Development PostgreSQL settings (lighter)
     command: >
@@ -223,37 +223,37 @@ services:
   # DEVELOPMENT TOOLS
   # ============================================================================
   
-  # XMPP Testing Client (Converse.js for web-based testing)
-  xmpp-webclient-dev:
-    image: nginx:alpine
-    container_name: xmpp-webclient-dev
-    hostname: xmpp-webclient-dev
-    restart: unless-stopped
-    ports:
-      - '8081:80'
-    volumes:
-      - ./dev-tools/webclient:/usr/share/nginx/html:ro
-      - ./dev-tools/nginx-webclient.conf:/etc/nginx/conf.d/default.conf:ro
-    networks:
-      - xmpp_network_dev
-    depends_on:
-      - xmpp-prosody-dev
+  # # XMPP Testing Client (Converse.js for web-based testing)
+  # xmpp-webclient-dev:
+  #   image: nginx:alpine
+  #   container_name: xmpp-webclient-dev
+  #   hostname: xmpp-webclient-dev
+  #   restart: unless-stopped
+  #   ports:
+  #     - '8081:80'
+  #   volumes:
+  #     - ./dev-tools/webclient:/usr/share/nginx/html:ro
+  #     - ./dev-tools/nginx-webclient.conf:/etc/nginx/conf.d/default.conf:ro
+  #   networks:
+  #     - xmpp_network_dev
+  #   depends_on:
+  #     - xmpp-prosody-dev
 
-  # Log viewer for development
-  xmpp-logs-dev:
-    image: amir20/dozzle:latest
-    container_name: xmpp-logs-dev
-    hostname: xmpp-logs-dev
-    restart: unless-stopped
-    ports:
-      - '8082:8080'
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - DOZZLE_FILTER=name=xmpp-*-dev
-      - DOZZLE_NO_ANALYTICS=true
-    networks:
-      - xmpp_network_dev
+  # # Log viewer for development
+  # xmpp-logs-dev:
+  #   image: amir20/dozzle:latest
+  #   container_name: xmpp-logs-dev
+  #   hostname: xmpp-logs-dev
+  #   restart: unless-stopped
+  #   ports:
+  #     - '8082:8080'
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   environment:
+  #     - DOZZLE_FILTER=name=xmpp-*-dev
+  #     - DOZZLE_NO_ANALYTICS=true
+  #   networks:
+  #     - xmpp_network_dev
 
 # ============================================================================
 # DEVELOPMENT VOLUMES

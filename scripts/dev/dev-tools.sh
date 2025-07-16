@@ -10,7 +10,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$SCRIPT_DIR/../.."
 readonly PROJECT_DIR
 readonly DEV_COMPOSE_FILE="$PROJECT_DIR/docker-compose.dev.yml"
 

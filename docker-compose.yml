@@ -125,7 +125,7 @@ services:
 
     volumes:
       - xmpp_postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./core/database/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
 
     # Production PostgreSQL optimization
     command: >
