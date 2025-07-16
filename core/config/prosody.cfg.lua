@@ -176,9 +176,9 @@ storage = {
 archive_expires_after = Lua.os.getenv("PROSODY_ARCHIVE_EXPIRES_AFTER") or "1y"
 
 -- Archive policy: who gets messages archived by default
--- "false" = no archiving, "roster" = contacts only, "true" = all messages
--- Default: "true", but "roster" is more privacy-friendly
-default_archive_policy = Lua.os.getenv("PROSODY_ARCHIVE_POLICY") or "roster"
+-- false = no archiving, true = all messages, "roster" = contacts only, "always" = all messages, "never" = no archiving
+-- Default: "always", but "roster" is more privacy-friendly
+default_archive_policy = Lua.os.getenv("PROSODY_ARCHIVE_POLICY") or "always"
 
 -- Maximum messages returned per query (pagination)
 -- Too low = many queries, too high = resource intensive
@@ -502,12 +502,12 @@ modules_enabled = {
 	-- ===============================================
 	-- PUSH NOTIFICATIONS
 	-- ===============================================
-	"cloud_notify", -- XEP-0357: Push Notifications (community module from prosody-modules)
+	-- Note: cloud_notify is built-in to modern Prosody, no need to load community version
 
 	-- ===============================================
 	-- MULTI-USER CHAT (MUC)
 	-- ===============================================
-	"muc_mam", -- XEP-0313: Message Archive Management for MUC
+	-- Note: mod_muc_mam is loaded on MUC component, not main VirtualHost
 
 	-- ===============================================
 	-- FILE TRANSFER AND MEDIA

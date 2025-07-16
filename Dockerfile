@@ -98,12 +98,9 @@ RUN buildDeps='gcc git libc6-dev libidn2-dev liblua5.4-dev libsqlite3-dev libssl
     luarocks install luadbi-sqlite3 || echo "luadbi-sqlite3 installation failed, continuing..." && \
     luarocks install luadbi-postgresql || echo "luadbi-postgresql installation failed, continuing..." && \
     luarocks install stringy || echo "stringy installation failed, continuing..." && \
-    \
-    mkdir -p /usr/local/lib/prosody/modules/lib/luarocks/rocks-5.4 && \
-    mkdir -p /usr/local/lib/prosody/modules/lib/luarocks/rocks && \
-    echo "repository = {}" > /usr/local/lib/prosody/modules/lib/luarocks/rocks-5.4/manifest && \
-    echo "repository = {}" > /usr/local/lib/prosody/modules/lib/luarocks/rocks/manifest && \
-    \
+    # Fix LuaRocks manifest path issue - create proper manifest structure
+    # mkdir -p /usr/local/lib/prosody/modules/lib/luarocks/rocks-5.4 && \
+    # echo 'return { repository = {} }' > /usr/local/lib/prosody/modules/lib/luarocks/rocks-5.4/manifest && \
     apt-get purge -y --auto-remove $buildDeps
 
 # Install community modules from prosody-modules repository
@@ -166,8 +163,8 @@ ENV __FLUSH_LOG=yes \
     PROSODY_LOG_LEVEL=info \
     PROSODY_STORAGE=sql \
     PROSODY_DB_DRIVER=PostgreSQL \
-    LUA_PATH="/usr/local/lib/prosody/?.lua;/usr/local/lib/prosody/?/init.lua;;" \
-    LUA_CPATH="/usr/local/lib/prosody/?.so;;"
+    LUA_PATH="/usr/lib/prosody/?.lua;/usr/lib/prosody/?/init.lua;/usr/local/lib/prosody/?.lua;/usr/local/lib/prosody/?/init.lua;;" \
+    LUA_CPATH="/usr/lib/prosody/?.so;/usr/local/lib/prosody/?.so;;"
 
 # Performance tuning
 ENV LUA_GC_STEP=13 \

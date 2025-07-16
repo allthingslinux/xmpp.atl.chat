@@ -25,7 +25,7 @@ services:
       - PROSODY_DB_HOST=xmpp-postgres-dev
       - PROSODY_DB_PORT=5432
       # Development-specific settings
-      - PROSODY_LOG_LEVEL=debug
+      - PROSODY_LOG_LEVEL=info
       - PROSODY_ALLOW_REGISTRATION=true
       - PROSODY_DEVELOPMENT_MODE=true
 
