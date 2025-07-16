@@ -99,6 +99,11 @@ RUN buildDeps='gcc git libc6-dev libidn2-dev liblua5.4-dev libsqlite3-dev libssl
     luarocks install luadbi-postgresql || echo "luadbi-postgresql installation failed, continuing..." && \
     luarocks install stringy || echo "stringy installation failed, continuing..." && \
     \
+    mkdir -p /usr/local/lib/prosody/modules/lib/luarocks/rocks-5.4 && \
+    mkdir -p /usr/local/lib/prosody/modules/lib/luarocks/rocks && \
+    echo "repository = {}" > /usr/local/lib/prosody/modules/lib/luarocks/rocks-5.4/manifest && \
+    echo "repository = {}" > /usr/local/lib/prosody/modules/lib/luarocks/rocks/manifest && \
+    \
     apt-get purge -y --auto-remove $buildDeps
 
 # Install community modules from prosody-modules repository

@@ -181,14 +181,9 @@ services:
         --static-auth-secret=$${TURN_SECRET:-devsecret}
         --mobility
         --no-cli
-        --no-tlsv1
-        --no-tlsv1_1
         --cipher-list=ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS
-        --no-sslv2
-        --no-sslv3
         --log-file=stdout
         --simple-log
-        --verbose
     
     networks:
       - xmpp_network_dev
@@ -218,6 +213,7 @@ services:
         condition: service_healthy
     networks:
       - xmpp_network_dev
+    command: ["sh", "-c", "php -S 0.0.0.0:8080 -t /var/www/html"]
 
   # ============================================================================
   # DEVELOPMENT TOOLS

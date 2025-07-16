@@ -545,7 +545,7 @@ modules_enabled = {
 
 	-- Administrative Tools
 	"admin_blocklist", -- Administrative blocklist management (https://modules.prosody.im/mod_admin_blocklist.html)
-	"server_contact_info", -- XEP-0157: Contact Addresses for XMPP Services (https://modules.prosody.im/mod_server_contact_info.html)
+	-- "server_contact_info", -- XEP-0157: Contact Addresses for XMPP Services - DISABLED: conflicts with built-in server_info
 	"invites", -- User invitation system (https://modules.prosody.im/mod_invites.html)
 
 	-- Mobile and Client Optimizations
