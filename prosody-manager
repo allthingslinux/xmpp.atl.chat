@@ -58,11 +58,11 @@ log_debug() {
 # ============================================================================
 
 command_exists() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" > /dev/null 2>&1
 }
 
 is_docker_environment() {
-    [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2>/dev/null
+    [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2> /dev/null
 }
 
 get_container_name() {
@@ -247,7 +247,7 @@ health_check() {
 check_process() {
     log_info "Checking Prosody process..."
 
-    if run_in_container prosodyctl status >/dev/null 2>&1; then
+    if run_in_container prosodyctl status > /dev/null 2>&1; then
         log_success "Prosody is running"
         return 0
     else
@@ -277,7 +277,7 @@ check_ports() {
 check_config() {
     log_info "Checking configuration..."
 
-    if run_in_container prosodyctl check config >/dev/null 2>&1; then
+    if run_in_container prosodyctl check config > /dev/null 2>&1; then
         log_success "Configuration is valid"
         return 0
     else
@@ -303,7 +303,7 @@ check_certificates_health() {
 
     # Check certificate expiry
     local expiry_date
-    if expiry_date=$(run_in_container openssl x509 -in "/etc/prosody/certs/$domain.crt" -noout -enddate 2>/dev/null | cut -d= -f2); then
+    if expiry_date=$(run_in_container openssl x509 -in "/etc/prosody/certs/$domain.crt" -noout -enddate 2> /dev/null | cut -d= -f2); then
         local expiry_epoch
         expiry_epoch=$(date -d "$expiry_date" +%s)
         local current_epoch
@@ -397,7 +397,7 @@ check_certificates_detailed() {
 
     # Check certificate chain
     log_info "Verifying certificate chain..."
-    if run_in_container openssl verify "$cert_file" >/dev/null 2>&1; then
+    if run_in_container openssl verify "$cert_file" > /dev/null 2>&1; then
         log_success "Certificate chain is valid"
     else
         log_warn "Certificate chain verification failed (may be self-signed)"
@@ -519,7 +519,7 @@ create_backup() {
         # Backup database (if PostgreSQL)
         if docker ps --format '{{.Names}}' | grep -q "db"; then
             log_info "Backing up PostgreSQL database..."
-            docker exec xmpp-postgres pg_dump -U prosody prosody >"$backup_path/database.sql"
+            docker exec xmpp-postgres pg_dump -U prosody prosody > "$backup_path/database.sql"
         fi
     fi
 
@@ -603,7 +603,7 @@ restore_backup() {
         # Restore database
         if [[ -f "$backup_path/database.sql" ]]; then
             log_info "Restoring database..."
-            docker exec -i xmpp-postgres psql -U prosody prosody <"$backup_path/database.sql"
+            docker exec -i xmpp-postgres psql -U prosody prosody < "$backup_path/database.sql"
         fi
     fi
 
@@ -628,7 +628,7 @@ list_backups() {
 
     log_info "Available backups in $backup_dir:"
 
-    if find "$backup_dir" -name "*.tar.gz" -type f | head -1 >/dev/null 2>&1; then
+    if find "$backup_dir" -name "*.tar.gz" -type f | head -1 > /dev/null 2>&1; then
         find "$backup_dir" -name "*.tar.gz" -type f -exec ls -lah {} \; | while read -r line; do
             echo "  $line"
         done
@@ -680,7 +680,7 @@ deploy_up() {
         return 1
     fi
 
-    if ! docker compose version >/dev/null 2>&1; then
+    if ! docker compose version > /dev/null 2>&1; then
         log_error "Docker Compose is required but not installed"
         return 1
     fi
@@ -715,7 +715,7 @@ deploy_up() {
     sleep 10
 
     # Run health check
-    if health_check >/dev/null 2>&1; then
+    if health_check > /dev/null 2>&1; then
         log_success "Deployment successful! Services are healthy."
     else
         log_warn "Deployment completed but some health checks failed."
@@ -767,7 +767,7 @@ deploy_status() {
 # MODULE MANAGEMENT FUNCTIONS
 # ============================================================================
 
-readonly MODULES_DIR="/usr/local/lib/prosody/modules"
+readonly MODULES_DIR="/usr/local/lib/prosody/community-modules"
 readonly MODULES_REPO="https://hg.prosody.im/prosody-modules/"
 readonly TEMP_MODULES_DIR="$PROJECT_DIR/.prosody-modules"
 # Change: export ROCKS_SERVER if used externally, otherwise remove if unused
@@ -844,8 +844,8 @@ module_list() {
     # List LuaRocks installed modules (via prosodyctl install)
     echo -e "${BOLD}Official Modules (via LuaRocks):${NC}"
     if command_exists prosodyctl; then
-        if run_in_container prosodyctl list 2>/dev/null | grep -q "mod_"; then
-            run_in_container prosodyctl list 2>/dev/null | grep "mod_" | while read -r line; do
+        if run_in_container prosodyctl list 2> /dev/null | grep -q "mod_"; then
+            run_in_container prosodyctl list 2> /dev/null | grep "mod_" | while read -r line; do
                 if [[ -z "$filter" || "$line" == *"$filter"* ]]; then
                     echo -e "  ${GREEN}✓${NC} $line ${BLUE}(official)${NC}"
                 fi
@@ -873,8 +873,8 @@ module_search() {
     # Search official LuaRocks repository
     echo -e "${BOLD}Official Repository (LuaRocks):${NC}"
     if command_exists luarocks; then
-        if run_in_container luarocks search --porcelain "$query" 2>/dev/null | grep -q "mod_"; then
-            run_in_container luarocks search --porcelain "$query" 2>/dev/null | grep "mod_" | while read -r name version; do
+        if run_in_container luarocks search --porcelain "$query" 2> /dev/null | grep -q "mod_"; then
+            run_in_container luarocks search --porcelain "$query" 2> /dev/null | grep "mod_" | while read -r name version; do
                 echo -e "  ${BLUE}$name${NC} ${CYAN}($version)${NC} - Install with: ${GREEN}prosody-manager module rocks install $name${NC}"
             done
         else
@@ -892,10 +892,10 @@ module_search() {
     # Clone or update the modules repository
     if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
         log_info "Downloading modules repository..."
-        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" > /dev/null 2>&1
     else
         log_info "Updating modules repository..."
-        (cd "$TEMP_MODULES_DIR" && hg pull -u >/dev/null 2>&1)
+        (cd "$TEMP_MODULES_DIR" && hg pull -u > /dev/null 2>&1)
     fi
 
     local count=0
@@ -964,7 +964,7 @@ module_install() {
     # Clone or update the modules repository
     if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
         log_info "Downloading modules repository..."
-        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" > /dev/null 2>&1
     fi
 
     local source_dir="$TEMP_MODULES_DIR/$module_name"
@@ -980,7 +980,7 @@ module_install() {
     # Copy module files
     if is_docker_environment; then
         cp -r "$source_dir" "$MODULES_DIR/"
-        chown -R prosody:prosody "$MODULES_DIR/$module_name" 2>/dev/null || true
+        chown -R prosody:prosody "$MODULES_DIR/$module_name" 2> /dev/null || true
     else
         docker cp "$source_dir" "$(get_container_name):$MODULES_DIR/"
         run_in_container chown -R prosody:prosody "$MODULES_DIR/$module_name"
@@ -1124,8 +1124,8 @@ module_update() {
 
         # Update official modules
         echo -e "${BOLD}Updating official modules:${NC}"
-        if run_in_container prosodyctl list --outdated 2>/dev/null | grep -q "mod_"; then
-            run_in_container prosodyctl list --outdated 2>/dev/null | grep "mod_" | while read -r module_info; do
+        if run_in_container prosodyctl list --outdated 2> /dev/null | grep -q "mod_"; then
+            run_in_container prosodyctl list --outdated 2> /dev/null | grep "mod_" | while read -r module_info; do
                 local module_name
                 module_name=$(echo "$module_info" | awk '{print $1}')
                 log_info "Updating official module: $module_name"
@@ -1169,7 +1169,7 @@ module_info() {
     fi
 
     # Check if installed as official module
-    if run_in_container prosodyctl list 2>/dev/null | grep -q "$module_name"; then
+    if run_in_container prosodyctl list 2> /dev/null | grep -q "$module_name"; then
         echo -e "  ${BLUE}Official Status:${NC} Installed via LuaRocks"
     else
         echo -e "  ${YELLOW}Official Status:${NC} Not installed"
@@ -1177,7 +1177,7 @@ module_info() {
 
     # Get info from community repository
     if [[ ! -d "$TEMP_MODULES_DIR" ]]; then
-        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+        hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" > /dev/null 2>&1
     fi
 
     local repo_path="$TEMP_MODULES_DIR/$module_name"
@@ -1195,7 +1195,7 @@ module_info() {
     fi
 
     # Check if available in official repository
-    if run_in_container luarocks search --porcelain "$module_name" 2>/dev/null | grep -q "$module_name"; then
+    if run_in_container luarocks search --porcelain "$module_name" 2> /dev/null | grep -q "$module_name"; then
         echo -e "  ${BLUE}Official Available:${NC} Yes (via LuaRocks)"
         echo -e "  ${BLUE}Install Command:${NC} prosody-manager module rocks install $module_name"
     else
@@ -1210,12 +1210,12 @@ module_sync() {
         rm -rf "$TEMP_MODULES_DIR"
     fi
 
-    hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" >/dev/null 2>&1
+    hg clone "$MODULES_REPO" "$TEMP_MODULES_DIR" > /dev/null 2>&1
     log_success "Community modules repository synchronized"
 
     # Also update LuaRocks cache
     log_info "Updating LuaRocks cache..."
-    run_in_container luarocks list --outdated >/dev/null 2>&1 || true
+    run_in_container luarocks list --outdated > /dev/null 2>&1 || true
     log_success "LuaRocks cache updated"
 }
 

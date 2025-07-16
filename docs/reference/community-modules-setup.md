@@ -86,7 +86,7 @@ RUN echo "Installing community modules..." && \
     cd /tmp && \
     hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     # Install essential modules automatically
-    cp -r prosody-modules/mod_cloud_notify /usr/local/lib/prosody/modules/ && \
+    cp -r prosody-modules/mod_cloud_notify /usr/local/lib/prosody/community-modules/ && \
     # ... (10+ modules installed automatically)
 ```
 
@@ -172,7 +172,7 @@ modules_enabled = {
 
 ```bash
 # List all community modules
-docker exec -it xmpp-prosody-dev ls -la /usr/local/lib/prosody/modules/ | grep mod_
+docker exec -it xmpp-prosody-dev ls -la /usr/local/lib/prosody/community-modules/ | grep mod_
 
 # Verify module installation
 ./prosody-manager module list
@@ -247,3 +247,13 @@ This automated system provides:
 ---
 
 **🎉 Result**: You now have a fully automated community module system that requires no manual copying or pasting of modules!
+
+## Installing Community Modules (Best Practice)
+
+Instead of copying the entire prosody-modules repository, use the provided script to install only the modules you need (and their dependencies):
+
+```sh
+/scripts/setup/install-community-modules.sh anti_spam firewall muc_notifications
+```
+
+This approach avoids manifest errors and keeps your image clean.

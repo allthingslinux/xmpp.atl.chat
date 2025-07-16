@@ -261,8 +261,9 @@ setup_community_modules() {
             log_info "Installing community module: $module"
 
             if [[ -d "$modules_repo/$module" ]]; then
-                cp -r "$modules_repo/$module" "/usr/local/lib/prosody/modules/"
-                chown -R prosody:prosody "/usr/local/lib/prosody/modules/$module"
+                mkdir -p "/usr/local/lib/prosody/community-modules/"
+                cp -r "$modules_repo/$module" "/usr/local/lib/prosody/community-modules/"
+                chown -R prosody:prosody "/usr/local/lib/prosody/community-modules/$module"
                 log_info "Successfully installed: $module"
             else
                 log_warn "Module not found in repository: $module"
@@ -274,9 +275,7 @@ setup_community_modules() {
     fi
 
     # Ensure proper ownership of all modules
-    chown -R prosody:prosody /usr/local/lib/prosody/modules/
-
-    log_info "Community modules setup complete"
+    chown -R prosody:prosody /usr/local/lib/prosody/community-modules 2> /dev/null || true
 }
 
 # ============================================================================
