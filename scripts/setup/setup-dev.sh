@@ -10,11 +10,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 readonly PROJECT_DIR
 readonly ENV_DEV_FILE="$PROJECT_DIR/.env.dev"
 readonly DEV_COMPOSE_FILE="$PROJECT_DIR/docker-compose.dev.yml"
-readonly DEV_TOOLS_DIR="$PROJECT_DIR/dev-tools"
 readonly DEV_LOGS_DIR="$PROJECT_DIR/logs/dev"
 
 # Colors for output
@@ -104,7 +103,7 @@ setup_environment() {
     fi
 
     # Copy development environment template
-    cp "$PROJECT_DIR/examples/env.dev.example" "$ENV_DEV_FILE"
+    cp "$PROJECT_DIR/templates/env/env.dev.example" "$ENV_DEV_FILE"
 
     log_info "Development environment configuration created at $ENV_DEV_FILE ✓"
     log_info "You can customize the settings in $ENV_DEV_FILE if needed"
@@ -115,12 +114,12 @@ setup_directories() {
 
     # Create development-specific directories
     mkdir -p "$DEV_LOGS_DIR"
-    mkdir -p "$DEV_TOOLS_DIR/webclient"
+    mkdir -p "$PROJECT_DIR/web/webclient"
     mkdir -p "$PROJECT_DIR/static-files"
 
     # Set proper permissions
     chmod 755 "$DEV_LOGS_DIR"
-    chmod 755 "$DEV_TOOLS_DIR"
+    chmod 755 "$PROJECT_DIR/web/webclient"
     chmod 755 "$PROJECT_DIR/static-files"
 
     log_info "Development directories created ✓"
@@ -130,7 +129,7 @@ setup_dev_tools() {
     log_step "Setting up development tools..."
 
     # Create nginx configuration for web client
-    cat > "$DEV_TOOLS_DIR/nginx-webclient.conf" << 'EOF'
+    cat > "$PROJECT_DIR/web/webclient/nginx-webclient.conf" << 'EOF'
 server {
     listen 80;
     server_name localhost;
@@ -170,7 +169,7 @@ server {
 EOF
 
     # Create simple web client for testing
-    cat > "$DEV_TOOLS_DIR/webclient/index.html" << 'EOF'
+    cat > "$PROJECT_DIR/web/webclient/index.html" << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -456,7 +455,7 @@ create_test_users() {
 
     # Create admin user
     log_info "Creating admin user..."
-    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser admin@localhost <<< "admin123"; then
+    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl register admin localhost admin123; then
         log_info "Admin user created: admin@localhost (password: admin123) ✓"
     else
         log_warn "Failed to create admin user (may already exist)"
@@ -464,13 +463,13 @@ create_test_users() {
 
     # Create test users
     log_info "Creating test users..."
-    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser alice@localhost <<< "alice123"; then
+    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl register alice localhost alice123; then
         log_info "Test user created: alice@localhost (password: alice123) ✓"
     else
         log_warn "Failed to create alice user (may already exist)"
     fi
 
-    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl adduser bob@localhost <<< "bob123"; then
+    if docker compose -f "$DEV_COMPOSE_FILE" exec -T xmpp-prosody-dev prosodyctl register bob localhost bob123; then
         log_info "Test user created: bob@localhost (password: bob123) ✓"
     else
         log_warn "Failed to create bob user (may already exist)"
