@@ -19,11 +19,14 @@ Comprehensive Prosody XMPP server setup with both production and development con
 git clone https://github.com/allthingslinux/xmpp.atl.chat /opt/xmpp.atl.chat
 cd /opt/xmpp.atl.chat
 
-# Run setup script
-./scripts/setup.sh
+# Run setup with unified CLI
+./prosody-manager setup
 ```
 
-The setup script will:
+> **📢 New Unified CLI Available!**  
+> We've consolidated all scripts into a single `prosody-manager` CLI tool with better error handling, interactive modes, and integrated help. See the [Migration Guide](docs/migration-guide.md) for details.
+
+The setup process will:
 
 - Check dependencies (Docker, Docker Compose, OpenSSL)
 - Configure environment variables (.env file)
@@ -39,7 +42,9 @@ The setup script will:
 # Clone and setup development environment
 git clone https://github.com/allthingslinux/xmpp.atl.chat
 cd xmpp.atl.chat
-./scripts/setup-dev.sh
+
+# Use unified CLI
+./prosody-manager setup --dev
 ```
 
 Development environment includes:
@@ -64,7 +69,7 @@ cp examples/cloudflare-credentials.ini.example cloudflare-credentials.ini
 docker compose --profile letsencrypt run --rm xmpp-certbot
 
 # Set up certificate renewal
-(crontab -l 2>/dev/null; echo "0 3 * * * /opt/xmpp.atl.chat/scripts/renew-certificates.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * cd /opt/xmpp.atl.chat && ./prosody-manager cert renew your-domain.com") | crontab -
 
 # Deploy server
 docker compose up -d xmpp-prosody xmpp-postgres
@@ -175,22 +180,22 @@ docker compose -f docker-compose.dev.yml up -d
 
 ```bash
 # Show environment status
-./scripts/dev-tools.sh status
+./prosody-manager dev status
 
 # Test all connectivity
-./scripts/dev-tools.sh test
+./prosody-manager dev test
 
 # Create more users
-./scripts/dev-tools.sh adduser newuser password123
+./prosody-manager dev adduser newuser password123
 
 # View logs
-./scripts/dev-tools.sh logs
+./prosody-manager dev logs
 
 # Show all URLs
-./scripts/dev-tools.sh urls
+./prosody-manager dev urls
 
 # Complete cleanup (removes all data)
-./scripts/dev-tools.sh cleanup
+./prosody-manager dev cleanup
 ```
 
 ## XEP Compliance
@@ -310,11 +315,10 @@ xmpp.atl.chat/
 │   ├── registration/       # User registration components
 │   ├── webclient/          # Web-based XMPP client
 │   └── assets/             # Static web assets
-├── scripts/                # Automation and management scripts
-│   ├── setup/              # Initial setup and deployment
-│   ├── admin/              # Administrative utilities
-│   ├── dev/                # Development tools
-│   └── maintenance/        # Maintenance and backup scripts
+├── scripts/                # Essential system scripts
+│   ├── setup/              # Docker entrypoint and module installation
+│   ├── maintenance/        # Health check for Docker
+│   └── migrate-to-cli.sh   # Migration helper (temporary)
 ├── deployment/             # Production deployment configurations
 │   ├── reverse-proxy/      # nginx/Apache proxy configurations
 │   ├── systemd/            # systemd service configurations

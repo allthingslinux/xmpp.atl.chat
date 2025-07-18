@@ -12,3 +12,7 @@ certs/
 .env
 cloudflare-credentials.ini
 .env.dev
+
+.kiro/
+
+.runtime
