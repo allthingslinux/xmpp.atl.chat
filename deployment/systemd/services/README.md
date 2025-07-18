@@ -13,7 +13,7 @@ The certificate renewal service automatically renews Let's Encrypt certificates 
 
 ### Installation
 
-These templates are automatically installed by the setup script (`scripts/setup.sh`). The setup script will:
+These templates are automatically installed by the setup script (`prosody-manager setup`). The setup script will:
 
 1. Replace `PROJECT_DIR` with the actual project directory path
 2. Replace `USER_NAME` with the current user

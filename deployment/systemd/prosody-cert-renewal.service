@@ -1,0 +1,33 @@
+[Unit]
+Description=Prosody Certificate Auto-Renewal
+Documentation=https://github.com/your-org/prosody-xmpp-server
+After=docker.service
+Requires=docker.service
+PartOf=prosody-xmpp.service
+
+[Service]
+Type=oneshot
+User=prosody
+Group=prosody
+WorkingDirectory=/opt/prosody-xmpp-server
+ExecStart=/opt/prosody-xmpp-server/scripts/certificate-monitor.sh auto-renew
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=prosody-cert-renewal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/prosody-xmpp-server/.runtime
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

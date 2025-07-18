@@ -1,0 +1,15 @@
+[Unit]
+Description=Run Prosody Certificate Auto-Renewal
+Documentation=https://github.com/your-org/prosody-xmpp-server
+Requires=prosody-cert-renewal.service
+
+[Timer]
+# Run daily at 3 AM
+OnCalendar=daily
+# Randomize start time by up to 1 hour to avoid load spikes
+RandomizedDelaySec=3600
+# Ensure timer is persistent across reboots
+Persistent=true
+
+[Install]
+WantedBy=timers.target
