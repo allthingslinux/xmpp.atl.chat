@@ -3,22 +3,27 @@ FROM debian:bookworm-slim AS builder
 
 ARG LUAROCKS_VERSION=3.11.1
 
+# Set shell options for better error handling
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential gcc git libc6-dev libidn2-dev liblua5.4-dev libsqlite3-dev libssl-dev libicu-dev libmariadb-dev-compat libexpat1-dev libunbound-dev libevent-dev libreadline-dev make unzip \
     lua5.4 lua-bitop lua-dbi-mysql lua-dbi-postgresql lua-expat lua-filesystem lua-socket lua-sec lua-unbound \
     ca-certificates curl dumb-init gosu wget jq mercurial rsync && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Build Prosody
+WORKDIR /usr/src
 RUN set -x && \
-    PROSODY_VERSION=$(curl -s https://prosody.im/downloads/source/ | grep -o 'prosody-[0-9][0-9\.]*\.tar\.gz' | head -1 | sed 's/prosody-\(.*\)\.tar\.gz/\1/') && \
-    wget -O prosody.tar.gz "https://prosody.im/downloads/source/prosody-${PROSODY_VERSION}.tar.gz" && \
-    mkdir -p /usr/src/prosody && \
-    tar -xzf prosody.tar.gz -C /usr/src/prosody --strip-components=1 && \
-    rm prosody.tar.gz && \
-    cd /usr/src/prosody && \
-    ./configure \
+    PROSODY_VERSION="13.0.2" && \
+    curl -fsSL -o prosody.tar.gz "https://prosody.im/downloads/source/prosody-${PROSODY_VERSION}.tar.gz" && \
+    mkdir -p prosody && \
+    tar -xzf prosody.tar.gz -C prosody --strip-components=1 && \
+    rm prosody.tar.gz
+
+WORKDIR /usr/src/prosody
+RUN ./configure \
     --prefix=/usr/local \
     --sysconfdir=/etc/prosody \
     --datadir=/var/lib/prosody \
@@ -26,30 +31,32 @@ RUN set -x && \
     --runwith=lua5.4 \
     --no-example-certs && \
     make && \
-    make install && \
-    cd / && rm -r /usr/src/prosody
+    make install
 
 # Build LuaRocks
-RUN mkdir /usr/src/luarocks && \
-    cd /usr/src/luarocks && \
-    wget https://luarocks.org/releases/luarocks-${LUAROCKS_VERSION}.tar.gz && \
+WORKDIR /usr/src/luarocks
+RUN curl -fsSL -o luarocks-${LUAROCKS_VERSION}.tar.gz https://luarocks.org/releases/luarocks-${LUAROCKS_VERSION}.tar.gz && \
     tar zxpf luarocks-${LUAROCKS_VERSION}.tar.gz && \
-    cd luarocks-${LUAROCKS_VERSION} && \
-    ./configure --with-lua=/usr && \
-    make bootstrap && \
-    cd / && rm -r /usr/src/luarocks
+    rm luarocks-${LUAROCKS_VERSION}.tar.gz
+
+WORKDIR /usr/src/luarocks/luarocks-${LUAROCKS_VERSION}
+RUN ./configure --with-lua=/usr && \
+    make bootstrap
 
 # --- 2. Runtime stage: Minimal image ---
 FROM debian:bookworm-slim
 
+# Set shell options for better error handling
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Install runtime dependencies only
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     lua5.4 lua-bitop lua-dbi-mysql lua-dbi-postgresql lua-dbi-sqlite3 \
     lua-expat lua-filesystem lua-socket lua-sec lua-unbound \
     lua-readline lua-event lua-ldap \
     libicu72 libidn2-0 \
-    ca-certificates curl dumb-init gosu wget jq mercurial rsync && \
+    ca-certificates curl dumb-init gosu jq mercurial rsync && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy Prosody and LuaRocks from builder
@@ -60,8 +67,8 @@ COPY --from=builder /usr/bin/luarocks* /usr/bin/
 COPY scripts/setup/install-community-modules.sh /usr/local/bin/install-community-modules.sh
 RUN chmod +x /usr/local/bin/install-community-modules.sh
 
-RUN cd /tmp && \
-    hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
+WORKDIR /tmp
+RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     mkdir -p /usr/local/lib/prosody/community-modules && \
     /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info && \
     rm -rf /tmp/prosody-modules && \
