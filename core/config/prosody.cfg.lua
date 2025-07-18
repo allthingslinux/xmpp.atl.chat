@@ -35,12 +35,12 @@ component_ports = { 5347 } -- External components (XEP-0114: Jabber Component Pr
 http_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTP_PORT")) or 5280 } -- HTTP (BOSH, file upload, admin)
 https_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTPS_PORT")) or 5281 } -- HTTPS (secure services)
 
--- Interface bindings
-interfaces = { "*" }
-local_interfaces = { "127.0.0.1", "::1" }
+-- Interface bindings (IPv4 only)
+interfaces = { "0.0.0.0" }  -- IPv4 only, all interfaces
+local_interfaces = { "127.0.0.1" }  -- IPv4 localhost only
 
--- IPv6 support
-use_ipv6 = true
+-- IPv6 support (disabled)
+use_ipv6 = false
 
 -- Network timeouts (critical for WebSocket proxies)
 -- Proxy timeouts should be higher than this (900+ seconds)
@@ -177,7 +177,19 @@ archive_expires_after = Lua.os.getenv("PROSODY_ARCHIVE_EXPIRES_AFTER") or "1y"
 -- Archive policy: who gets messages archived by default
 -- false = no archiving, true = all messages, "roster" = contacts only, "always" = all messages, "never" = no archiving
 -- Default: "always", but "roster" is more privacy-friendly
-default_archive_policy = Lua.os.getenv("PROSODY_ARCHIVE_POLICY") or "always"
+-- Archive policy: false, true, "always", "roster", "never"
+local archive_policy_env = Lua.os.getenv("PROSODY_ARCHIVE_POLICY")
+if archive_policy_env == "false" then
+	default_archive_policy = false
+elseif archive_policy_env == "true" or archive_policy_env == "always" then
+	default_archive_policy = true
+elseif archive_policy_env == "roster" then
+	default_archive_policy = "roster"
+elseif archive_policy_env == "never" then
+	default_archive_policy = "never"
+else
+	default_archive_policy = true -- Default to true for development
+end
 
 -- Maximum messages returned per query (pagination)
 -- Too low = many queries, too high = resource intensive
@@ -318,9 +330,9 @@ smacks_config = {
 http_default_host = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
 http_external_url = "https://" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/"
 
--- Security interfaces (production best practice)
-http_interfaces = { "*", "::" } -- HTTP accessible from internet for Let's Encrypt
-https_interfaces = { "*", "::" } -- HTTPS on all interfaces
+-- Security interfaces (IPv4 only)
+http_interfaces = { "0.0.0.0" } -- HTTP accessible from all IPv4 interfaces
+https_interfaces = { "0.0.0.0" } -- HTTPS on all IPv4 interfaces
 
 -- HTTP static file serving configuration
 http_files = {}
@@ -331,13 +343,13 @@ if Lua.os.getenv("PROSODY_HTTP_FILES_DIR") then
 	http_files_dir = Lua.os.getenv("PROSODY_HTTP_FILES_DIR")
 	http_index_files = { "index.html", "index.htm" }
 	http_dir_listing = (Lua.os.getenv("PROSODY_HTTP_DIR_LISTING") == "true")
-	Lua.log("info", "HTTP static files enabled: %s", http_files_dir)
+	-- module:Lua.log("info", "HTTP static files enabled: %s", http_files_dir)
 end
 
 -- Trusted proxies for X-Forwarded-For headers (WebSocket/BOSH proxies)
 trusted_proxies = {
 	"127.0.0.1", -- Local host
-	"::1", -- Local host IPv6
+	-- "::1", -- Local host IPv6
 	-- Add your reverse proxy/load balancer IPs:
 	-- "192.168.1.0/24", -- Local network
 	-- "10.0.0.0/8", -- Private network
@@ -432,7 +444,7 @@ statistics_interval = Lua.os.getenv("PROSODY_STATISTICS_INTERVAL") or "manual"
 -- Access control for /metrics endpoint (security critical)
 openmetrics_allow_ips = {
 	"127.0.0.1", -- Local access
-	"::1", -- Local IPv6 access
+	-- "::1", -- Local IPv6 access
 }
 
 -- Optional: Allow specific IP addresses for monitoring
@@ -501,7 +513,7 @@ modules_enabled = {
 	-- ===============================================
 	-- PUSH NOTIFICATIONS
 	-- ===============================================
-	-- Note: cloud_notify is built-in to modern Prosody, no need to load community version
+	"cloud_notify", -- XEP-0357: Push Notifications (community module)
 
 	-- ===============================================
 	-- MULTI-USER CHAT (MUC)
@@ -591,6 +603,12 @@ ssl = {
 	key = "certs/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. ".key",
 	certificate = "certs/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. ".crt",
 }
+
+-- TURN external configuration (XEP-0215)
+turn_external_secret = Lua.os.getenv("TURN_SECRET") or "devsecret"
+turn_external_host = Lua.os.getenv("TURN_DOMAIN") or "localhost"  
+turn_external_port = Lua.tonumber(Lua.os.getenv("TURN_PORT")) or 3478
+turn_external_ttl = 86400 -- 24 hours
 
 -- ===============================================
 -- SERVICE DISCOVERY CONFIGURATION (XEP-0030)
@@ -890,6 +908,8 @@ compression = {
 -- EXTERNAL SERVICES (TURN/STUN)
 -- ===============================================
 
+
+
 external_services = {
 	-- Public STUN server (fallback)
 	{
@@ -965,5 +985,5 @@ account_cleanup = {
 Lua.log("info", "=== PROFESSIONAL PROSODY XMPP SERVER LOADED ===")
 Lua.log("info", "Domain: %s", Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
 Lua.log("info", "All modern XMPP features enabled - Production ready!")
--- log("info", "Modules loaded: %d", #modules_enabled) -- Temporarily disabled due to scope issue
+-- Lua.log("info", "Modules loaded: %d", #modules_enabled) -- Temporarily disabled due to scope issue
 Lua.log("info", "=== Configuration complete ===")
