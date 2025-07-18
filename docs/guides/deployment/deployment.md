@@ -19,7 +19,7 @@ git clone https://github.com/allthingslinux/xmpp.atl.chat /opt/xmpp.atl.chat
 cd /opt/xmpp.atl.chat
 
 # Run automated setup
-./scripts/setup/setup.sh
+./prosody-manager setup
 ```
 
 The setup script will guide you through:
@@ -272,7 +272,7 @@ docker compose logs xmpp-prosody > prosody.log
 
 ```bash
 # Cron job runs daily at 3 AM
-0 3 * * * /opt/xmpp.atl.chat/scripts/maintenance/renew-certificates.sh
+0 3 * * * cd /opt/xmpp.atl.chat && ./prosody-manager cert renew
 ```
 
 **Manual renewal:**

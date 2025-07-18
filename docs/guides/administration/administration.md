@@ -77,7 +77,7 @@ dig SRV _xmpp-server._tcp.your-domain.com
 ```bash
 git clone https://github.com/allthingslinux/xmpp.atl.chat.git
 cd xmpp.atl.chat
-./scripts/setup/setup.sh
+./prosody-manager setup
 ```
 
 **2. Configure Environment:**

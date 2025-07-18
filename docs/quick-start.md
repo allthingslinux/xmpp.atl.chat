@@ -16,7 +16,7 @@ Get your XMPP server running in minutes with our unified configuration approach 
 ```bash
 git clone https://github.com/allthingslinux/xmpp.atl.chat.git
 cd xmpp.atl.chat
-./scripts/setup/setup.sh
+./prosody-manager setup
 ```
 
 ### 2. Configure Environment

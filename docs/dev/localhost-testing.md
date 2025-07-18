@@ -16,7 +16,7 @@ Complete guide for setting up and using the Professional Prosody XMPP Server dev
 # Clone and setup development environment
 git clone https://github.com/allthingslinux/xmpp.atl.chat
 cd xmpp.atl.chat
-./scripts/setup-dev.sh
+./prosody-manager setup --dev
 ```
 
 **That's it!** The script will:
@@ -108,20 +108,20 @@ Use the development tools script for common tasks:
 
 ```bash
 # Show environment status
-./scripts/dev-tools.sh status
+./prosody-manager dev status
 
 # Test all connectivity
-./scripts/dev-tools.sh test
+./prosody-manager dev test
 
 # Create test users
-./scripts/dev-tools.sh adduser alice alice123
-./scripts/dev-tools.sh adduser bob bob123
+./prosody-manager dev adduser alice alice123
+./prosody-manager dev adduser bob bob123
 
 # View logs
-./scripts/dev-tools.sh logs
+./prosody-manager dev logs
 
 # Show all access URLs
-./scripts/dev-tools.sh urls
+./prosody-manager dev urls
 ```
 
 ### Web-based Tools
@@ -153,31 +153,31 @@ docker compose -f docker-compose.dev.yml logs -f xmpp-prosody-dev
 
 ```bash
 # Create users (automated in setup)
-./scripts/dev-tools.sh adduser admin admin123
-./scripts/dev-tools.sh adduser alice alice123
-./scripts/dev-tools.sh adduser bob bob123
+./prosody-manager dev adduser admin admin123
+./prosody-manager dev adduser alice alice123
+./prosody-manager dev adduser bob bob123
 
 # List all users
-./scripts/dev-tools.sh users
+./prosody-manager dev users
 
 # Change passwords
-./scripts/dev-tools.sh passwd alice
+./prosody-manager dev passwd alice
 
 # Delete users
-./scripts/dev-tools.sh deluser testuser
+./prosody-manager dev deluser testuser
 ```
 
 ### Connection Testing
 
 ```bash
 # Test all connectivity
-./scripts/dev-tools.sh test
+./prosody-manager dev test
 
 # Test Prosody configuration
-./scripts/dev-tools.sh config
+./prosody-manager dev config
 
 # Performance testing
-./scripts/dev-tools.sh perf
+./prosody-manager dev perf
 ```
 
 ### XMPP Client Testing
