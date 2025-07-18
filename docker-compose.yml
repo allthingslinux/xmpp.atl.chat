@@ -1,7 +1,11 @@
----
-# Professional Prosody XMPP Server
-# Complete single-file deployment with all services
-# Includes XMPP server, database, monitoring, and TURN/STUN server
+# ============================================================================
+# PRODUCTION DOCKER COMPOSE CONFIGURATION
+# Professional Prosody XMPP Server - Production Environment
+# ============================================================================
+# Optimized configuration with resource limits and security settings
+# Usage: docker compose up -d
+
+name: xmpp-server
 
 services:
   # ============================================================================
@@ -15,56 +19,41 @@ services:
     container_name: xmpp-prosody
     hostname: xmpp-prosody
     restart: unless-stopped
-
-    # Environment variables
     env_file:
       - path: .env
         required: true
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
     environment:
-      # Override database connection for container-to-container communication
       - PROSODY_DB_HOST=xmpp-postgres
       - PROSODY_DB_PORT=5432
-
-    # Port mappings
     ports:
-      - '${PROSODY_C2S_PORT:-5222}:5222'        # Client connections (STARTTLS)
-      - '${PROSODY_S2S_PORT:-5269}:5269'        # Server connections
-      - '${PROSODY_C2S_DIRECT_TLS_PORT:-5223}:5223'  # Client connections (Direct TLS)
-      - '${PROSODY_S2S_DIRECT_TLS_PORT:-5270}:5270'  # Server connections (Direct TLS)
-      - '${PROSODY_HTTP_PORT:-5280}:5280'       # HTTP services (WebSocket, BOSH, upload, admin)
-      - '${PROSODY_HTTPS_PORT:-5281}:5281'      # HTTPS services (secure web services)
-
-    # Volume mounts
+      - '${PROSODY_C2S_PORT:-5222}:5222'
+      - '${PROSODY_S2S_PORT:-5269}:5269'
+      - '${PROSODY_C2S_DIRECT_TLS_PORT:-5223}:5223'
+      - '${PROSODY_S2S_DIRECT_TLS_PORT:-5270}:5270'
+      - '${PROSODY_HTTP_PORT:-5280}:5280'
+      - '${PROSODY_HTTPS_PORT:-5281}:5281'
     volumes:
-      # Configuration (read-only)
       - ./core/config:/etc/prosody/config:ro
-
-      # Data persistence
       - xmpp_prosody_data:/var/lib/prosody/data
       - xmpp_prosody_uploads:/var/lib/prosody/uploads
-
-      # SSL certificates (local directory for easier management)
       - ./.runtime/certs:/etc/prosody/certs
-
-      # Scripts (for certificate management)
       - ./scripts:/opt/prosody/scripts:ro
-
-      # Logs (local directory for easier access)
       - ./.runtime/logs:/var/log/prosody
-
-    # Health check
     healthcheck:
       test: ['CMD', '/usr/local/bin/health-check.sh']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-
-    # Production security settings
-    security_opt:
-      - no-new-privileges:true
-      - apparmor:docker-default
-
     # Production resource limits
     deploy:
       resources:
@@ -74,13 +63,11 @@ services:
         reservations:
           memory: 256M
           cpus: '0.5'
-
     # Production sysctls for high performance
     sysctls:
       - net.core.somaxconn=65535
       - net.ipv4.tcp_keepalive_time=600
       - net.ipv4.ip_local_port_range=1024 65535
-
     # Ulimits for high concurrency
     ulimits:
       nofile:
@@ -89,21 +76,9 @@ services:
       nproc:
         soft: 32768
         hard: 32768
-
-    # Production logging
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '50m'
-        max-file: '5'
-        compress: 'true'
-
-    # Dependencies
     depends_on:
       xmpp-postgres:
         condition: service_healthy
-
-    # Networks
     networks:
       - xmpp_network
 
@@ -115,18 +90,23 @@ services:
     container_name: xmpp-postgres
     hostname: xmpp-postgres
     restart: unless-stopped
-
-    # Environment variables automatically loaded from .env file
     env_file:
       - path: .env
         required: true
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
     environment:
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
-
     volumes:
       - xmpp_postgres_data:/var/lib/postgresql/data
       - ./core/database/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
-
     # Production PostgreSQL optimization
     command: >
       postgres
@@ -142,11 +122,6 @@ services:
         -c work_mem=4MB
         -c min_wal_size=1GB
         -c max_wal_size=4GB
-
-    # Security settings
-    security_opt:
-      - no-new-privileges:true
-
     # Production resource limits
     deploy:
       resources:
@@ -156,67 +131,62 @@ services:
         reservations:
           memory: 128M
           cpus: '0.25'
-
-    # Health check
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-prosody}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-prosody}']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
-
-    # Networks
     networks:
       - xmpp_network
 
   # ============================================================================
-  # COTURN - TURN/STUN SERVER (for voice/video calls)
+  # COTURN - TURN/STUN SERVER
   # ============================================================================
   xmpp-coturn:
     image: coturn/coturn:latest
     container_name: xmpp-coturn
     hostname: xmpp-coturn
     restart: unless-stopped
-    
-    # Environment variables automatically loaded from .env file
     env_file:
       - path: .env
         required: true
-    
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
     ports:
-      # STUN/TURN ports (environment variables loaded from .env)
       - '${TURN_PORT:-3478}:3478'
       - '${TURN_PORT:-3478}:3478/udp'
       - '${TURNS_PORT:-5349}:5349'
       - '${TURNS_PORT:-5349}:5349/udp'
-      # Relay ports range
       - '${TURN_MIN_PORT:-49152}-${TURN_MAX_PORT:-65535}:49152-65535/udp'
-    
     environment:
-      # Fixed security settings
       - TURN_NO_LOOPBACK_PEERS=true
       - TURN_NO_MULTICAST_PEERS=true
       - TURN_STALE_NONCE=true
       - TURN_SECURE_STUN=true
-      # Fixed logging
       - TURN_LOG_FILE=stdout
       - TURN_VERBOSE=false
-    
     volumes:
       - xmpp_coturn_data:/var/lib/coturn
-    
     command: >
       turnserver
         --listening-port=3478
         --tls-listening-port=5349
         --min-port=49152
         --max-port=65535
-        --realm=$${TURN_REALM:-localhost}
-        --server-name=$${TURN_DOMAIN:-localhost}
+        --realm=${TURN_REALM:-localhost}
+        --server-name=${TURN_DOMAIN:-localhost}
         --lt-cred-mech
-        --user=$${TURN_USERNAME:-prosody}:$${TURN_PASSWORD:-changeme}
+        --user=${TURN_USERNAME:-prosody}:${TURN_PASSWORD:-changeme}
         --use-auth-secret
-        --static-auth-secret=$${TURN_SECRET:-changeme}
+        --static-auth-secret=${TURN_SECRET:-changeme}
         --no-loopback-peers
         --no-multicast-peers
         --mobility
@@ -228,15 +198,7 @@ services:
         --no-sslv3
         --log-file=stdout
         --simple-log
-    
-    networks:
-      - xmpp_network
-    
-    # Security settings
-    security_opt:
-      - no-new-privileges:true
-    
-    # Resource limits
+    # Production resource limits
     deploy:
       resources:
         limits:
@@ -245,62 +207,6 @@ services:
         reservations:
           memory: 64M
           cpus: '0.25'
-
-
-
-  # ============================================================================
-  # CERTIFICATE MANAGEMENT SERVICES
-  # ============================================================================
-  
-  # Let's Encrypt certificate generation (DNS-01 challenge for wildcard support)
-  xmpp-certbot:
-    image: certbot/dns-cloudflare:latest
-    container_name: xmpp-certbot
-    hostname: xmpp-certbot
-    
-    # Environment variables automatically loaded from .env file
-    env_file:
-      - path: .env
-        required: true
-    
-    volumes:
-      - ./certs:/etc/letsencrypt
-      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
-    # Environment variables automatically loaded from .env file
-    command: >
-      certonly
-      --dns-cloudflare
-      --dns-cloudflare-credentials=/etc/letsencrypt/cloudflare-credentials.ini
-      --dns-cloudflare-propagation-seconds=60
-      --email ${LETSENCRYPT_EMAIL:-admin@allthingslinux.org}
-      --agree-tos
-      --no-eff-email
-      --expand
-      --non-interactive
-      -d ${PROSODY_DOMAIN:-atl.chat}
-      -d "*.${PROSODY_DOMAIN:-atl.chat}"
-    profiles:
-      - letsencrypt
-    networks:
-      - xmpp_network
-
-  # Certificate renewal service
-  xmpp-certbot-renew:
-    image: certbot/dns-cloudflare:latest
-    container_name: xmpp-certbot-renew
-    hostname: xmpp-certbot-renew
-    
-    # Environment variables automatically loaded from .env file
-    env_file:
-      - path: .env
-        required: true
-    
-    volumes:
-      - ./certs:/etc/letsencrypt
-      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
-    command: renew --quiet
-    profiles:
-      - renewal
     networks:
       - xmpp_network
 
@@ -308,21 +214,28 @@ services:
   # ADMINER - DATABASE MANAGEMENT
   # ============================================================================
   xmpp-adminer:
-    image: adminer
+    image: adminer:latest
     container_name: xmpp-adminer
     hostname: xmpp-adminer
     restart: unless-stopped
-    ports:
-      - '8080:8080'
     env_file:
       - path: .env
         required: true
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+    ports:
+      - '${ADMINER_PORT:-8080}:8080'
     environment:
       ADMINER_DEFAULT_DRIVER: "pgsql"
       ADMINER_DEFAULT_SERVER: "xmpp-postgres"
-      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
-      ADMINER_DEFAULT_USERNAME: ${POSTGRES_USER}
+      ADMINER_DEFAULT_DB: ${POSTGRES_DB:-prosody}
+      ADMINER_DEFAULT_USERNAME: ${POSTGRES_USER:-prosody}
       ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMINER_AUTO_LOGIN: ${ADMINER_AUTO_LOGIN:-false}
     command: ["sh", "-c", "php -S 0.0.0.0:8080 -t /var/www/html"]
     configs:
       - source: adminer-index.php
@@ -334,6 +247,74 @@ services:
         condition: service_healthy
     networks:
       - xmpp_network
+
+  # ============================================================================
+  # CERTIFICATE MANAGEMENT SERVICES
+  # ============================================================================
+  xmpp-certbot:
+    image: certbot/dns-cloudflare:latest
+    container_name: xmpp-certbot
+    hostname: xmpp-certbot
+    env_file:
+      - path: .env
+        required: true
+    volumes:
+      - ./.runtime/certs:/etc/letsencrypt
+      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
+    command: >
+      certonly
+      --dns-cloudflare
+      --dns-cloudflare-credentials=/etc/letsencrypt/cloudflare-credentials.ini
+      --dns-cloudflare-propagation-seconds=60
+      --email ${LETSENCRYPT_EMAIL:-admin@example.com}
+      --agree-tos
+      --no-eff-email
+      --expand
+      --non-interactive
+      -d ${PROSODY_DOMAIN:-example.com}
+      -d "*.${PROSODY_DOMAIN:-example.com}"
+    networks:
+      - xmpp_network
+
+  xmpp-certbot-renew:
+    image: certbot/dns-cloudflare:latest
+    container_name: xmpp-certbot-renew
+    hostname: xmpp-certbot-renew
+    env_file:
+      - path: .env
+        required: true
+    volumes:
+      - ./.runtime/certs:/etc/letsencrypt
+      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
+    command: renew --quiet
+    networks:
+      - xmpp_network
+
+  xmpp-cert-monitor:
+    image: alpine:latest
+    container_name: xmpp-cert-monitor
+    hostname: xmpp-cert-monitor
+    env_file:
+      - path: .env
+        required: true
+    volumes:
+      - ./.runtime:/app/.runtime
+      - ./scripts:/app/scripts:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    working_dir: /app
+    command: >
+      sh -c "
+        apk add --no-cache bash curl jq openssl docker-cli &&
+        while true; do
+          ./scripts/certificate-monitor.sh monitor
+          sleep ${CERT_CHECK_INTERVAL:-3600}
+        done
+      "
+    networks:
+      - xmpp_network
+    restart: unless-stopped
+    depends_on:
+      - xmpp-prosody
 
 # ============================================================================
 # VOLUMES
@@ -358,6 +339,10 @@ volumes:
 networks:
   xmpp_network:
     name: xmpp_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 # ============================================================================
 # CONFIGS
