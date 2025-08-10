@@ -1,3 +1,9 @@
+
+# 🚨⚠️⛔❗ WARNING ❗⛔⚠️🚨
+
+## This repository is WIP to the fullest possible extent of that state, expect literally everything to break at all times in every way possible until this warn is removed.
+
+
 # XMPP Server (Prosody)
 
 Production-ready XMPP server with comprehensive features, extensive XEP compliance, and enterprise security.
