@@ -1,4 +1,5 @@
 .vscode
+.luarc.json
 prosody-hg
 prosody-modules
 .prosody-modules
