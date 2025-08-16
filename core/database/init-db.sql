@@ -56,16 +56,16 @@ BEGIN
     -- Add indexes for common Prosody queries if tables exist
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'prosodyarchive') THEN
         -- Optimize archive queries
-        CREATE INDEX IF NOT EXISTS idx_prosodyarchive_when ON prosodyarchive(when);
-        CREATE INDEX IF NOT EXISTS idx_prosodyarchive_with ON prosodyarchive(with);
-        CREATE INDEX IF NOT EXISTS idx_prosodyarchive_user_store ON prosodyarchive(user, store);
+        CREATE INDEX IF NOT EXISTS idx_prosodyarchive_when ON prosodyarchive("when");
+        CREATE INDEX IF NOT EXISTS idx_prosodyarchive_with ON prosodyarchive("with");
+        CREATE INDEX IF NOT EXISTS idx_prosodyarchive_user_store ON prosodyarchive("user", "store");
         RAISE NOTICE 'Archive indexes created for performance optimization';
     END IF;
     
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'prosody') THEN
         -- Optimize general storage queries
-        CREATE INDEX IF NOT EXISTS idx_prosody_user_store ON prosody(user, store);
-        CREATE INDEX IF NOT EXISTS idx_prosody_key ON prosody(key);
+        CREATE INDEX IF NOT EXISTS idx_prosody_user_store ON prosody("user", "store");
+        CREATE INDEX IF NOT EXISTS idx_prosody_key ON prosody("key");
         RAISE NOTICE 'General storage indexes created for performance optimization';
     END IF;
 END;
