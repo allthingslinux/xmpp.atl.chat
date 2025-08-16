@@ -72,7 +72,8 @@ ssl = {
 	options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
 }
 
--- Certificate configuration (Prosody auto-discovery)
+-- Certificate configuration
+-- Using Let's Encrypt live certs mounted at /etc/prosody/certs
 certificates = "certs"
 
 -- Require encryption for all connection types
@@ -602,8 +603,8 @@ authentication = "internal_hashed"
 
 -- SSL certificate for this domain
 ssl = {
-	key = "certs/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. ".key",
-	certificate = "certs/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. ".crt",
+	key = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/privkey.pem",
+	certificate = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/fullchain.pem",
 }
 
 -- TURN external configuration (XEP-0215)
@@ -663,6 +664,10 @@ disco_expose_admins = (Lua.os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true") -
 -- XEP-0045: Multi-User Chat - Group chat rooms and conferences
 -- https://xmpp.org/extensions/xep-0045.html
 Component("muc." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
+ssl = {
+	key = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/privkey.pem",
+	certificate = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/fullchain.pem",
+}
 name = "Multi-User Chat"
 description = "Multi-User Chat rooms and conferences (XEP-0045)"
 
@@ -814,6 +819,10 @@ end
 -- XEP-0363: HTTP File Upload - Allows clients to upload files via HTTP
 -- https://xmpp.org/extensions/xep-0363.html
 Component("upload." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "http_file_share")
+ssl = {
+	key = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/privkey.pem",
+	certificate = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/fullchain.pem",
+}
 name = "File Upload Service"
 description = "HTTP file upload and sharing service (XEP-0363)"
 
@@ -826,6 +835,10 @@ description = "HTTP file upload and sharing service (XEP-0363)"
 -- XEP-0065: SOCKS5 Bytestreams - File transfer proxy service
 -- https://xmpp.org/extensions/xep-0065.html
 Component("proxy." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "proxy65")
+ssl = {
+	key = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/privkey.pem",
+	certificate = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/fullchain.pem",
+}
 name = "SOCKS5 Proxy"
 description = "File transfer proxy service (XEP-0065)"
 proxy65_address = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
