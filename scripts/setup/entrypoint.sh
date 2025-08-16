@@ -134,6 +134,12 @@ setup_certificates() {
 
     if [[ -f "$le_cert" && -f "$le_key" ]]; then
         log_info "Let's Encrypt certificates found for ${PROSODY_DOMAIN}"
+        # Ensure Prosody can read the certificates
+        if [[ $EUID -eq 0 ]]; then
+            chown -R "$PROSODY_USER:$PROSODY_USER" "${PROSODY_CERT_DIR}/live/${PROSODY_DOMAIN}" || true
+        fi
+        chmod 644 "$le_cert" 2> /dev/null || true
+        chmod 600 "$le_key" 2> /dev/null || true
         return 0
     fi
 
