@@ -36,8 +36,8 @@ http_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTP_PORT")) or 5280 } -- HTT
 https_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTPS_PORT")) or 5281 } -- HTTPS (secure services)
 
 -- Interface bindings (IPv4 only)
-interfaces = { "0.0.0.0" }  -- IPv4 only, all interfaces
-local_interfaces = { "127.0.0.1" }  -- IPv4 localhost only
+interfaces = { "0.0.0.0" } -- IPv4 only, all interfaces
+local_interfaces = { "127.0.0.1" } -- IPv4 localhost only
 
 -- IPv6 support (disabled)
 use_ipv6 = false
@@ -533,7 +533,7 @@ modules_enabled = {
 	-- ===============================================
 	"admin_adhoc", -- XEP-0050: Ad-Hoc Commands for administration
 	"admin_shell", -- Administrative shell interface
-	"admin_web", -- Web-based administration interface
+	-- "admin_web", -- Web-based administration interface
 
 	-- ===============================================
 	-- WEB SERVICES
@@ -609,7 +609,7 @@ ssl = {
 
 -- TURN external configuration (XEP-0215)
 turn_external_secret = Lua.os.getenv("TURN_SECRET") or "devsecret"
-turn_external_host = Lua.os.getenv("TURN_DOMAIN") or "localhost"  
+turn_external_host = Lua.os.getenv("TURN_DOMAIN") or "localhost"
 turn_external_port = Lua.tonumber(Lua.os.getenv("TURN_PORT")) or 3478
 turn_external_ttl = 86400 -- 24 hours
 
@@ -923,8 +923,6 @@ compression = {
 -- ===============================================
 -- EXTERNAL SERVICES (TURN/STUN)
 -- ===============================================
-
-
 
 external_services = {
 	-- Public STUN server (fallback)
