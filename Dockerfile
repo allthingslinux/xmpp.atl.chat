@@ -56,7 +56,8 @@ RUN apt-get update && \
     lua-expat lua-filesystem lua-socket lua-sec lua-unbound \
     lua-readline lua-event lua-ldap \
     libicu72 libidn2-0 \
-    ca-certificates curl dumb-init gosu jq mercurial rsync && \
+    ca-certificates curl dumb-init gosu jq mercurial rsync wget tar unzip \
+    libssl-dev build-essential gcc liblua5.4-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy Prosody and LuaRocks from builder
@@ -70,7 +71,14 @@ RUN chmod +x /usr/local/bin/install-community-modules.sh
 WORKDIR /tmp
 RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     mkdir -p /usr/local/lib/prosody/community-modules && \
-    /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info && \
+    /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info admin_web cloud_notify_extensions cloud_notify_encrypted cloud_notify_filters cloud_notify_priority_tag muc_offline_delivery && \
+    # Download mod_admin_web dependencies
+    cd /usr/local/lib/prosody/community-modules/mod_admin_web/admin_web && \
+    chmod +x get_deps.sh && \
+    ./get_deps.sh && \
+    cd /tmp && \
+    # Install luaossl dependency for mod_cloud_notify_extensions
+    luarocks install luaossl && \
     rm -rf /tmp/prosody-modules && \
     # Remove any accidental luarocks directories from community and modules dirs (robust, future-proof)
     find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
