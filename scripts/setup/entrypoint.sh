@@ -329,6 +329,14 @@ main() {
     prosody_version=$(prosody --version 2> /dev/null | head -n1 || echo "Unknown")
     log_info "Prosody version: $prosody_version"
 
+    # Prefer mounted config if present
+    if [[ -f "/etc/prosody/config/prosody.cfg.lua" ]]; then
+        log_info "Detected mounted config at /etc/prosody/config/prosody.cfg.lua; syncing to ${PROSODY_CONFIG_FILE}"
+        cp -f "/etc/prosody/config/prosody.cfg.lua" "${PROSODY_CONFIG_FILE}"
+        chown root:prosody "${PROSODY_CONFIG_FILE}" 2> /dev/null || true
+        chmod 640 "${PROSODY_CONFIG_FILE}" 2> /dev/null || true
+    fi
+
     # Environment and setup
     validate_environment
     setup_directories
