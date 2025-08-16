@@ -514,6 +514,7 @@ modules_enabled = {
 	-- PUSH NOTIFICATIONS
 	-- ===============================================
 	"cloud_notify", -- XEP-0357: Push Notifications (community module)
+	"cloud_notify_extensions", -- Enhanced push notifications for iOS clients (Siskin/Snikket)
 
 	-- ===============================================
 	-- MULTI-USER CHAT (MUC)
@@ -531,6 +532,7 @@ modules_enabled = {
 	-- ===============================================
 	"admin_adhoc", -- XEP-0050: Ad-Hoc Commands for administration
 	"admin_shell", -- Administrative shell interface
+	"admin_web", -- Web-based administration interface
 
 	-- ===============================================
 	-- WEB SERVICES
@@ -668,6 +670,7 @@ description = "Multi-User Chat rooms and conferences (XEP-0045)"
 modules_enabled = {
 	"muc_mam", -- Message Archive Management for MUC (XEP-0313)
 	"pastebin", -- Automatic pastebin for long messages (community module from prosody-modules)
+	"muc_offline_delivery", -- Offline message delivery for MUC (required for iOS push notifications)
 }
 
 -- Enhanced MUC configuration
