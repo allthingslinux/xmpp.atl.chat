@@ -365,4 +365,4 @@ configs:
       ?>
 
   adminer-theme.css:
-    file: ./examples/adminer-theme.css
+    file: ./web/themes/adminer-theme.css
