@@ -76,9 +76,9 @@ services:
       nproc:
         soft: 32768
         hard: 32768
-    depends_on:
-      xmpp-postgres:
-        condition: service_healthy
+    # depends_on:
+    #   xmpp-postgres:
+    #     condition: service_healthy
     networks:
       - xmpp_network
 
