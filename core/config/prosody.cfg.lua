@@ -36,28 +36,11 @@ http_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTP_PORT")) or 5280 } -- HTT
 https_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTPS_PORT")) or 5281 } -- HTTPS (secure services)
 
 -- Interface bindings (IPv4 only)
--- interfaces = { "0.0.0.0" } -- IPv4 only, all interfaces
--- local_interfaces = { "127.0.0.1" } -- IPv4 localhost only
+interfaces = { "0.0.0.0" } -- IPv4 only, all interfaces
+local_interfaces = { "127.0.0.1" } -- IPv4 localhost only
 
 external_addresses = {
-	-- "173.245.48.0/20",
-	-- "103.21.244.0/22",
-	-- "103.22.200.0/22",
-	-- "103.31.4.0/22",
-	-- "141.101.64.0/18",
-	-- "108.162.192.0/18",
-	-- "190.93.240.0/20",
-	-- "188.114.96.0/20",
-	-- "197.234.240.0/22",
-	-- "198.41.128.0/17",
-	-- "162.158.0.0/15",
-	-- "104.16.0.0/13",
-	-- "104.24.0.0/14",
-	-- "172.64.0.0/13",
-	-- "131.0.72.0/22",
-	-- "104.21.68.239",
-	-- "172.67.200.68",
-	"157.180.38.101",
+	-- TBD
 }
 
 -- IPv6 support (disabled)
@@ -85,13 +68,13 @@ plugin_server = "https://modules.prosody.im/rocks/"
 -- ===============================================
 
 -- Enhanced TLS settings for modern security
--- ssl = {
--- 	protocol = "tlsv1_2+", -- TLS 1.2+ only
--- 	ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
--- 	curve = "secp384r1", -- Strong elliptic curve
--- 	-- verifyext = { "lsExtKeyUsage" }, -- Disabled due to compatibility issue
--- 	options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
--- }
+ssl = {
+	protocol = "tlsv1_2+", -- TLS 1.2+ only
+	ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
+	curve = "secp384r1", -- Strong elliptic curve
+	-- verifyext = { "lsExtKeyUsage" }, -- Disabled due to compatibility issue
+	options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
+}
 
 -- Certificate configuration
 -- Using Let's Encrypt live certs mounted at /etc/prosody/certs
@@ -113,15 +96,15 @@ allow_unencrypted_plain_auth = false
 authentication = "internal_hashed" -- Secure password hashing
 
 -- SASL mechanisms (modern and secure)
--- sasl_mechanisms = {
--- 	"SCRAM-SHA-256", -- Preferred modern method
--- 	"SCRAM-SHA-1", -- Fallback modern method
--- 	"DIGEST-MD5", -- Legacy support
--- 	"PLAIN", -- Only over TLS
--- }
+sasl_mechanisms = {
+	"SCRAM-SHA-256", -- Preferred modern method
+	"SCRAM-SHA-1", -- Fallback modern method
+	"DIGEST-MD5", -- Legacy support
+	"PLAIN", -- Only over TLS
+}
 
 -- Channel binding support
--- tls_channel_binding = true
+tls_channel_binding = true
 
 -- Account management (Prosody 13.0+)
 user_account_management = {
@@ -650,15 +633,19 @@ turn_external_ttl = 86400 -- 24 hours
 -- Reference: https://prosody.im/doc/components#discovery
 
 local __domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
+-- Service/component host override. Use when HTTP endpoints and components
+-- should live under a different hostname than the XMPP domain.
+-- Example: PROSODY_DOMAIN='atl.chat', PROSODY_SERVICE_HOST='xmpp.atl.chat'
+local __service_host = Lua.os.getenv("PROSODY_SERVICE_HOST") or __domain
 disco_items = {
 	-- Multi-User Chat service (XEP-0045)
-	{ "muc." .. __domain, "Multi-User Chat Rooms" },
+	{ "muc." .. __service_host, "Multi-User Chat Rooms" },
 
 	-- File upload service (XEP-0363)
-	{ "upload." .. __domain, "HTTP File Upload" },
+	{ "upload." .. __service_host, "HTTP File Upload" },
 
 	-- File transfer proxy (XEP-0065)
-	{ "proxy." .. __domain, "SOCKS5 File Transfer Proxy" },
+	{ "proxy." .. __service_host, "SOCKS5 File Transfer Proxy" },
 
 	-- Pastebin service over HTTP host
 	{ __http_host, "Pastebin Service" },
@@ -689,10 +676,10 @@ disco_expose_admins = (Lua.os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true") -
 -- MUC (Multi-User Chat) domain
 -- XEP-0045: Multi-User Chat - Group chat rooms and conferences
 -- https://xmpp.org/extensions/xep-0045.html
-Component("muc." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "muc")
+Component("muc." .. __service_host, "muc")
 ssl = {
-	key = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/privkey.pem",
-	certificate = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/fullchain.pem",
+	key = "certs/live/" .. __service_host .. "/privkey.pem",
+	certificate = "certs/live/" .. __service_host .. "/fullchain.pem",
 }
 name = "Multi-User Chat"
 description = "Multi-User Chat rooms and conferences (XEP-0045)"
@@ -850,10 +837,10 @@ end
 -- File upload domain
 -- XEP-0363: HTTP File Upload - Allows clients to upload files via HTTP
 -- https://xmpp.org/extensions/xep-0363.html
-Component("upload." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "http_file_share")
+Component("upload." .. __service_host, "http_file_share")
 ssl = {
-	key = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/privkey.pem",
-	certificate = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/fullchain.pem",
+	key = "certs/live/" .. __service_host .. "/privkey.pem",
+	certificate = "certs/live/" .. __service_host .. "/fullchain.pem",
 }
 name = "File Upload Service"
 description = "HTTP file upload and sharing service (XEP-0363)"
@@ -866,14 +853,14 @@ description = "HTTP file upload and sharing service (XEP-0363)"
 -- Proxy domain for file transfers
 -- XEP-0065: SOCKS5 Bytestreams - File transfer proxy service
 -- https://xmpp.org/extensions/xep-0065.html
-Component("proxy." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "proxy65")
+Component("proxy." .. __service_host, "proxy65")
 ssl = {
-	key = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/privkey.pem",
-	certificate = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/fullchain.pem",
+	key = "certs/live/" .. __service_host .. "/privkey.pem",
+	certificate = "certs/live/" .. __service_host .. "/fullchain.pem",
 }
 name = "SOCKS5 Proxy"
 description = "File transfer proxy service (XEP-0065)"
-proxy65_address = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
+proxy65_address = __service_host
 
 -- ===============================================
 -- EXTERNAL COMPONENTS (XEP-0114)
