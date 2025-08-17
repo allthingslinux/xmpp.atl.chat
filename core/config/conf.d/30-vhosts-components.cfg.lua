@@ -22,7 +22,6 @@ local __muc_host = Lua.os.getenv("PROSODY_MUC_HOST") or ("muc." .. __domain)
 disco_items = {
 	{ __muc_host, "Multi-User Chat Rooms" },
 	{ "proxy." .. __domain, "SOCKS5 File Transfer Proxy" },
-	{ __service_host, "Pastebin Service" },
 }
 
 local disco_items_env = Lua.os.getenv("PROSODY_DISCO_ITEMS")
