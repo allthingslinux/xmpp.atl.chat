@@ -316,6 +316,26 @@ services:
     depends_on:
       - xmpp-prosody
 
+  # ============================================================================
+  # CLOUDFLARED - Cloudflare Tunnel (HTTP endpoints only)
+  # ============================================================================
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: xmpp-cloudflared
+    hostname: xmpp-cloudflared
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: true
+    command: tunnel --config /etc/cloudflared/config.yml run
+    volumes:
+      - ./deployment/cloudflared/config.yml:/etc/cloudflared/config.yml:ro
+      - ./.runtime/cloudflared:/etc/cloudflared:rw
+    depends_on:
+      - xmpp-prosody
+    networks:
+      - xmpp_network
+
 # ============================================================================
 # VOLUMES
 # ============================================================================
