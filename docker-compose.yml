@@ -285,6 +285,7 @@ services:
     image: certbot/dns-cloudflare:latest
     container_name: xmpp-certbot
     hostname: xmpp-certbot
+    profiles: ["cert-issue"]
     env_file:
       - path: .env
         required: true
@@ -316,7 +317,7 @@ services:
     volumes:
       - ./.runtime/certs:/etc/letsencrypt
       - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
-    command: renew --quiet
+    command: renew --quiet --no-random-sleep-on-renew
     networks:
       - xmpp_network
 
@@ -325,6 +326,7 @@ services:
     image: certbot/dns-cloudflare:latest
     container_name: xmpp-certbot-servicehost
     hostname: xmpp-certbot-servicehost
+    profiles: ["cert-issue"]
     env_file:
       - path: .env
         required: true
