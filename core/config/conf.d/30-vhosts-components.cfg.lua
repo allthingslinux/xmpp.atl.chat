@@ -4,6 +4,8 @@
 
 -- Main domain configuration
 VirtualHost(Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
+-- Map HTTP host to public hostname so Prosody recognizes Host: xmpp.atl.chat
+http_host = Lua.os.getenv("PROSODY_HTTP_HOST") or (Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
 
 -- Domain TLS (atl.chat lineage by default)
 ssl = {
