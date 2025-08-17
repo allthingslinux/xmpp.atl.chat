@@ -113,7 +113,6 @@ services:
     networks:
       - xmpp_network
 
-  # Converse.js web client (served by Nginx container)
   xmpp-conversejs:
     image: nginx:stable-alpine
     container_name: xmpp-conversejs
