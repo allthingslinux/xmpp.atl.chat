@@ -56,7 +56,8 @@ install_via_rocks() {
 }
 
 is_in_array() {
-    local needle="$1"; shift
+    local needle="$1"
+    shift
     local item
     for item in "$@"; do
         [[ "$item" == "$needle" ]] && return 0
