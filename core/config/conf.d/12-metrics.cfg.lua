@@ -7,8 +7,7 @@ statistics_interval = Lua.os.getenv("PROSODY_STATISTICS_INTERVAL") or "manual"
 
 openmetrics_allow_ips = {
 	"127.0.0.1",
-	"172.18.0.0/16",
-	"10.0.0.0/8",
+	"::1",
 }
 
 local metrics_ips_env = Lua.os.getenv("PROSODY_METRICS_ALLOW_IPS")
@@ -22,8 +21,6 @@ if metrics_ips_env then
 	end
 end
 
-if Lua.os.getenv("PROSODY_METRICS_ALLOW_CIDR") then
-	openmetrics_allow_cidr = Lua.os.getenv("PROSODY_METRICS_ALLOW_CIDR")
-end
+openmetrics_allow_cidr = Lua.os.getenv("PROSODY_METRICS_ALLOW_CIDR") or "172.16.0.0/12"
 
 
