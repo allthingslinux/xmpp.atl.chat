@@ -72,22 +72,7 @@ RUN chmod +x /usr/local/bin/install-community-modules.sh
 COPY core/config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua
 COPY core/config/conf.d /etc/prosody/conf.d
 
-WORKDIR /tmp
-RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
-    mkdir -p /usr/local/lib/prosody/community-modules && \
-    /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info server_info cloud_notify_extensions cloud_notify_encrypted cloud_notify_filters cloud_notify_priority_tag muc_offline_delivery conversejs && \
-    # Download mod_admin_web dependencies
-    # cd /usr/local/lib/prosody/community-modules/mod_admin_web/admin_web && \
-    # chmod +x get_deps.sh && \
-    # ./get_deps.sh && \
-    # cd /tmp && \
-    # Install luaossl dependency for mod_cloud_notify_extensions
-    luarocks install luaossl && \
-    rm -rf /tmp/prosody-modules && \
-    # Remove any accidental luarocks directories from community and modules dirs (robust, future-proof)
-    find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
-    find /usr/local/lib/prosody/modules -type d -name 'luarocks' -exec rm -rf {} + && \
-    echo "Community modules installed successfully"
+## Defer community module installation until after prosody user/log dirs exist
 
 # --- Configs, entrypoint, and scripts ---
 COPY --chown=prosody:prosody scripts/setup/entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -106,6 +91,17 @@ RUN chown root:prosody /etc/prosody/prosody.cfg.lua && \
     chmod 640 /etc/prosody/prosody.cfg.lua && \
     chown -R root:prosody /etc/prosody/conf.d && \
     find /etc/prosody/conf.d -type f -name '*.lua' -exec chmod 640 {} +
+
+# --- Install community modules (after prosody user/logs exist) ---
+WORKDIR /tmp
+RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
+    mkdir -p /usr/local/lib/prosody/community-modules && \
+    /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info server_info cloud_notify_extensions cloud_notify_encrypted cloud_notify_filters cloud_notify_priority_tag muc_offline_delivery conversejs && \
+    luarocks install luaossl && \
+    rm -rf /tmp/prosody-modules && \
+    find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
+    find /usr/local/lib/prosody/modules -type d -name 'luarocks' -exec rm -rf {} + && \
+    echo "Community modules installed successfully"
 
 # --- Expose all relevant ports ---
 EXPOSE 5222 5223 5269 5270 5280 5281 5347
