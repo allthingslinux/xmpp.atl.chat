@@ -71,7 +71,7 @@ RUN chmod +x /usr/local/bin/install-community-modules.sh
 WORKDIR /tmp
 RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     mkdir -p /usr/local/lib/prosody/community-modules && \
-    /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info cloud_notify_extensions cloud_notify_encrypted cloud_notify_filters cloud_notify_priority_tag muc_offline_delivery && \
+    /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info cloud_notify_extensions cloud_notify_encrypted cloud_notify_filters cloud_notify_priority_tag muc_offline_delivery mod_register && \
     # Download mod_admin_web dependencies
     # cd /usr/local/lib/prosody/community-modules/mod_admin_web/admin_web && \
     # chmod +x get_deps.sh && \
