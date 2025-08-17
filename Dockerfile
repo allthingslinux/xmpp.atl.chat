@@ -87,6 +87,7 @@ RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
 
 # --- Configs, entrypoint, and scripts ---
 COPY --chown=prosody:prosody core/config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua
+COPY --chown=prosody:prosody core/config/conf.d /etc/prosody/conf.d
 COPY --chown=prosody:prosody scripts/setup/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chown=prosody:prosody scripts/maintenance/health-check.sh /usr/local/bin/health-check.sh
 COPY --chown=prosody:prosody prosody-manager /usr/local/bin/prosody-manager
@@ -100,7 +101,9 @@ RUN groupadd -r prosody && useradd -r -g prosody prosody && \
 
 # --- Ownership for configuration ---
 RUN chown root:prosody /etc/prosody/prosody.cfg.lua && \
-    chmod 640 /etc/prosody/prosody.cfg.lua
+    chmod 640 /etc/prosody/prosody.cfg.lua && \
+    chown -R root:prosody /etc/prosody/conf.d && \
+    find /etc/prosody/conf.d -type f -name '*.lua' -exec chmod 640 {} +
 
 # --- Expose all relevant ports ---
 EXPOSE 5222 5223 5269 5270 5280 5281 5347
