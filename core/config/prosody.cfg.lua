@@ -349,8 +349,10 @@ smacks_config = {
 -- ===============================================
 
 -- HTTP server settings
-http_default_host = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
-http_external_url = "https://" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/"
+local __http_host = Lua.os.getenv("PROSODY_HTTP_HOST") or (Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
+local __http_scheme = Lua.os.getenv("PROSODY_HTTP_SCHEME") or "https"
+http_default_host = __http_host
+http_external_url = __http_scheme .. "://" .. __http_host .. "/"
 
 -- Security interfaces (IPv4 only)
 http_interfaces = { "0.0.0.0" } -- HTTP accessible from all IPv4 interfaces
@@ -644,21 +646,21 @@ turn_external_ttl = 86400 -- 24 hours
 -- Manual linking via disco_items is needed for non-subdomain components
 -- Reference: https://prosody.im/doc/components#discovery
 
+local __domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
 disco_items = {
 	-- Multi-User Chat service (XEP-0045)
-	{ "muc." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "Multi-User Chat Rooms" },
+	{ "muc." .. __domain, "Multi-User Chat Rooms" },
 
 	-- File upload service (XEP-0363)
-	{ "upload." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "HTTP File Upload" },
+	{ "upload." .. __domain, "HTTP File Upload" },
 
 	-- File transfer proxy (XEP-0065)
-	{ "proxy." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"), "SOCKS5 File Transfer Proxy" },
+	{ "proxy." .. __domain, "SOCKS5 File Transfer Proxy" },
 
-	-- Pastebin service (automatic for long messages)
-	{ Lua.os.getenv("PROSODY_DOMAIN") or "localhost", "Pastebin Service" },
+	-- Pastebin service over HTTP host
+	{ __http_host, "Pastebin Service" },
 
 	-- Optional: External services that can be discovered
-	-- Add custom services here via environment variables
 }
 
 -- Optional: Additional disco items from environment variable
@@ -707,7 +709,7 @@ muc_tombstones = true
 muc_room_cache_size = 1000
 
 -- Default room configuration
-muc_room_default_public = false
+muc_room_default_public = true
 muc_room_default_members_only = false
 muc_room_default_moderated = false
 muc_room_default_persistent = true

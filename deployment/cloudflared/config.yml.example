@@ -8,22 +8,24 @@ tunnel: ${CLOUDFLARE_TUNNEL_ID}
 credentials-file: /etc/cloudflared/${CLOUDFLARE_TUNNEL_ID}.json
 
 ingress:
-  # WebSocket endpoint
-  - hostname: ${PROSODY_DOMAIN}
+  # WebSocket endpoint on xmpp host
+  - hostname: ${PROSODY_HTTP_HOST:-xmpp.${PROSODY_DOMAIN}}
     path: /xmpp-websocket
     service: http://xmpp-prosody:5280
 
-  # BOSH endpoint
-  - hostname: ${PROSODY_DOMAIN}
+  # BOSH endpoint on xmpp host
+  - hostname: ${PROSODY_HTTP_HOST:-xmpp.${PROSODY_DOMAIN}}
     path: /http-bind
     service: http://xmpp-prosody:5280
 
-  # Admin UI (optional)
-  - hostname: admin.${PROSODY_DOMAIN}
+  # Admin UI (optional) on xmpp host
+  - hostname: ${PROSODY_HTTP_HOST:-xmpp.${PROSODY_DOMAIN}}
+    path: /admin
     service: http://xmpp-prosody:5280
 
-  # Metrics (optional)
-  - hostname: metrics.${PROSODY_DOMAIN}
+  # Metrics (optional) on xmpp host
+  - hostname: ${PROSODY_HTTP_HOST:-xmpp.${PROSODY_DOMAIN}}
+    path: /metrics
     service: http://xmpp-prosody:5280
 
   # Default catch-all
