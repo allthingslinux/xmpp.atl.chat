@@ -97,7 +97,7 @@ WORKDIR /tmp
 RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     mkdir -p /usr/local/lib/prosody/community-modules && \
     /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info server_info cloud_notify_extensions cloud_notify_encrypted cloud_notify_filters cloud_notify_priority_tag muc_offline_delivery && \
-    (luarocks install luaossl 20240118-0 || luarocks install luaossl) && \
+    CFLAGS="-Wno-deprecated-declarations" luarocks install luaossl && \
     rm -rf /tmp/prosody-modules && \
     find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
     find /usr/local/lib/prosody/modules -type d -name 'luarocks' -exec rm -rf {} + && \
