@@ -45,7 +45,7 @@ network_settings = {
 -- PLUGIN INSTALLER CONFIGURATION
 -- ===============================================
 
-plugin_paths = { "/usr/local/lib/prosody/community-modules" }
+plugin_paths = { "/usr/local/lib/prosody/community-modules", "/var/lib/prosody/custom_plugins" }
 plugin_server = "https://modules.prosody.im/rocks/"
 
 -- ===============================================
