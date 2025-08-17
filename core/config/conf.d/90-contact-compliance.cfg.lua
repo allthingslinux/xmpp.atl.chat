@@ -27,10 +27,3 @@ account_cleanup = {
 	inactive_period = 365 * 24 * 3600,
 	grace_period = 30 * 24 * 3600,
 }
-
-Lua.log("info", "=== PROFESSIONAL PROSODY XMPP SERVER LOADED (conf.d) ===")
-Lua.log("info", "Domain: %s", Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
-Lua.log("info", "Service Host: %s", Lua.os.getenv("PROSODY_SERVICE_HOST") or (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"))
-Lua.log("info", "=== Configuration complete ===")
-
-
