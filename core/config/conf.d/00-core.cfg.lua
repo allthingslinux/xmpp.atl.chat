@@ -216,5 +216,3 @@ gc = {
 	speed = 200,
 	threshold = 120,
 }
-
-

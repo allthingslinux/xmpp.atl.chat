@@ -70,7 +70,9 @@ muc_log_notification = (Lua.os.getenv("PROSODY_MUC_LOG_NOTIFICATION") ~= "false"
 pastebin_threshold = Lua.tonumber(Lua.os.getenv("PROSODY_PASTEBIN_THRESHOLD")) or 800
 pastebin_line_threshold = Lua.tonumber(Lua.os.getenv("PROSODY_PASTEBIN_LINE_THRESHOLD")) or 6
 local pastebin_trigger_env = Lua.os.getenv("PROSODY_PASTEBIN_TRIGGER")
-if pastebin_trigger_env then pastebin_trigger = pastebin_trigger_env end
+if pastebin_trigger_env then
+	pastebin_trigger = pastebin_trigger_env
+end
 local pastebin_path_env = Lua.os.getenv("PROSODY_PASTEBIN_PATH")
 if pastebin_path_env then
 	http_paths = http_paths or {}
@@ -79,5 +81,3 @@ else
 	http_paths = http_paths or {}
 	http_paths.pastebin = "/paste"
 end
-
-
