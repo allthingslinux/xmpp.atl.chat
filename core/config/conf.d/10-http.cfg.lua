@@ -3,7 +3,11 @@
 -- ===============================================
 
 -- HTTP server settings
-local __http_host = Lua.os.getenv("PROSODY_HTTP_HOST") or (Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
+-- Prefer explicit HTTP host, then service host, then domain
+local __http_host =
+    Lua.os.getenv("PROSODY_HTTP_HOST")
+    or Lua.os.getenv("PROSODY_SERVICE_HOST")
+    or (Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
 local __http_scheme = Lua.os.getenv("PROSODY_HTTP_SCHEME") or "https"
 http_default_host = __http_host
 http_external_url = __http_scheme .. "://" .. __http_host .. "/"
