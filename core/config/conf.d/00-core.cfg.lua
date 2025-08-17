@@ -16,6 +16,7 @@ admins = { Lua.os.getenv("PROSODY_ADMIN_JID") or "admin@localhost" }
 -- ===============================================
 
 -- Standard XMPP ports (RFC 6120/6121)
+legacy_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_LEGACY_PORTS")) or 5223 }
 c2s_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_C2S_PORT")) or 5222 }
 c2s_direct_tls_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_C2S_DIRECT_TLS_PORT")) or 5223 }
 s2s_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_S2S_PORT")) or 5269 }

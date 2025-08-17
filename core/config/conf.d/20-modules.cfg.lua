@@ -52,6 +52,7 @@ modules_enabled = {
 	"invites",
 	"csi_battery_saver",
 	"muc_notifications",
+	"mod_register",
 	-- Monitoring
 	"http_openmetrics",
 	-- Dev/Debug
