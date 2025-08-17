@@ -28,6 +28,16 @@ ingress:
     path: /metrics
     service: http://xmpp-prosody:5280
 
+  # Pastebin (custom path)
+  - hostname: ${PROSODY_HTTP_HOST:-xmpp.${PROSODY_DOMAIN}}
+    path: ${PROSODY_PASTEBIN_PATH:-/paste}
+    service: http://xmpp-prosody:5280
+
+  # Backward-compat for default pastebin path
+  - hostname: ${PROSODY_HTTP_HOST:-xmpp.${PROSODY_DOMAIN}}
+    path: /pastebin
+    service: http://xmpp-prosody:5280
+
   # Default catch-all
   - service: http_status:404
 

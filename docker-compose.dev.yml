@@ -34,6 +34,7 @@ services:
       - PROSODY_LOG_LEVEL=info
       - PROSODY_ALLOW_REGISTRATION=true
       - PROSODY_DEVELOPMENT_MODE=true
+      - PROSODY_PASTEBIN_PATH=/paste
     ports:
       - '5222:5222'
       - '5269:5269'

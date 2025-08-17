@@ -34,6 +34,7 @@ services:
     environment:
       - PROSODY_DB_HOST=xmpp-postgres
       - PROSODY_DB_PORT=5432
+      - PROSODY_PASTEBIN_PATH=/paste
     ports:
       - '${PROSODY_C2S_PORT:-5222}:5222'
       - '${PROSODY_S2S_PORT:-5269}:5269'

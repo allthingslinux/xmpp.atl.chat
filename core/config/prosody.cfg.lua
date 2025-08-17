@@ -373,10 +373,11 @@ end
 -- Trusted proxies for X-Forwarded-For headers (WebSocket/BOSH proxies)
 trusted_proxies = {
 	"127.0.0.1", -- Local host
+	"172.18.0.0/16", -- Docker network
+	"10.0.0.0/8", -- Private network
 	-- "::1", -- Local host IPv6
 	-- Add your reverse proxy/load balancer IPs:
 	-- "192.168.1.0/24", -- Local network
-	-- "10.0.0.0/8", -- Private network
 }
 
 -- CORS support for web clients
@@ -391,14 +392,14 @@ http_cors_override = {
 }
 
 -- Enhanced HTTP security headers
--- http_headers = {
--- 	["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload",
--- 	["X-Frame-Options"] = "DENY",
--- 	["X-Content-Type-Options"] = "nosniff",
--- 	["X-XSS-Protection"] = "1; mode=block",
--- 	["Referrer-Policy"] = "strict-origin-when-cross-origin",
--- 	["Content-Security-Policy"] = "default-src 'self'",
--- }
+http_headers = {
+	["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload",
+	["X-Frame-Options"] = "DENY",
+	["X-Content-Type-Options"] = "nosniff",
+	["X-XSS-Protection"] = "1; mode=block",
+	["Referrer-Policy"] = "strict-origin-when-cross-origin",
+	["Content-Security-Policy"] = "default-src 'self'",
+}
 
 -- File upload configuration (XEP-0363: HTTP File Upload)
 http_file_share_size_limit = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_SIZE_LIMIT")) or (100 * 1024 * 1024) -- Configurable size limit
@@ -468,6 +469,8 @@ statistics_interval = Lua.os.getenv("PROSODY_STATISTICS_INTERVAL") or "manual"
 -- Access control for /metrics endpoint (security critical)
 openmetrics_allow_ips = {
 	"127.0.0.1", -- Local access
+	"172.18.0.0/16", -- Docker network
+	"10.0.0.0/8", -- Private network
 	-- "::1", -- Local IPv6 access
 }
 
@@ -696,6 +699,7 @@ description = "Multi-User Chat rooms and conferences (XEP-0045)"
 
 -- MUC-specific modules (must be loaded on MUC component)
 modules_enabled = {
+	"muc",
 	"muc_mam", -- Message Archive Management for MUC (XEP-0313)
 	"pastebin", -- Automatic pastebin for long messages (community module from prosody-modules)
 	"muc_offline_delivery", -- Offline message delivery for MUC (required for iOS push notifications)
@@ -836,6 +840,11 @@ local pastebin_path_env = Lua.os.getenv("PROSODY_PASTEBIN_PATH")
 if pastebin_path_env then
 	http_paths = http_paths or {}
 	http_paths.pastebin = pastebin_path_env
+end
+-- Default to /paste if not set
+if not pastebin_path_env then
+	http_paths = http_paths or {}
+	http_paths.pastebin = "/paste"
 end
 
 -- File upload domain
