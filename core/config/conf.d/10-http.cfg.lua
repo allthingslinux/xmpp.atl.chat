@@ -94,7 +94,7 @@ http_paths = {
 	file_share = "/upload",
 	files = "/",
 	pastebin = "/paste",
-	-- Friendly paths for BOSH and WebSocket
-	bosh = "/bosh",
-	websocket = "/ws",
+	-- Advertise defaults for maximum client compatibility
+	bosh = "/http-bind",
+	websocket = "/xmpp-websocket",
 }
