@@ -21,7 +21,7 @@ local __muc_host = Lua.os.getenv("PROSODY_MUC_HOST") or ("muc." .. __domain)
 
 disco_items = {
 	{ __muc_host, "Multi-User Chat Rooms" },
-	{ "proxy." .. __service_host, "SOCKS5 File Transfer Proxy" },
+	{ "proxy." .. __domain, "SOCKS5 File Transfer Proxy" },
 	{ __service_host, "Pastebin Service" },
 }
 
@@ -47,7 +47,7 @@ disco_expose_admins = (Lua.os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true")
 -- No dedicated upload component is used
 
 -- Proxy65 component
-Component("proxy." .. __service_host, "proxy65")
+Component("proxy." .. __domain, "proxy65")
 -- Use the domain lineage cert (wildcard covers subdomains)
 ssl = {
 	key = "certs/live/" .. __domain .. "/privkey.pem",
@@ -55,4 +55,4 @@ ssl = {
 }
 name = "SOCKS5 Proxy"
 description = "File transfer proxy service (XEP-0065)"
-proxy65_address = __service_host
+proxy65_address = "proxy." .. __domain
