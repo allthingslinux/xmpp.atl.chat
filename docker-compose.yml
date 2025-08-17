@@ -106,6 +106,7 @@ services:
     volumes:
       - ./deployment/reverse-proxy/nginx/nginx-docker.conf:/etc/nginx/nginx.conf:ro
       - ./.runtime/certs:/opt/xmpp.atl.chat/certs:ro
+      - ./static-files:/usr/share/nginx/html:ro
     depends_on:
       - xmpp-prosody
     networks:
