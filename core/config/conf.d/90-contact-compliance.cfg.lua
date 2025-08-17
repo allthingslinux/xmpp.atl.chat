@@ -20,9 +20,6 @@ contact_info = {
 	},
 }
 
-default_user_role = "prosody:user"
-default_admin_role = "prosody:admin"
-
 account_cleanup = {
 	inactive_period = 365 * 24 * 3600,
 	grace_period = 30 * 24 * 3600,
