@@ -41,10 +41,7 @@ modules_enabled = {
 	"websocket",
 	"bosh",
 	"http_files",
-	-- Web client integration
-	-- conversejs: Serve Converse.js web client at /conversejs with auto-generated config
-	-- Docs: https://modules.prosody.im/mod_conversejs.html | Project: https://conversejs.org/
-	"conversejs",
+	-- Web client integration handled by dedicated container (nginx proxy at /conversejs)
 	-- Security & privacy
 	"blocklist",
 	"private",

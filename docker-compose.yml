@@ -113,6 +113,29 @@ services:
     networks:
       - xmpp_network
 
+  # Converse.js web client (served by Nginx container)
+  xmpp-converse:
+    image: nginx:stable-alpine
+    container_name: xmpp-converse
+    hostname: xmpp-converse
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+    volumes:
+      - ./web/webclient:/usr/share/nginx/html:ro
+      - ./web/webclient/nginx-webclient.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - xmpp-prosody
+    networks:
+      - xmpp_network
+
   # ============================================================================
   # POSTGRESQL DATABASE
   # ============================================================================
