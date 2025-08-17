@@ -319,6 +319,32 @@ services:
     networks:
       - xmpp_network
 
+  # Issue certificate for PROSODY_SERVICE_HOST (e.g., xmpp.atl.chat) and its wildcard
+  xmpp-certbot-servicehost:
+    image: certbot/dns-cloudflare:latest
+    container_name: xmpp-certbot-servicehost
+    hostname: xmpp-certbot-servicehost
+    env_file:
+      - path: .env
+        required: true
+    volumes:
+      - ./.runtime/certs:/etc/letsencrypt
+      - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
+    command: >
+      certonly
+      --dns-cloudflare
+      --dns-cloudflare-credentials=/etc/letsencrypt/cloudflare-credentials.ini
+      --dns-cloudflare-propagation-seconds=60
+      --email ${LETSENCRYPT_EMAIL:-admin@example.com}
+      --agree-tos
+      --no-eff-email
+      --expand
+      --non-interactive
+      -d ${PROSODY_SERVICE_HOST:-${PROSODY_DOMAIN:-example.com}}
+      -d "*.${PROSODY_SERVICE_HOST:-${PROSODY_DOMAIN:-example.com}}"
+    networks:
+      - xmpp_network
+
   xmpp-cert-monitor:
     image: alpine:latest
     container_name: xmpp-cert-monitor
