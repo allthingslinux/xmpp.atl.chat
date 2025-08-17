@@ -68,6 +68,10 @@ COPY --from=builder /usr/bin/luarocks* /usr/bin/
 COPY scripts/setup/install-community-modules.sh /usr/local/bin/install-community-modules.sh
 RUN chmod +x /usr/local/bin/install-community-modules.sh
 
+# Copy configs early so prosodyctl has a config to read during build
+COPY core/config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua
+COPY core/config/conf.d /etc/prosody/conf.d
+
 WORKDIR /tmp
 RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     mkdir -p /usr/local/lib/prosody/community-modules && \
@@ -86,8 +90,6 @@ RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     echo "Community modules installed successfully"
 
 # --- Configs, entrypoint, and scripts ---
-COPY --chown=prosody:prosody core/config/prosody.cfg.lua /etc/prosody/prosody.cfg.lua
-COPY --chown=prosody:prosody core/config/conf.d /etc/prosody/conf.d
 COPY --chown=prosody:prosody scripts/setup/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chown=prosody:prosody scripts/maintenance/health-check.sh /usr/local/bin/health-check.sh
 COPY --chown=prosody:prosody prosody-manager /usr/local/bin/prosody-manager
