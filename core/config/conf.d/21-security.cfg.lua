@@ -14,15 +14,13 @@ allow_registration = Lua.os.getenv("PROSODY_ALLOW_REGISTRATION") == "true"
 registration_throttle_max = Lua.tonumber(Lua.os.getenv("PROSODY_REGISTRATION_THROTTLE_MAX")) or 3
 registration_throttle_period = Lua.tonumber(Lua.os.getenv("PROSODY_REGISTRATION_THROTTLE_PERIOD")) or 3600
 
-firewall_scripts = {
-	[[
-	%ZONE spam: log=debug
-	RATE: 10 (burst 15) on full-jid
-	TO: spam
-	DROP.
-	]],
-	[[
-	%LENGTH > 262144
-	BOUNCE: policy-violation (Stanza too large)
-	]],
-}
+-- Inline firewall rules for mod_firewall
+firewall_rules = [=[
+%ZONE spam: log=debug
+RATE: 10 (burst 15) on full-jid
+TO: spam
+DROP.
+
+%LENGTH > 262144
+BOUNCE: policy-violation (Stanza too large)
+]=]
