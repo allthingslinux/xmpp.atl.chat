@@ -102,8 +102,8 @@ services:
         max-file: "5"
         compress: "true"
     ports:
-      - '80:80'
-      - '443:443'
+      - '${NGINX_HTTP_PORT:-80}:80'
+      - '${NGINX_HTTPS_PORT:-443}:443'
     volumes:
       - ./deployment/reverse-proxy/nginx/nginx-docker.conf:/etc/nginx/nginx.conf:ro
       - ./.runtime/certs:/opt/xmpp.atl.chat/certs:ro
