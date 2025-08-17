@@ -98,14 +98,6 @@ RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     mkdir -p /usr/local/lib/prosody/community-modules && \
     /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info server_info cloud_notify_extensions cloud_notify_encrypted cloud_notify_filters cloud_notify_priority_tag muc_offline_delivery conversejs && \
     luarocks install luaossl && \
-    # Ensure rock-installed modules are visible under default Prosody module dir
-    mkdir -p /usr/local/lib/prosody/modules/share/lua/5.4 && \
-    if [ -d /var/lib/prosody/custom_plugins/share/lua/5.4/mod_conversejs ]; then \
-      cp -a /var/lib/prosody/custom_plugins/share/lua/5.4/mod_conversejs /usr/local/lib/prosody/modules/share/lua/5.4/; \
-    fi && \
-    if [ -f /var/lib/prosody/custom_plugins/share/lua/5.4/mod_conversejs.lua ]; then \
-      cp -a /var/lib/prosody/custom_plugins/share/lua/5.4/mod_conversejs.lua /usr/local/lib/prosody/modules/share/lua/5.4/; \
-    fi && \
     rm -rf /tmp/prosody-modules && \
     find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
     find /usr/local/lib/prosody/modules -type d -name 'luarocks' -exec rm -rf {} + && \

@@ -5,12 +5,9 @@ SRC="/tmp/prosody-modules"
 DEST="/usr/local/lib/prosody/community-modules"
 ROCKS_SERVER="https://modules.prosody.im/rocks/"
 
-# Modules that should be installed via prosodyctl (rocks) instead of raw copy
-# because they ship additional files/paths beyond a single mod_<name> directory
-# and expect the Prosody/LuaRocks layout.
-ROCKS_MODULES=(
-    "conversejs"
-)
+# Prefer hg copy for all modules by default. Leave ROCKS_MODULES empty unless
+# a module truly requires rocks layout. This avoids special handling.
+ROCKS_MODULES=()
 
 usage() {
     echo "Usage: $0 module1 [module2 ...]"
