@@ -76,11 +76,4 @@ local pastebin_trigger_env = Lua.os.getenv("PROSODY_PASTEBIN_TRIGGER")
 if pastebin_trigger_env then
 	pastebin_trigger = pastebin_trigger_env
 end
-local pastebin_path_env = Lua.os.getenv("PROSODY_PASTEBIN_PATH")
-if pastebin_path_env then
-	http_paths = http_paths or {}
-	http_paths.pastebin = pastebin_path_env
-else
-	http_paths = http_paths or {}
-	http_paths.pastebin = "/paste"
-end
+-- pastebin path configured globally in 10-http.cfg.lua (http_paths.pastebin)
