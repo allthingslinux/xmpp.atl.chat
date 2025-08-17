@@ -84,13 +84,13 @@ plugin_server = "https://modules.prosody.im/rocks/"
 -- ===============================================
 
 -- Enhanced TLS settings for modern security
-ssl = {
-	protocol = "tlsv1_2+", -- TLS 1.2+ only
-	ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
-	curve = "secp384r1", -- Strong elliptic curve
-	-- verifyext = { "lsExtKeyUsage" }, -- Disabled due to compatibility issue
-	options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
-}
+-- ssl = {
+-- 	protocol = "tlsv1_2+", -- TLS 1.2+ only
+-- 	ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
+-- 	curve = "secp384r1", -- Strong elliptic curve
+-- 	-- verifyext = { "lsExtKeyUsage" }, -- Disabled due to compatibility issue
+-- 	options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
+-- }
 
 -- Certificate configuration
 -- Using Let's Encrypt live certs mounted at /etc/prosody/certs
@@ -112,15 +112,15 @@ allow_unencrypted_plain_auth = false
 authentication = "internal_hashed" -- Secure password hashing
 
 -- SASL mechanisms (modern and secure)
-sasl_mechanisms = {
-	"SCRAM-SHA-256", -- Preferred modern method
-	"SCRAM-SHA-1", -- Fallback modern method
-	"DIGEST-MD5", -- Legacy support
-	"PLAIN", -- Only over TLS
-}
+-- sasl_mechanisms = {
+-- 	"SCRAM-SHA-256", -- Preferred modern method
+-- 	"SCRAM-SHA-1", -- Fallback modern method
+-- 	"DIGEST-MD5", -- Legacy support
+-- 	"PLAIN", -- Only over TLS
+-- }
 
 -- Channel binding support
-tls_channel_binding = true
+-- tls_channel_binding = true
 
 -- Account management (Prosody 13.0+)
 user_account_management = {
@@ -388,14 +388,14 @@ http_cors_override = {
 }
 
 -- Enhanced HTTP security headers
-http_headers = {
-	["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload",
-	["X-Frame-Options"] = "DENY",
-	["X-Content-Type-Options"] = "nosniff",
-	["X-XSS-Protection"] = "1; mode=block",
-	["Referrer-Policy"] = "strict-origin-when-cross-origin",
-	["Content-Security-Policy"] = "default-src 'self'",
-}
+-- http_headers = {
+-- 	["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload",
+-- 	["X-Frame-Options"] = "DENY",
+-- 	["X-Content-Type-Options"] = "nosniff",
+-- 	["X-XSS-Protection"] = "1; mode=block",
+-- 	["Referrer-Policy"] = "strict-origin-when-cross-origin",
+-- 	["Content-Security-Policy"] = "default-src 'self'",
+-- }
 
 -- File upload configuration (XEP-0363: HTTP File Upload)
 http_file_share_size_limit = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_SIZE_LIMIT")) or (100 * 1024 * 1024) -- Configurable size limit
@@ -944,41 +944,41 @@ compression = {
 -- EXTERNAL SERVICES (TURN/STUN)
 -- ===============================================
 
-external_services = {
-	-- Public STUN server (fallback)
-	{
-		type = "stun",
-		host = Lua.os.getenv("PROSODY_STUN_HOST") or "stun.l.google.com",
-		port = 19302,
-	},
-	-- Production STUN server
-	{
-		type = "stun",
-		transport = "udp",
-		host = "stun." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
-		port = 3478,
-	},
-	-- TURN server (UDP)
-	{
-		type = "turn",
-		transport = "udp",
-		host = "turn." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
-		port = 3478,
-		username = "prosody",
-		password = Lua.os.getenv("TURN_PASSWORD") or "changeme",
-		restricted = true,
-	},
-	-- TURN server (TCP)
-	{
-		type = "turn",
-		transport = "tcp",
-		host = "turn." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
-		port = 3478,
-		username = "prosody",
-		password = Lua.os.getenv("TURN_PASSWORD") or "changeme",
-		restricted = true,
-	},
-}
+-- external_services = {
+-- 	-- Public STUN server (fallback)
+-- 	{
+-- 		type = "stun",
+-- 		host = Lua.os.getenv("PROSODY_STUN_HOST") or "stun.l.google.com",
+-- 		port = 19302,
+-- 	},
+-- 	-- Production STUN server
+-- 	{
+-- 		type = "stun",
+-- 		transport = "udp",
+-- 		host = "stun." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
+-- 		port = 3478,
+-- 	},
+-- 	-- TURN server (UDP)
+-- 	{
+-- 		type = "turn",
+-- 		transport = "udp",
+-- 		host = "turn." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
+-- 		port = 3478,
+-- 		username = "prosody",
+-- 		password = Lua.os.getenv("TURN_PASSWORD") or "changeme",
+-- 		restricted = true,
+-- 	},
+-- 	-- TURN server (TCP)
+-- 	{
+-- 		type = "turn",
+-- 		transport = "tcp",
+-- 		host = "turn." .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
+-- 		port = 3478,
+-- 		username = "prosody",
+-- 		password = Lua.os.getenv("TURN_PASSWORD") or "changeme",
+-- 		restricted = true,
+-- 	},
+-- }
 
 -- ===============================================
 -- CONTACT INFORMATION (Compliance)
