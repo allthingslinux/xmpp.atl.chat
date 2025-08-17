@@ -79,8 +79,6 @@ RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     # cd /tmp && \
     # Install luaossl dependency for mod_cloud_notify_extensions
     luarocks install luaossl && \
-    # Also install mod_conversejs via official rocks so it is available in /usr/local/lib/prosody/modules
-    prosodyctl install --server=https://modules.prosody.im/rocks/ mod_conversejs || true && \
     rm -rf /tmp/prosody-modules && \
     # Remove any accidental luarocks directories from community and modules dirs (robust, future-proof)
     find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
