@@ -224,6 +224,23 @@ services:
     networks:
       - xmpp_network_dev
 
+  # NGINX reverse proxy for local/dev testing on standard ports
+  xmpp-nginx-dev:
+    image: nginx:stable
+    container_name: xmpp-nginx-dev
+    hostname: xmpp-nginx-dev
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+      - '8443:443'
+    volumes:
+      - ./deployment/reverse-proxy/nginx/nginx-docker.conf:/etc/nginx/nginx.conf:ro
+      - ./certs-dev:/opt/xmpp.atl.chat/certs:ro
+    depends_on:
+      xmpp-prosody:
+        condition: service_healthy
+    networks:
+      - xmpp_network_dev
   
 
 # ============================================================================

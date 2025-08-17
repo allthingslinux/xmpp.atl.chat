@@ -84,6 +84,34 @@ services:
       - xmpp_network
 
   # ============================================================================
+  # NGINX REVERSE PROXY (Production)
+  # ============================================================================
+  xmpp-nginx:
+    image: nginx:stable
+    container_name: xmpp-nginx
+    hostname: xmpp-nginx
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./deployment/reverse-proxy/nginx/nginx-docker.conf:/etc/nginx/nginx.conf:ro
+      - ./.runtime/certs:/opt/xmpp.atl.chat/certs:ro
+    depends_on:
+      - xmpp-prosody
+    networks:
+      - xmpp_network
+
+  # ============================================================================
   # POSTGRESQL DATABASE
   # ============================================================================
   xmpp-postgres:
