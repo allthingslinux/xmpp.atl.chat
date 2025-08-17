@@ -12,8 +12,14 @@ http_external_url = __http_scheme .. "://" .. __http_host .. "/"
 http_interfaces = { "0.0.0.0" }
 https_interfaces = { "0.0.0.0" }
 
--- HTTP static file serving configuration
+-- HTTP static file serving configuration (served by Prosody)
 http_files = {}
+if Lua.os.getenv("PROSODY_HTTP_FILES_DIR") then
+    http_files_dir = Lua.os.getenv("PROSODY_HTTP_FILES_DIR")
+else
+    -- Default to Prosody's web root when not set; nginx will proxy '/'
+    http_files_dir = "/usr/share/prosody/www"
+end
 
 -- Optional: Additional static file serving
 if Lua.os.getenv("PROSODY_HTTP_FILES_DIR") then
@@ -79,5 +85,11 @@ consider_bosh_secure = false
 websocket_frame_buffer_limit = 2 * 1024 * 1024
 websocket_frame_fragment_limit = 8
 websocket_max_frame_size = 1024 * 1024
+
+-- Serve uploads on main host at /file_share (nginx maps /upload -> /file_share)
+http_paths = http_paths or {}
+http_paths.file_share = "/file_share"
+-- Serve static files at root
+http_paths.files = "/"
 
 

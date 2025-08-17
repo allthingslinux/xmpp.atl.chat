@@ -41,6 +41,7 @@ modules_enabled = {
 	"http",
 	"websocket",
 	"bosh",
+	"http_files",
 	-- Security & privacy
 	"blocklist",
 	"private",
