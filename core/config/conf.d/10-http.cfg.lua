@@ -88,7 +88,7 @@ websocket_max_frame_size = 1024 * 1024
 -- Serve uploads on main host at /file_share (nginx maps /upload -> /file_share)
 -- Serve static files at root, and pastebin at /paste
 http_paths = {
-	file_share = "/file_share",
+	file_share = "/upload",
 	files = "/",
 	pastebin = "/paste",
 }
