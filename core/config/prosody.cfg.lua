@@ -1015,8 +1015,11 @@ account_cleanup = {
 	grace_period = 30 * 24 * 3600, -- 30 days notice
 }
 
-Lua.log("info", "=== PROFESSIONAL PROSODY XMPP SERVER LOADED ===")
-Lua.log("info", "Domain: %s", Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
-Lua.log("info", "All modern XMPP features enabled - Production ready!")
--- Lua.log("info", "Modules loaded: %d", #modules_enabled) -- Temporarily disabled due to scope issue
-Lua.log("info", "=== Configuration complete ===")
+-- Split configuration includes (core, http, logging, metrics, modules/security, vhosts/components, compliance)
+Include "conf.d/00-core.cfg.lua"
+Include "conf.d/10-http.cfg.lua"
+Include "conf.d/11-logging.cfg.lua"
+Include "conf.d/12-metrics.cfg.lua"
+Include "conf.d/20-modules-security.cfg.lua"
+Include "conf.d/30-vhosts-components.cfg.lua"
+Include "conf.d/90-contact-compliance.cfg.lua"
