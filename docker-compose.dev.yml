@@ -19,6 +19,7 @@ services:
     container_name: xmpp-prosody-dev
     hostname: xmpp-prosody-dev
     restart: unless-stopped
+    init: true
     env_file:
       - path: .env.dev
         required: true
@@ -56,6 +57,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+    stop_grace_period: 60s
     # Development resource limits (more generous)
     deploy:
       resources:
@@ -79,6 +81,7 @@ services:
     container_name: xmpp-postgres-dev
     hostname: xmpp-postgres-dev
     restart: unless-stopped
+    stop_grace_period: 60s
     env_file:
       - path: .env.dev
         required: true
@@ -231,6 +234,7 @@ services:
     container_name: xmpp-nginx-dev
     hostname: xmpp-nginx-dev
     restart: unless-stopped
+    init: true
     ports:
       - '8080:80'
       - '8443:443'
@@ -240,6 +244,8 @@ services:
     depends_on:
       xmpp-prosody:
         condition: service_healthy
+    stop_signal: SIGQUIT
+    stop_grace_period: 30s
     networks:
       - xmpp_network_dev
   
