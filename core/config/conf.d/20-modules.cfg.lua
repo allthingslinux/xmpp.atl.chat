@@ -64,7 +64,7 @@ modules_enabled = {
 local __turn_secret = Lua.os.getenv("TURN_SECRET")
 if __turn_secret then
 	-- Enable module dynamically
-	table.insert(modules_enabled, "turn_external")
+	Lua.table.insert(modules_enabled, "turn_external")
 	-- Configure options
 	turn_external_secret = __turn_secret
 	local __turn_host = Lua.os.getenv("TURN_DOMAIN")
