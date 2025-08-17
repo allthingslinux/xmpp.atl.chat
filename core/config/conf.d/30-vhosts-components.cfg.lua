@@ -4,7 +4,6 @@
 
 -- Main domain configuration
 VirtualHost(Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
-authentication = "internal_hashed"
 
 -- Domain TLS (atl.chat lineage by default)
 ssl = {
@@ -20,7 +19,7 @@ disco_items = {
 	{ "muc." .. __service_host, "Multi-User Chat Rooms" },
 	{ "upload." .. __service_host, "HTTP File Upload" },
 	{ "proxy." .. __service_host, "SOCKS5 File Transfer Proxy" },
-	{ (Lua.os.getenv("PROSODY_HTTP_HOST") or __domain), "Pastebin Service" },
+	{ __service_host, "Pastebin Service" },
 }
 
 local disco_items_env = Lua.os.getenv("PROSODY_DISCO_ITEMS")
@@ -50,7 +49,7 @@ ssl = {
 name = "File Upload Service"
 description = "HTTP file upload and sharing service (XEP-0363)"
 
--- Proxy65 component   
+-- Proxy65 component
 Component("proxy." .. __service_host, "proxy65")
 ssl = {
 	key = "certs/live/" .. __service_host .. "/privkey.pem",
@@ -59,5 +58,3 @@ ssl = {
 name = "SOCKS5 Proxy"
 description = "File transfer proxy service (XEP-0065)"
 proxy65_address = __service_host
-
-
