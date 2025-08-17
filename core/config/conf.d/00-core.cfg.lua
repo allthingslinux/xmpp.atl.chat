@@ -41,6 +41,9 @@ network_settings = {
 	read_timeout = 840,
 }
 
+-- Use libevent-backed network loop for high concurrency
+network_backend = "event"
+
 -- ===============================================
 -- PLUGIN INSTALLER CONFIGURATION
 -- ===============================================
