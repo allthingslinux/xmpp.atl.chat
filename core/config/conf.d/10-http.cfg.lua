@@ -50,7 +50,8 @@ http_headers = {
 	["X-Content-Type-Options"] = "nosniff",
 	["X-XSS-Protection"] = "1; mode=block",
 	["Referrer-Policy"] = "strict-origin-when-cross-origin",
-	["Content-Security-Policy"] = "default-src 'self'",
+	-- Allow Converse.js CDN and XMPP endpoints for mod_conversejs
+	["Content-Security-Policy"] = "default-src 'self'; script-src 'self' https://cdn.conversejs.org 'unsafe-inline'; style-src 'self' https://cdn.conversejs.org 'unsafe-inline'; img-src 'self' data: https://cdn.conversejs.org; connect-src 'self' https: wss:; frame-ancestors 'none'",
 }
 
 -- File upload configuration (XEP-0363: HTTP File Upload)
@@ -97,4 +98,6 @@ http_paths = {
 	-- Advertise defaults for maximum client compatibility
 	bosh = "/http-bind",
 	websocket = "/xmpp-websocket",
+	-- Converse.js base path
+	conversejs = "/conversejs",
 }

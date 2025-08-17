@@ -75,6 +75,7 @@ These modules from the [Prosody Community Modules](https://modules.prosody.im/) 
 - **`mod_bosh`** - BOSH HTTP binding (XEP-0206)
 - **`mod_http_files`** - Static file serving
 - **`mod_admin_web`** - Web-based administration
+- **`mod_conversejs`** - Serves the Converse.js web client at `/conversejs` with auto-generated config matching the local `VirtualHost`. Uses BOSH/WebSocket automatically and supports templating and CDN overrides. See [module docs](https://modules.prosody.im/mod_conversejs.html) and [Converse.js](https://conversejs.org/).
 
 ### Voice/Video & Real-time
 
