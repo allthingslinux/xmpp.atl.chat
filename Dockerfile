@@ -83,7 +83,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/health-check.sh /usr/lo
 
 # --- User, permissions, and entrypoint ---
 RUN groupadd -r prosody && useradd -r -g prosody prosody && \
-    mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody /certs && \
+    mkdir -p /var/lib/prosody /var/log/prosody /var/run/prosody /certs /usr/local/lib/prosody/community-modules && \
     chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs /usr/local/lib/prosody/community-modules
 
 # --- Ownership for configuration ---
