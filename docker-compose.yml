@@ -371,7 +371,6 @@ services:
     command: >
       sh -c "
         apk add --no-cache bash curl jq openssl docker-cli &&
-        chmod +x /app/scripts/cert-monitor-runner.sh &&
         /app/scripts/cert-monitor-runner.sh
       "
     stop_grace_period: 10s
