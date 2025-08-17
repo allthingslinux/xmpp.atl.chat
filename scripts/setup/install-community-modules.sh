@@ -3,6 +3,14 @@ set -euo pipefail
 
 SRC="/tmp/prosody-modules"
 DEST="/usr/local/lib/prosody/community-modules"
+ROCKS_SERVER="https://modules.prosody.im/rocks/"
+
+# Modules that should be installed via prosodyctl (rocks) instead of raw copy
+# because they ship additional files/paths beyond a single mod_<name> directory
+# and expect the Prosody/LuaRocks layout.
+ROCKS_MODULES=(
+    "conversejs"
+)
 
 usage() {
     echo "Usage: $0 module1 [module2 ...]"
@@ -21,8 +29,8 @@ copy_module() {
     local srcdir="$SRC/mod_$modname"
     local dstdir="$DEST/mod_$modname"
     if [[ ! -d "$srcdir" ]]; then
-        echo "[ERROR] Module not found: $srcdir" >&2
-        exit 2
+        echo "[WARN] Module not found in source tree: $srcdir"
+        return 2
     fi
     echo "Copying $modname ..."
     rsync -a --exclude='lib/luarocks' "$srcdir" "$DEST/"
@@ -38,8 +46,34 @@ copy_module() {
     fi
 }
 
+install_via_rocks() {
+    local modname="$1"
+    echo "Installing $modname via prosodyctl rocks ..."
+    prosodyctl install --server="$ROCKS_SERVER" "mod_$modname" || {
+        echo "[ERROR] Failed to install mod_$modname via rocks" >&2
+        exit 3
+    }
+}
+
+is_in_array() {
+    local needle="$1"; shift
+    local item
+    for item in "$@"; do
+        [[ "$item" == "$needle" ]] && return 0
+    done
+    return 1
+}
+
 for mod in "$@"; do
-    copy_module "$mod"
+    if is_in_array "$mod" "${ROCKS_MODULES[@]}"; then
+        install_via_rocks "$mod"
+        continue
+    fi
+
+    if ! copy_module "$mod"; then
+        echo "[INFO] Falling back to rocks installation for $mod ..."
+        install_via_rocks "$mod"
+    fi
 done
 
 echo "All requested modules installed."
