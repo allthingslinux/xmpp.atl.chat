@@ -4,12 +4,15 @@
 
 local __domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
 local __service_host = Lua.os.getenv("PROSODY_SERVICE_HOST") or __domain
+-- MUC host override (default: muc.<domain>)
+local __muc_host = Lua.os.getenv("PROSODY_MUC_HOST") or ("muc." .. __domain)
 
 -- MUC component
-Component("muc." .. __service_host, "muc")
+Component(__muc_host, "muc")
+-- Use the domain lineage cert (wildcard covers muc.*)
 ssl = {
-	key = "certs/live/" .. __service_host .. "/privkey.pem",
-	certificate = "certs/live/" .. __service_host .. "/fullchain.pem",
+	key = "certs/live/" .. __domain .. "/privkey.pem",
+	certificate = "certs/live/" .. __domain .. "/fullchain.pem",
 }
 name = "Multi-User Chat"
 description = "Multi-User Chat rooms and conferences (XEP-0045)"

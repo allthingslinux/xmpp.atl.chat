@@ -14,9 +14,11 @@ ssl = {
 -- Discovery items and service host mapping
 local __domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
 local __service_host = Lua.os.getenv("PROSODY_SERVICE_HOST") or __domain
+-- Allow MUC to live on a different host (e.g., muc.atl.chat)
+local __muc_host = Lua.os.getenv("PROSODY_MUC_HOST") or ("muc." .. __domain)
 
-disco_items = {
-	{ "muc." .. __service_host, "Multi-User Chat Rooms" },
+	disco_items = {
+	{ __muc_host, "Multi-User Chat Rooms" },
 	{ "upload." .. __service_host, "HTTP File Upload" },
 	{ "proxy." .. __service_host, "SOCKS5 File Transfer Proxy" },
 	{ __service_host, "Pastebin Service" },
@@ -42,18 +44,20 @@ disco_expose_admins = (Lua.os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true")
 
 -- Upload component
 Component("upload." .. __service_host, "http_file_share")
+-- Use the domain lineage cert (wildcard covers subdomains)
 ssl = {
-	key = "certs/live/" .. __service_host .. "/privkey.pem",
-	certificate = "certs/live/" .. __service_host .. "/fullchain.pem",
+	key = "certs/live/" .. __domain .. "/privkey.pem",
+	certificate = "certs/live/" .. __domain .. "/fullchain.pem",
 }
 name = "File Upload Service"
 description = "HTTP file upload and sharing service (XEP-0363)"
 
--- Proxy65 component
+-- Proxy65 component   
 Component("proxy." .. __service_host, "proxy65")
+-- Use the domain lineage cert (wildcard covers subdomains)
 ssl = {
-	key = "certs/live/" .. __service_host .. "/privkey.pem",
-	certificate = "certs/live/" .. __service_host .. "/fullchain.pem",
+	key = "certs/live/" .. __domain .. "/privkey.pem",
+	certificate = "certs/live/" .. __domain .. "/fullchain.pem",
 }
 name = "SOCKS5 Proxy"
 description = "File transfer proxy service (XEP-0065)"
