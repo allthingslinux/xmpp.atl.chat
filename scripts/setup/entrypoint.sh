@@ -337,6 +337,15 @@ main() {
         chmod 640 "${PROSODY_CONFIG_FILE}" 2> /dev/null || true
     fi
 
+    # If a mounted conf.d exists, sync it into /etc/prosody/conf.d so Include() works
+    if [[ -d "/etc/prosody/config/conf.d" ]]; then
+        log_info "Detected mounted conf.d include directory; syncing to /etc/prosody/conf.d"
+        mkdir -p "/etc/prosody/conf.d"
+        rsync -a --delete "/etc/prosody/config/conf.d/" "/etc/prosody/conf.d/"
+        chown -R root:prosody "/etc/prosody/conf.d" 2> /dev/null || true
+        find /etc/prosody/conf.d -type f -name '*.lua' -exec chmod 640 {} + 2> /dev/null || true
+    fi
+
     # Environment and setup
     validate_environment
     setup_directories
