@@ -10,6 +10,9 @@ plugin_paths = {
 
 plugin_server = "https://modules.prosody.im/rocks/"
 
+-- Ensure installer writes to image-owned path (not the /var/lib volume)
+installer_plugin_path = "/usr/local/lib/prosody/community-modules"
+
 modules_enabled = {
 	-- ===============================================
 	-- CORE PROTOCOL MODULES (Required)
