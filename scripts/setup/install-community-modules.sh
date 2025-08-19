@@ -26,7 +26,6 @@ mkdir -p "$DEST"
 copy_module() {
     local modname="$1"
     local srcdir="$SRC/mod_$modname"
-    local dstdir="$DEST/mod_$modname"
     if [[ ! -d "$srcdir" ]]; then
         echo "[WARN] Module not found in source tree: $srcdir"
         return 2
