@@ -11,10 +11,6 @@ group = "prosody"
 server_name = "atl.chat"
 admins = { "admin@atl.chat" }
 
--- Networking moved to `05-network.cfg.lua` for clarity
-
--- Security settings moved to `21-security.cfg.lua`
-
 -- ===============================================
 -- DATA STORAGE
 -- ===============================================

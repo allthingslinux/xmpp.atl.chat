@@ -130,14 +130,7 @@ http_file_share_size_limit = 100 * 1024 * 1024 -- 100MB per file
 http_file_share_daily_quota = 1024 * 1024 * 1024 -- 1GB daily quota per user
 http_file_share_expire_after = 30 * 24 * 3600 -- 30 days expiration
 http_file_share_path = "/var/lib/prosody/http_file_share"
-
--- Optional global quota via env var
-do
-    local q = os.getenv and os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") or nil
-    if q then
-        http_file_share_global_quota = tonumber(q)
-    end
-end
+http_file_share_global_quota = 10 * 1024 * 1024 * 1024 -- 10GB global quota
 
 -- BOSH/WebSocket tuning
 bosh_max_inactivity = 60
@@ -147,9 +140,6 @@ bosh_max_wait = 120
 bosh_session_timeout = 300
 bosh_hold_timeout = 60
 bosh_window = 5
--- From Prosody 0.12+, X-Forwarded-Proto from trusted proxies is honored,
--- so consider_bosh_secure is generally unnecessary.
-
 websocket_frame_buffer_limit = 2 * 1024 * 1024
 websocket_frame_fragment_limit = 8
 websocket_max_frame_size = 1024 * 1024
