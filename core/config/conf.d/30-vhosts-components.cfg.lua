@@ -19,8 +19,8 @@ local __muc_host = "muc." .. __base_domain  -- muc.atl.chat
 local __proxy_host = "proxy." .. __base_domain  -- proxy.atl.chat
 
 disco_items = {
-	-- { __muc_host, "Multi-User Chat Rooms" },
-	-- { "proxy." .. __domain, "SOCKS5 File Transfer Proxy" },
+	{ __muc_host, "Multi-User Chat Rooms" },
+	{ __proxy_host, "SOCKS5 File Transfer Proxy" },
 }
 
 local disco_items_env = Lua.os.getenv("PROSODY_DISCO_ITEMS")
