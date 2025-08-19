@@ -121,7 +121,7 @@ EXPOSE 5222 5223 5269 5270 5280 5281 5347
 
 # --- Healthcheck, volumes, environment, and entrypoint ---
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 CMD /usr/local/bin/health-check.sh
-VOLUME ["/var/lib/prosody", "/var/log/prosody", "/certs", "/usr/local/lib/prosody/community-modules"]
+VOLUME ["/var/lib/prosody", "/var/log/prosody", "/certs"]
 
 ENV __FLUSH_LOG=yes \
     PROSODY_LOG_LEVEL=info \
