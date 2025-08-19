@@ -17,12 +17,13 @@ ssl = {
 name = "Multi-User Chat"
 description = "Multi-User Chat rooms and conferences (XEP-0045)"
 
--- MUC-specific modules
+-- MUC-specific modules (simplified for testing)
 modules_enabled = {
 	"muc",
 	"muc_mam",
-	"pastebin",
-	"muc_offline_delivery",
+	-- Temporarily disable community modules for testing:
+	-- "pastebin",
+	-- "muc_offline_delivery",
 }
 
 -- General MUC configuration
