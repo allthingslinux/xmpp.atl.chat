@@ -80,6 +80,14 @@ network_settings = {
 }
 
 -- ===============================================
+-- Proxy65 (XEP-0065) port/interface overrides
+-- ===============================================
+-- Global port/interface options must be set here (not under Component)
+-- Docs: https://prosody.im/doc/modules/mod_proxy65
+proxy65_ports = { 5000 }
+proxy65_interfaces = { "*", "::" }
+
+-- ===============================================
 -- HTTP SERVICES
 -- ===============================================
 -- HTTP server-level options and module configuration
