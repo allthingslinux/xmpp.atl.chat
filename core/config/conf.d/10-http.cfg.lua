@@ -2,12 +2,9 @@
 -- HTTP SERVICES
 -- ===============================================
 
--- HTTP server settings
--- Prefer explicit HTTP host, then service host, then domain
-local __http_host = Lua.os.getenv("PROSODY_HTTP_HOST")
-	or Lua.os.getenv("PROSODY_SERVICE_HOST")
-	or (Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
-local __http_scheme = Lua.os.getenv("PROSODY_HTTP_SCHEME") or "https"
+-- HTTP server settings (hardcoded)
+local __http_host = "xmpp.atl.chat"
+local __http_scheme = "https"
 http_default_host = __http_host
 http_external_url = __http_scheme .. "://" .. __http_host .. "/"
 
@@ -16,19 +13,11 @@ http_interfaces = { "0.0.0.0" }
 https_interfaces = { "0.0.0.0" }
 
 -- HTTP static file serving configuration (served by Prosody)
-if Lua.os.getenv("PROSODY_HTTP_FILES_DIR") then
-	http_files_dir = Lua.os.getenv("PROSODY_HTTP_FILES_DIR")
-else
-	-- Default to Prosody's web root when not set; nginx will proxy '/'
-	http_files_dir = "/usr/share/prosody/www"
-end
+-- Use Prosody's web root; Nginx proxies '/'
+http_files_dir = "/usr/share/prosody/www"
 
 -- Optional: Additional static file serving
-if Lua.os.getenv("PROSODY_HTTP_FILES_DIR") then
-	http_files_dir = Lua.os.getenv("PROSODY_HTTP_FILES_DIR")
-	http_index_files = { "index.html", "index.htm" }
-	http_dir_listing = (Lua.os.getenv("PROSODY_HTTP_DIR_LISTING") == "true")
-end
+-- No extra static directory override by default
 
 -- Trusted proxies for X-Forwarded-For headers (WebSocket/BOSH proxies)
 trusted_proxies = {
@@ -66,14 +55,7 @@ if Lua.os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") then
 end
 
 -- Optional: Allowed file types restriction
-local upload_types_env = Lua.os.getenv("PROSODY_UPLOAD_ALLOWED_TYPES")
-if upload_types_env then
-	local types = {}
-	for type in Lua.string.gmatch(upload_types_env, "([^,]+)") do
-		Lua.table.insert(types, type:match("^%s*(.-)%s*$"))
-	end
-	http_file_share_allowed_file_types = types
-end
+-- No explicit file type restriction by default
 
 -- BOSH/WebSocket tuning
 bosh_max_inactivity = 60

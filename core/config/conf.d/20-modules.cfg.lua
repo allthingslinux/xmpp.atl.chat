@@ -61,21 +61,4 @@ modules_enabled = {
 	"welcome",
 }
 
--- XEP-0215 External Service Discovery (TURN/STUN)
--- Enable only when TURN_SECRET is provided to avoid startup errors
-local __turn_secret = Lua.os.getenv("TURN_SECRET")
-if __turn_secret then
-	-- Enable module dynamically
-	Lua.table.insert(modules_enabled, "turn_external")
-	-- Configure options
-	turn_external_secret = __turn_secret
-	local __turn_host = Lua.os.getenv("TURN_DOMAIN")
-	if __turn_host then
-		turn_external_host = __turn_host
-	end
-	local __turn_port = Lua.tonumber(Lua.os.getenv("TURN_PORT"))
-	if __turn_port then
-		turn_external_port = __turn_port
-	end
-	turn_external_ttl = Lua.tonumber(Lua.os.getenv("TURN_TTL")) or 86400 -- 24h
-end
+-- TURN/STUN disabled by default in barebones config

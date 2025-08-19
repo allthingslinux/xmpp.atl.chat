@@ -7,24 +7,22 @@ pidfile = "/var/run/prosody/prosody.pid"
 user = "prosody"
 group = "prosody"
 
--- Server identity
-server_name = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
-admins = { Lua.os.getenv("PROSODY_ADMIN_JID") or "admin@localhost" }
+-- Server identity (hardcoded)
+server_name = "atl.chat"
+admins = { "admin@atl.chat" }
 
 -- ===============================================
 -- NETWORK AND CONNECTION SETTINGS
 -- ===============================================
 
--- Standard XMPP ports (RFC 6120/6121)
-c2s_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_C2S_PORT")) or 5222 }
-c2s_direct_tls_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_C2S_DIRECT_TLS_PORT")) or 5223 }
-s2s_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_S2S_PORT")) or 5269 }
-s2s_direct_tls_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_S2S_DIRECT_TLS_PORT")) or 5270 }
+c2s_ports = { 5222 }
+c2s_direct_tls_ports = { 5223 }
+s2s_ports = { 5269 }
+s2s_direct_tls_ports = { 5270 }
 component_ports = { 5347 }
 
--- HTTP services
-http_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTP_PORT")) or 5280 }
-https_ports = { Lua.tonumber(Lua.os.getenv("PROSODY_HTTPS_PORT")) or 5281 }
+http_ports = { 5280 }
+https_ports = { 5281 }
 
 -- Interface bindings (IPv4 only)
 interfaces = { "0.0.0.0" }
@@ -94,15 +92,15 @@ user_account_management = {
 -- STORAGE CONFIGURATION
 -- ===============================================
 
-default_storage = Lua.os.getenv("PROSODY_STORAGE") or "sql"
+default_storage = "sql"
 
 sql = {
-	driver = Lua.os.getenv("PROSODY_DB_DRIVER") or "PostgreSQL",
-	database = Lua.os.getenv("PROSODY_DB_NAME") or "prosody",
-	username = Lua.os.getenv("PROSODY_DB_USER") or "prosody",
-	password = Lua.os.getenv("PROSODY_DB_PASSWORD") or "changeme",
-	host = Lua.os.getenv("PROSODY_DB_HOST") or "localhost",
-	port = Lua.tonumber(Lua.os.getenv("PROSODY_DB_PORT")) or 5432,
+	driver = "PostgreSQL",
+	database = "prosody",
+	username = "prosody",
+	password = "changeme",
+	host = "xmpp-postgres",
+	port = 5432,
 	pool_size = 10,
 	pool_overflow = 20,
 	pool_timeout = 30,
@@ -131,42 +129,20 @@ storage = {
 -- MESSAGE ARCHIVE MANAGEMENT (GLOBAL)
 -- ===============================================
 
-archive_expires_after = Lua.os.getenv("PROSODY_ARCHIVE_EXPIRES_AFTER") or "1y"
+archive_expires_after = "1y"
 
-local archive_policy_env = Lua.os.getenv("PROSODY_ARCHIVE_POLICY")
-if archive_policy_env == "false" then
-	default_archive_policy = false
-elseif archive_policy_env == "true" or archive_policy_env == "always" then
-	default_archive_policy = true
-elseif archive_policy_env == "roster" then
-	default_archive_policy = "roster"
-elseif archive_policy_env == "never" then
-	default_archive_policy = "never"
-else
-	default_archive_policy = true
-end
+default_archive_policy = true
 
-max_archive_query_results = Lua.tonumber(Lua.os.getenv("PROSODY_ARCHIVE_MAX_QUERY_RESULTS")) or 250
-archive_store = Lua.os.getenv("PROSODY_ARCHIVE_STORE") or "archive"
-mam_smart_enable = (Lua.os.getenv("PROSODY_MAM_SMART_ENABLE") == "true")
+max_archive_query_results = 250
+archive_store = "archive"
+mam_smart_enable = false
 
 dont_archive_namespaces = {
 	"http://jabber.org/protocol/chatstates",
 	"urn:xmpp:jingle-message:0",
 }
 
-local archive_exclude_env = Lua.os.getenv("PROSODY_ARCHIVE_EXCLUDE_NAMESPACES")
-if archive_exclude_env then
-	local custom_namespaces = {}
-	for ns in Lua.string.gmatch(archive_exclude_env, "([^,]+)") do
-		Lua.table.insert(custom_namespaces, ns:match("^%s*(.-)%s*$"))
-	end
-	for _, ns in Lua.ipairs(custom_namespaces) do
-		Lua.table.insert(dont_archive_namespaces, ns)
-	end
-end
-
-archive_compression = (Lua.os.getenv("PROSODY_ARCHIVE_COMPRESSION") ~= "false")
+archive_compression = true
 
 -- ===============================================
 -- MOBILE AND CLIENT OPTIMIZATIONS

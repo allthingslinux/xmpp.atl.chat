@@ -2,10 +2,10 @@
 -- MUC (Multi-User Chat) Component and Settings
 -- ===============================================
 
--- Simplified MUC configuration - main host xmpp.atl.chat, components on *.atl.chat
-local __base_domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"  -- atl.chat
-local __main_host = Lua.os.getenv("PROSODY_HTTP_HOST") or ("xmpp." .. __base_domain)  -- xmpp.atl.chat
-local __muc_host = "muc." .. __base_domain  -- muc.atl.chat (keeps existing DNS)
+-- Simplified MUC configuration (hardcoded)
+local __base_domain = "atl.chat"
+local __main_host = "xmpp." .. __base_domain
+local __muc_host = "muc." .. __base_domain
 
 -- MUC component (simplified)
 Component(__muc_host, "muc")

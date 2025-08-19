@@ -2,8 +2,8 @@
 -- VIRTUAL HOSTS + COMPONENTS
 -- ===============================================
 
--- Simplified single-domain configuration (like most successful deployments)
-local __base_domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"  -- atl.chat
+-- Simplified single-domain configuration (hardcoded)
+local __base_domain = "atl.chat"
 
 -- Single VirtualHost for everything (simple and works)
 VirtualHost(__base_domain)
@@ -14,9 +14,9 @@ ssl = {
 }
 
 -- Discovery items and service host mapping (simplified, keep components on *.atl.chat)
-local __muc_host = "muc." .. __base_domain	 -- muc.atl.chat
-local __upload_host = "upload." .. __base_domain	 -- upload.atl.chat
-local __proxy_host = "proxy." .. __base_domain	 -- proxy.atl.chat
+local __muc_host = "muc." .. __base_domain -- muc.atl.chat
+local __upload_host = "upload." .. __base_domain -- upload.atl.chat
+local __proxy_host = "proxy." .. __base_domain -- proxy.atl.chat
 
 -- Automatic discovery: Prosody links direct subdomains (muc/upload/proxy) to the
 -- main VirtualHost automatically. Avoid manual duplicates. Only define
@@ -32,7 +32,7 @@ if disco_items_env then
 	end
 end
 
-disco_expose_admins = (Lua.os.getenv("PROSODY_DISCO_EXPOSE_ADMINS") == "true")
+disco_expose_admins = false
 
 -- MUC moved to conf.d/31-muc.cfg.lua
 
@@ -49,7 +49,7 @@ http_external_url = "https://" .. __upload_host .. "/"
 
 -- Proxy65 component (simplified)
 Component(__proxy_host, "proxy65")
--- Use the wildcard certificate 
+-- Use the wildcard certificate
 ssl = {
 	key = "certs/live/" .. __base_domain .. "/privkey.pem",
 	certificate = "certs/live/" .. __base_domain .. "/fullchain.pem",

@@ -8,11 +8,11 @@ limits = {
 	http_upload = { rate = "2mb/s", burst = "10mb" },
 }
 
-max_connections_per_ip = Lua.tonumber(Lua.os.getenv("PROSODY_MAX_CONNECTIONS_PER_IP")) or 5
+max_connections_per_ip = 5
 
-allow_registration = Lua.os.getenv("PROSODY_ALLOW_REGISTRATION") == "true"
-registration_throttle_max = Lua.tonumber(Lua.os.getenv("PROSODY_REGISTRATION_THROTTLE_MAX")) or 3
-registration_throttle_period = Lua.tonumber(Lua.os.getenv("PROSODY_REGISTRATION_THROTTLE_PERIOD")) or 3600
+allow_registration = false
+registration_throttle_max = 3
+registration_throttle_period = 3600
 
 -- Inline firewall rules for mod_firewall
 firewall_rules = [=[
