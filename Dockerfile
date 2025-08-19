@@ -115,8 +115,6 @@ RUN mkdir -p /usr/local/lib/prosody/community-modules && \
     mod_reload_modules \
     mod_pubsub_subscription && \
     CFLAGS="-Wno-deprecated-declarations" luarocks install luaossl && \
-    find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
-    find /usr/local/lib/prosody/modules -type d -name 'luarocks' -exec rm -rf {} + && \
     echo "Community modules installed successfully"
 
 # --- Expose all relevant ports ---
