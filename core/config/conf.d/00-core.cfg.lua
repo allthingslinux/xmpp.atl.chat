@@ -11,34 +11,7 @@ group = "prosody"
 server_name = "atl.chat"
 admins = { "admin@atl.chat" }
 
--- ===============================================
--- NETWORK CONFIGURATION
--- ===============================================
-
--- Standard XMPP ports
-c2s_ports = { 5222 } -- Client-to-server connections
-c2s_direct_tls_ports = { 5223 } -- Direct TLS C2S connections
-s2s_ports = { 5269 } -- Server-to-server connections
-s2s_direct_tls_ports = { 5270 } -- Direct TLS S2S connections
-component_ports = { 5347 } -- Component connections
-
--- HTTP ports for web services
-http_ports = { 5280 } -- HTTP (insecure)
-https_ports = { 5281 } -- HTTPS (secure)
-
--- Network interfaces
-interfaces = { "0.0.0.0" } -- All IPv4 interfaces
-local_interfaces = { "127.0.0.1" } -- Localhost only
-external_addresses = {} -- Auto-detect external IP
-
--- IPv6 configuration
-use_ipv6 = false -- Disabled for simplicity
-
--- Network performance settings
-network_backend = "event" -- Use libevent for high concurrency
-network_settings = {
-	read_timeout = 840, -- 14 minutes (proxy timeouts should be 900+)
-}
+-- Networking moved to `05-network.cfg.lua` for clarity
 
 -- ===============================================
 -- TLS/SSL SECURITY
@@ -158,48 +131,48 @@ storage = {
 -- ===============================================
 
 -- Archive retention and policy
-archive_expires_after = "1y" -- Keep messages for 1 year
-default_archive_policy = true -- Archive all conversations by default
-archive_compression = true -- Compress archived messages
-archive_store = "archive" -- Storage backend for archives
+-- archive_expires_after = "1y" -- Keep messages for 1 year
+-- default_archive_policy = true -- Archive all conversations by default
+-- archive_compression = true -- Compress archived messages
+-- archive_store = "archive" -- Storage backend for archives
 
 -- Query limits
-max_archive_query_results = 250 -- Limit results per query
-mam_smart_enable = false -- Disable smart archiving
+-- max_archive_query_results = 250 -- Limit results per query
+-- mam_smart_enable = false -- Disable smart archiving
 
 -- Namespaces to exclude from archiving
-dont_archive_namespaces = {
-	"http://jabber.org/protocol/chatstates", -- Chat state notifications
-	"urn:xmpp:jingle-message:0", -- Jingle messages
-}
+-- dont_archive_namespaces = {
+-- 	"http://jabber.org/protocol/chatstates", -- Chat state notifications
+-- 	"urn:xmpp:jingle-message:0", -- Jingle messages
+-- }
 
 -- ===============================================
 -- MOBILE CLIENT OPTIMIZATIONS
 -- ===============================================
 
 -- Client detection patterns
-mobile_client_patterns = {
-	"Conversations",
-	"ChatSecure",
-	"Monal",
-	"Siskin",
-	"Xabber",
-	"Blabber",
-}
+-- mobile_client_patterns = {
+-- 	"Conversations",
+-- 	"ChatSecure",
+-- 	"Monal",
+-- 	"Siskin",
+-- 	"Xabber",
+-- 	"Blabber",
+-- }
 
 -- Client State Indication (XEP-0352)
-csi_config = {
-	enabled = true,
-	default_state = "active",
-	queue_presence = true, -- Queue presence updates when inactive
-	queue_chatstates = true, -- Queue chat state notifications
-	queue_pep = false, -- Don't queue PEP events
-	delivery_delay = 30, -- Delay before batching (seconds)
-	max_delay = 300, -- Maximum delay (5 minutes)
-	batch_stanzas = true, -- Batch multiple stanzas
-	max_batch_size = 10, -- Maximum stanzas per batch
-	batch_timeout = 60, -- Batch timeout (seconds)
-}
+-- csi_config = {
+-- 	enabled = true,
+-- 	default_state = "active",
+-- 	queue_presence = true, -- Queue presence updates when inactive
+-- 	queue_chatstates = true, -- Queue chat state notifications
+-- 	queue_pep = false, -- Don't queue PEP events
+-- 	delivery_delay = 30, -- Delay before batching (seconds)
+-- 	max_delay = 300, -- Maximum delay (5 minutes)
+-- 	batch_stanzas = true, -- Batch multiple stanzas
+-- 	max_batch_size = 10, -- Maximum stanzas per batch
+-- 	batch_timeout = 60, -- Batch timeout (seconds)
+-- }
 
 -- Stream Management (XEP-0198)
 smacks_config = {
