@@ -94,7 +94,7 @@ sql = {
 	driver = "PostgreSQL",
 	database = "prosody",
 	username = "prosody",
-	password = "changeme", -- TODO: Use environment variable
+	password = "ChangeMe123!", -- TODO: Use environment variable
 	host = "xmpp-postgres",
 	port = 5432,
 
