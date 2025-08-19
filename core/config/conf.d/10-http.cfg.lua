@@ -44,10 +44,10 @@ http_headers = {
 }
 
 -- File upload configuration (XEP-0363: HTTP File Upload)
-http_file_share_size_limit = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_SIZE_LIMIT")) or (100 * 1024 * 1024)
-http_file_share_daily_quota = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_DAILY_QUOTA")) or (1024 * 1024 * 1024)
-http_file_share_expire_after = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_EXPIRE_AFTER")) or (30 * 24 * 3600)
-http_file_share_path = Lua.os.getenv("PROSODY_UPLOAD_PATH") or "/var/lib/prosody/http_file_share"
+http_file_share_size_limit = 100 * 1024 * 1024 -- 100MB per file
+http_file_share_daily_quota = 1024 * 1024 * 1024 -- 1GB daily quota per user
+http_file_share_expire_after = 30 * 24 * 3600 -- 30 days expiration
+http_file_share_path = "/var/lib/prosody/http_file_share" -- Storage path for uploads
 
 -- Optional: Global quota (total storage limit across all users)
 if Lua.os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") then

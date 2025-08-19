@@ -7,52 +7,44 @@ pidfile = "/var/run/prosody/prosody.pid"
 user = "prosody"
 group = "prosody"
 
--- Server identity (hardcoded)
+-- Server identity
 server_name = "atl.chat"
 admins = { "admin@atl.chat" }
 
 -- ===============================================
--- NETWORK AND CONNECTION SETTINGS
+-- NETWORK CONFIGURATION
 -- ===============================================
 
-c2s_ports = { 5222 }
-c2s_direct_tls_ports = { 5223 }
-s2s_ports = { 5269 }
-s2s_direct_tls_ports = { 5270 }
-component_ports = { 5347 }
+-- Standard XMPP ports
+c2s_ports = { 5222 } -- Client-to-server connections
+c2s_direct_tls_ports = { 5223 } -- Direct TLS C2S connections
+s2s_ports = { 5269 } -- Server-to-server connections
+s2s_direct_tls_ports = { 5270 } -- Direct TLS S2S connections
+component_ports = { 5347 } -- Component connections
 
-http_ports = { 5280 }
-https_ports = { 5281 }
+-- HTTP ports for web services
+http_ports = { 5280 } -- HTTP (insecure)
+https_ports = { 5281 } -- HTTPS (secure)
 
--- Interface bindings (IPv4 only)
-interfaces = { "0.0.0.0" }
-local_interfaces = { "127.0.0.1" }
+-- Network interfaces
+interfaces = { "0.0.0.0" } -- All IPv4 interfaces
+local_interfaces = { "127.0.0.1" } -- Localhost only
+external_addresses = {} -- Auto-detect external IP
 
-external_addresses = {}
+-- IPv6 configuration
+use_ipv6 = false -- Disabled for simplicity
 
--- IPv6 support (disabled)
-use_ipv6 = false
-
--- Network timeouts (critical for WebSocket proxies)
--- Proxy timeouts should be higher than this (900+ seconds)
+-- Network performance settings
+network_backend = "event" -- Use libevent for high concurrency
 network_settings = {
-	read_timeout = 840,
+	read_timeout = 840, -- 14 minutes (proxy timeouts should be 900+)
 }
 
--- Use libevent-backed network loop for high concurrency
-network_backend = "event"
-
 -- ===============================================
--- PLUGIN INSTALLER CONFIGURATION
+-- TLS/SSL SECURITY
 -- ===============================================
 
-plugin_paths = { "/usr/local/lib/prosody/community-modules", "/var/lib/prosody/custom_plugins" }
-plugin_server = "https://modules.prosody.im/rocks/"
-
--- ===============================================
--- TLS/SSL CONFIGURATION
--- ===============================================
-
+-- Global TLS configuration
 ssl = {
 	protocol = "tlsv1_2+",
 	ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
@@ -60,94 +52,116 @@ ssl = {
 	options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
 }
 
--- Using Let's Encrypt live certs mounted at /etc/prosody/certs
+-- Certificate location (Let's Encrypt)
 certificates = "certs"
 
-c2s_require_encryption = true
-s2s_require_encryption = true
-s2s_secure_auth = true
-allow_unencrypted_plain_auth = false
+-- Encryption requirements
+c2s_require_encryption = true -- Force TLS for client connections
+s2s_require_encryption = true -- Force TLS for server connections
+s2s_secure_auth = true -- Verify server certificates
+allow_unencrypted_plain_auth = false -- Block plaintext authentication
 
 -- ===============================================
--- AUTHENTICATION CONFIGURATION
+-- AUTHENTICATION
 -- ===============================================
 
-authentication = "internal_hashed"
+authentication = "internal_hashed" -- Hashed password storage
 
+-- Supported SASL mechanisms (ordered by preference)
 sasl_mechanisms = {
-	"SCRAM-SHA-256",
+	"SCRAM-SHA-256", -- Most secure
 	"SCRAM-SHA-1",
 	"DIGEST-MD5",
-	"PLAIN",
+	"PLAIN", -- Fallback (encrypted channel only)
 }
 
-tls_channel_binding = true
+tls_channel_binding = true -- Enhanced security via channel binding
 
+-- Account management
 user_account_management = {
-	grace_period = 7 * 24 * 3600,
-	deletion_confirmation = true,
+	grace_period = 7 * 24 * 3600, -- 7 days before deletion
+	deletion_confirmation = true, -- Require confirmation
 }
 
 -- ===============================================
--- STORAGE CONFIGURATION
+-- DATA STORAGE
 -- ===============================================
 
 default_storage = "sql"
 
+-- PostgreSQL configuration
 sql = {
 	driver = "PostgreSQL",
 	database = "prosody",
 	username = "prosody",
-	password = "changeme",
+	password = "changeme", -- TODO: Use environment variable
 	host = "xmpp-postgres",
 	port = 5432,
+
+	-- Connection pooling
 	pool_size = 10,
 	pool_overflow = 20,
 	pool_timeout = 30,
+
+	-- TLS for database connection
 	ssl = { mode = "prefer", protocol = "tlsv1_2+" },
 }
 
+-- Storage backend assignments
 storage = {
+	-- User data
 	accounts = "sql",
 	roster = "sql",
 	vcard = "sql",
 	private = "sql",
 	blocklist = "sql",
+
+	-- Message archives
 	archive = "sql",
 	muc_log = "sql",
 	offline = "sql",
+
+	-- PubSub and PEP
 	pubsub_nodes = "sql",
 	pubsub_data = "sql",
 	pep = "sql",
+
+	-- File sharing
 	http_file_share = "sql",
+
+	-- Activity tracking
 	account_activity = "sql",
-	caps = "memory",
-	carbons = "memory",
+
+	-- Memory-only (ephemeral)
+	caps = "memory", -- Entity capabilities cache
+	carbons = "memory", -- Message carbons state
 }
 
 -- ===============================================
--- MESSAGE ARCHIVE MANAGEMENT (GLOBAL)
+-- MESSAGE ARCHIVING (MAM)
 -- ===============================================
 
-archive_expires_after = "1y"
+-- Archive retention and policy
+archive_expires_after = "1y" -- Keep messages for 1 year
+default_archive_policy = true -- Archive all conversations by default
+archive_compression = true -- Compress archived messages
+archive_store = "archive" -- Storage backend for archives
 
-default_archive_policy = true
+-- Query limits
+max_archive_query_results = 250 -- Limit results per query
+mam_smart_enable = false -- Disable smart archiving
 
-max_archive_query_results = 250
-archive_store = "archive"
-mam_smart_enable = false
-
+-- Namespaces to exclude from archiving
 dont_archive_namespaces = {
-	"http://jabber.org/protocol/chatstates",
-	"urn:xmpp:jingle-message:0",
+	"http://jabber.org/protocol/chatstates", -- Chat state notifications
+	"urn:xmpp:jingle-message:0", -- Jingle messages
 }
 
-archive_compression = true
-
 -- ===============================================
--- MOBILE AND CLIENT OPTIMIZATIONS
+-- MOBILE CLIENT OPTIMIZATIONS
 -- ===============================================
 
+-- Client detection patterns
 mobile_client_patterns = {
 	"Conversations",
 	"ChatSecure",
@@ -157,41 +171,62 @@ mobile_client_patterns = {
 	"Blabber",
 }
 
+-- Client State Indication (XEP-0352)
 csi_config = {
 	enabled = true,
 	default_state = "active",
-	queue_presence = true,
-	queue_chatstates = true,
-	queue_pep = false,
-	delivery_delay = 30,
-	max_delay = 300,
-	batch_stanzas = true,
-	max_batch_size = 10,
-	batch_timeout = 60,
+	queue_presence = true, -- Queue presence updates when inactive
+	queue_chatstates = true, -- Queue chat state notifications
+	queue_pep = false, -- Don't queue PEP events
+	delivery_delay = 30, -- Delay before batching (seconds)
+	max_delay = 300, -- Maximum delay (5 minutes)
+	batch_stanzas = true, -- Batch multiple stanzas
+	max_batch_size = 10, -- Maximum stanzas per batch
+	batch_timeout = 60, -- Batch timeout (seconds)
 }
 
+-- Stream Management (XEP-0198)
 smacks_config = {
-	resumption_timeout = 300,
-	max_resumption_timeout = 3600,
-	hibernation_timeout = 60,
-	max_hibernation_timeout = 300,
-	max_unacked_stanzas = 500,
-	max_queue_size = 1000,
-	ack_frequency = 5,
-	ack_timeout = 60,
-	mobile_resumption_timeout = 900,
-	mobile_hibernation_timeout = 300,
-	mobile_ack_frequency = 10,
+	-- Session resumption timeouts
+	resumption_timeout = 300, -- 5 minutes
+	max_resumption_timeout = 3600, -- 1 hour maximum
+	hibernation_timeout = 60, -- 1 minute
+	max_hibernation_timeout = 300, -- 5 minutes maximum
+
+	-- Queue management
+	max_unacked_stanzas = 500, -- Maximum unacknowledged stanzas
+	max_queue_size = 1000, -- Maximum queue size
+
+	-- Acknowledgment settings
+	ack_frequency = 5, -- Request ack every 5 stanzas
+	ack_timeout = 60, -- Timeout for ack requests
+
+	-- Mobile-specific settings
+	mobile_resumption_timeout = 900, -- 15 minutes for mobile
+	mobile_hibernation_timeout = 300, -- 5 minutes for mobile
+	mobile_ack_frequency = 10, -- Less frequent acks for mobile
 }
 
 -- ===============================================
--- PERFORMANCE OPTIMIZATIONS
+-- PLUGIN MANAGEMENT
 -- ===============================================
 
-lua_gc_step_size = 13
-lua_gc_pause = 110
+plugin_paths = {
+	"/usr/local/lib/prosody/community-modules",
+	"/var/lib/prosody/custom_plugins",
+}
+plugin_server = "https://modules.prosody.im/rocks/"
 
+-- ===============================================
+-- PERFORMANCE TUNING
+-- ===============================================
+
+-- Lua garbage collection
+lua_gc_step_size = 13 -- GC step size
+lua_gc_pause = 110 -- GC pause percentage
+
+-- Enhanced garbage collection
 gc = {
-	speed = 200,
-	threshold = 120,
+	speed = 200, -- Collection speed
+	threshold = 120, -- Memory threshold percentage
 }

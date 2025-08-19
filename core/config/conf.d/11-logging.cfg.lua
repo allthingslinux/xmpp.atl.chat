@@ -8,5 +8,3 @@ log = {
 	{ levels = { min = "warn" }, to = "file", filename = "/var/log/prosody/prosody.err" },
 	{ levels = { "warn", "error" }, to = "file", filename = "/var/log/prosody/security.log" },
 }
-
-

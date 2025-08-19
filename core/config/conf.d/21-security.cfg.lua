@@ -10,7 +10,7 @@ limits = {
 
 max_connections_per_ip = 5
 
-allow_registration = false
+allow_registration = true
 registration_throttle_max = 3
 registration_throttle_period = 3600
 

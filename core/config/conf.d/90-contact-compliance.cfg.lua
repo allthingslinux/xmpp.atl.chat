@@ -4,19 +4,20 @@
 
 contact_info = {
 	admin = {
-		"xmpp:" .. (Lua.os.getenv("PROSODY_ADMIN_JID") or "admin@localhost"),
-		"mailto:" .. (Lua.os.getenv("PROSODY_CONTACT_ADMIN") or "admin@localhost"),
+		"xmpp:admin@atl.chat",
+		"mailto:admin@atl.chat",
 	},
 	abuse = {
-		"xmpp:abuse@" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
-		"mailto:" .. (Lua.os.getenv("PROSODY_CONTACT_ABUSE") or "abuse@localhost"),
+		"xmpp:admin@atl.chat",
+		"mailto:admin@atl.chat",
 	},
 	support = {
-		"xmpp:support@" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost"),
-		"mailto:" .. (Lua.os.getenv("PROSODY_CONTACT_SUPPORT") or "support@localhost"),
+		"xmpp:admin@atl.chat",
+		"mailto:admin@atl.chat",
 	},
 	security = {
-		"mailto:" .. (Lua.os.getenv("PROSODY_CONTACT_SECURITY") or "security@localhost"),
+		"xmpp:admin@atl.chat",
+		"mailto:admin@atl.chat",
 	},
 }
 

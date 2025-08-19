@@ -13,5 +13,3 @@ openmetrics_allow_ips = {
 
 -- Fixed CIDR allow-list for internal scraping
 openmetrics_allow_cidr = "172.16.0.0/12"
-
-
