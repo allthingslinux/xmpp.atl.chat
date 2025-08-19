@@ -54,7 +54,7 @@ RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     lua5.4 lua-bitop lua-dbi-mysql lua-dbi-postgresql lua-dbi-sqlite3 \
     lua-expat lua-filesystem lua-socket lua-sec lua-unbound \
-    lua-readline lua-event lua-ldap \
+    lua-readline lua-event lua-ldap lua-luaossl \
     libicu72 libidn2-0 \
     ca-certificates curl dumb-init gosu jq rsync wget tar unzip \
     libssl-dev build-essential gcc liblua5.4-dev && \
@@ -114,7 +114,6 @@ RUN mkdir -p /usr/local/lib/prosody/community-modules && \
     mod_pastebin \
     mod_reload_modules \
     mod_pubsub_subscription && \
-    CFLAGS="-Wno-deprecated-declarations" luarocks install luaossl && \
     echo "Community modules installed successfully"
 
 # --- Expose all relevant ports ---
