@@ -22,7 +22,7 @@ description = "atl.chat MUC rooms and conferences (XEP-0045)"
 
 -- MUC-specific modules
 modules_enabled = {
-	-- "muc",
+	"muc",
 	"muc_mam",
 	"pastebin",
 	"muc_offline_delivery",
