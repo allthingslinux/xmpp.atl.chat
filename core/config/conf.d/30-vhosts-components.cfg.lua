@@ -12,6 +12,7 @@ ssl = {
 disco_expose_admins = false
 
 Component("muc.atl.chat", "muc")
+
 -- Use wildcard certificate that covers *.atl.chat
 ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
@@ -22,7 +23,7 @@ description = "atl.chat MUC rooms and conferences (XEP-0045)"
 
 -- MUC-specific modules
 modules_enabled = {
-	"muc",
+	-- "muc",
 	"muc_mam",
 	"pastebin",
 	"muc_offline_delivery",
