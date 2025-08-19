@@ -8,19 +8,18 @@ limits = {
 	http_upload = { rate = "2mb/s", burst = "10mb" },
 }
 
-max_connections_per_ip = 5
+-- max_connections_per_ip = 5
 
-allow_registration = true
-registration_throttle_max = 3
-registration_throttle_period = 3600
+-- registration_throttle_max = 3
+-- registration_throttle_period = 3600
 
 -- Inline firewall rules for mod_firewall
-firewall_rules = [=[
-%ZONE spam: log=debug
-RATE: 10 (burst 15) on full-jid
-TO: spam
-DROP.
+-- firewall_rules = [=[
+-- %ZONE spam: log=debug
+-- RATE: 10 (burst 15) on full-jid
+-- TO: spam
+-- DROP.
 
-%LENGTH > 262144
-BOUNCE: policy-violation (Stanza too large)
-]=]
+-- %LENGTH > 262144
+-- BOUNCE: policy-violation (Stanza too large)
+-- ]=]

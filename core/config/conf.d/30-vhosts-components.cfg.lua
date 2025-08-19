@@ -9,7 +9,7 @@ ssl = {
 	certificate = "certs/live/atl.chat/fullchain.pem",
 }
 
-disco_expose_admins = false
+-- disco_expose_admins = false
 
 Component("muc.atl.chat", "muc")
 
@@ -25,38 +25,38 @@ description = "atl.chat MUC rooms and conferences (XEP-0045)"
 modules_enabled = {
 	-- "muc",
 	"muc_mam",
-	"pastebin",
-	"muc_offline_delivery",
+	-- "pastebin",
+	-- "muc_offline_delivery",
 }
 
 -- General MUC configuration
-max_history_messages = 50
-muc_room_locking = false
-muc_room_lock_timeout = 300
-muc_tombstones = true
-muc_room_cache_size = 1000
-muc_room_default_public = true
-muc_room_default_members_only = false
-muc_room_default_moderated = false
-muc_room_default_persistent = true
-muc_room_default_language = "en"
-muc_room_default_change_subject = true
+-- max_history_messages = 50
+-- muc_room_locking = false
+-- muc_room_lock_timeout = 300
+-- muc_tombstones = true
+-- muc_room_cache_size = 1000
+-- muc_room_default_public = true
+-- muc_room_default_members_only = false
+-- muc_room_default_moderated = false
+-- muc_room_default_persistent = true
+-- muc_room_default_language = "en"
+-- muc_room_default_change_subject = true
 
 -- MUC Message Archive Management (MAM)
-muc_log_by_default = true
-muc_log_presences = false
-log_all_rooms = false
-muc_log_expires_after = "1y"
-muc_log_cleanup_interval = 86400
-muc_max_archive_query_results = 100
-muc_log_store = "muc_log"
-muc_log_compression = true
-muc_mam_smart_enable = false
+-- muc_log_by_default = true
+-- muc_log_presences = false
+-- log_all_rooms = false
+-- muc_log_expires_after = "1y"
+-- muc_log_cleanup_interval = 86400
+-- muc_max_archive_query_results = 100
+-- muc_log_store = "muc_log"
+-- muc_log_compression = true
+-- muc_mam_smart_enable = false
 
 muc_dont_archive_namespaces = {
-	"http://jabber.org/protocol/chatstates",
-	"urn:xmpp:jingle-message:0",
-	"http://jabber.org/protocol/muc#user",
+	-- "http://jabber.org/protocol/chatstates",
+	-- "urn:xmpp:jingle-message:0",
+	-- "http://jabber.org/protocol/muc#user",
 }
 
 muc_archive_policy = "all"

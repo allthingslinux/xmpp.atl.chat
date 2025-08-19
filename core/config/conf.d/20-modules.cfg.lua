@@ -108,7 +108,7 @@ modules_enabled = {
 	-- ===============================================
 	-- COMPLIANCE & CONTACT INFORMATION
 	-- ===============================================
-	"server_contact_info", -- Contact information advertisement (XEP-0157)
+	-- "server_contact_info", -- Contact information advertisement (XEP-0157)
 
 	-- ===============================================
 	-- MONITORING & METRICS

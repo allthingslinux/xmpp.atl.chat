@@ -1017,10 +1017,10 @@
 
 -- Split configuration includes (core, http, logging, metrics, modules/security, vhosts/components, compliance)
 Include("conf.d/00-core.cfg.lua")
+Include("conf.d/20-modules.cfg.lua")
 Include("conf.d/10-http.cfg.lua")
 Include("conf.d/11-logging.cfg.lua")
 Include("conf.d/12-metrics.cfg.lua")
-Include("conf.d/20-modules.cfg.lua")
 Include("conf.d/21-security.cfg.lua")
 Include("conf.d/30-vhosts-components.cfg.lua")
 Include("conf.d/90-contact-compliance.cfg.lua")
