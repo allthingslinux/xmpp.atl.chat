@@ -2,28 +2,27 @@
 -- MUC (Multi-User Chat) Component and Settings
 -- ===============================================
 
-local __domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
-local __service_host = Lua.os.getenv("PROSODY_SERVICE_HOST") or __domain
--- MUC host override (default: muc.<domain>)
-local __muc_host = Lua.os.getenv("PROSODY_MUC_HOST") or ("muc." .. __domain)
+-- Simplified MUC configuration - main host xmpp.atl.chat, components on *.atl.chat
+local __base_domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"  -- atl.chat
+local __main_host = Lua.os.getenv("PROSODY_HTTP_HOST") or ("xmpp." .. __base_domain)  -- xmpp.atl.chat
+local __muc_host = "muc." .. __base_domain  -- muc.atl.chat (keeps existing DNS)
 
--- MUC component
+-- MUC component (simplified)
 Component(__muc_host, "muc")
--- Use the domain lineage cert (wildcard covers muc.*)
+-- Use wildcard certificate that covers *.atl.chat
 ssl = {
-	key = "certs/live/" .. __domain .. "/privkey.pem",
-	certificate = "certs/live/" .. __domain .. "/fullchain.pem",
+	key = "certs/live/" .. __base_domain .. "/privkey.pem",
+	certificate = "certs/live/" .. __base_domain .. "/fullchain.pem",
 }
 name = "Multi-User Chat"
 description = "Multi-User Chat rooms and conferences (XEP-0045)"
 
--- MUC-specific modules (simplified for testing)
+-- MUC-specific modules
 modules_enabled = {
 	"muc",
 	"muc_mam",
-	-- Temporarily disable community modules for testing:
-	-- "pastebin",
-	-- "muc_offline_delivery",
+	"pastebin",
+	"muc_offline_delivery",
 }
 
 -- General MUC configuration
