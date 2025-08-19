@@ -56,7 +56,7 @@ RUN apt-get update && \
     lua-expat lua-filesystem lua-socket lua-sec lua-unbound \
     lua-readline lua-event lua-ldap \
     libicu72 libidn2-0 \
-    ca-certificates curl dumb-init gosu jq mercurial rsync wget tar unzip \
+    ca-certificates curl dumb-init gosu jq rsync wget tar unzip \
     libssl-dev build-essential gcc liblua5.4-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -92,13 +92,9 @@ RUN chown root:prosody /etc/prosody/prosody.cfg.lua && \
     chown -R root:prosody /etc/prosody/conf.d && \
     find /etc/prosody/conf.d -type f -name '*.lua' -exec chmod 640 {} +
 
-# --- Install community modules (after prosody user/logs exist) ---
+# --- Install community modules via plugin installer (after prosody user/logs exist) ---
 WORKDIR /tmp
-RUN mkdir -p prosody-modules && \
-    curl -fsSL --retry 5 --retry-delay 5 -o prosody-modules.tar.gz "https://hg.prosody.im/prosody-modules/archive/tip.tar.gz" && \
-    tar -xzf prosody-modules.tar.gz -C prosody-modules --strip-components=1 && \
-    rm prosody-modules.tar.gz && \
-    mkdir -p /usr/local/lib/prosody/community-modules && \
+RUN mkdir -p /usr/local/lib/prosody/community-modules && \
     /usr/local/bin/install-community-modules.sh \
     mod_anti_spam \
     mod_admin_blocklist \
@@ -121,7 +117,6 @@ RUN mkdir -p prosody-modules && \
     mod_reload_modules \
     mod_pubsub_subscription && \
     CFLAGS="-Wno-deprecated-declarations" luarocks install luaossl && \
-    rm -rf /tmp/prosody-modules && \
     find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
     find /usr/local/lib/prosody/modules -type d -name 'luarocks' -exec rm -rf {} + && \
     echo "Community modules installed successfully"
