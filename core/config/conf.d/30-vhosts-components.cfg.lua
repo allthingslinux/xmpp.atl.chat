@@ -13,8 +13,21 @@ ssl = {
 	certificate = "certs/live/" .. (Lua.os.getenv("PROSODY_DOMAIN") or "localhost") .. "/fullchain.pem",
 }
 
--- Discovery items and service host mapping
+-- Additional VirtualHost for HTTP services (if different from main domain)
+local __http_host = Lua.os.getenv("PROSODY_HTTP_HOST") or (Lua.os.getenv("PROSODY_DOMAIN") or "localhost")
 local __domain = Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
+
+if __http_host ~= __domain then
+	VirtualHost(__http_host)
+	-- Use the same certificate (wildcard covers subdomains)
+	ssl = {
+		key = "certs/live/" .. __domain .. "/privkey.pem",
+		certificate = "certs/live/" .. __domain .. "/fullchain.pem",
+	}
+end
+
+-- Discovery items and service host mapping
+-- (reuse __domain and __http_host from above)
 local __service_host = Lua.os.getenv("PROSODY_SERVICE_HOST") or __domain
 -- Allow MUC to live on a different host (e.g., muc.atl.chat)
 local __muc_host = Lua.os.getenv("PROSODY_MUC_HOST") or ("muc." .. __domain)
