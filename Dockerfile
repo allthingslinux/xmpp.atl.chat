@@ -56,7 +56,7 @@ RUN apt-get update && \
     lua-expat lua-filesystem lua-socket lua-sec lua-unbound \
     lua-readline lua-event lua-ldap \
     libicu72 libidn2-0 \
-    ca-certificates curl dumb-init gosu jq mercurial rsync wget tar unzip \
+    ca-certificates curl dumb-init gosu jq mercurial git rsync wget tar unzip \
     libssl-dev build-essential gcc liblua5.4-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -94,7 +94,7 @@ RUN chown root:prosody /etc/prosody/prosody.cfg.lua && \
 
 # --- Install community modules (after prosody user/logs exist) ---
 WORKDIR /tmp
-RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
+RUN git clone --depth 1 https://github.com/prosody/prosody-modules.git prosody-modules && \
     mkdir -p /usr/local/lib/prosody/community-modules && \
     /usr/local/bin/install-community-modules.sh \
     mod_anti_spam \
