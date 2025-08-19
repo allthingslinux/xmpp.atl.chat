@@ -112,8 +112,6 @@ RUN mkdir -p /usr/local/lib/prosody/community-modules && \
     mod_s2s_status \
     mod_log_slow_events \
     mod_pastebin \
-    mod_server_contact_info \
-    mod_server_info \
     mod_reload_modules \
     mod_pubsub_subscription && \
     CFLAGS="-Wno-deprecated-declarations" luarocks install luaossl && \
