@@ -32,7 +32,7 @@ modules_enabled = {
 	"cloud_notify",
 	"cloud_notify_extensions",
 	-- File/media
-	"http_file_share",
+	-- http_file_share is served on dedicated component upload.$domain
 	-- Admin/management
 	"admin_adhoc",
 	"admin_shell",
