@@ -83,6 +83,22 @@ user_account_management = {
 	deletion_confirmation = true, -- Require confirmation
 }
 
+block_registrations_users = {
+	"administrator",
+	"admin",
+	"root",
+	"postmaster",
+	"xmpp",
+	"jabber",
+	"contact",
+	"mail",
+	"abuse",
+	"support",
+	"security",
+}
+
+block_registrations_require = "^[a-zA-Z0-9_.-]+$"
+
 -- ===============================================
 -- DATA STORAGE
 -- ===============================================
