@@ -11,7 +11,9 @@ ROCKS_MODULES=()
 
 usage() {
     echo "Usage: $0 module1 [module2 ...]"
-    echo "  Example: $0 anti_spam pubsub_subscription muc_notifications"
+    echo "  Examples:"
+    echo "    $0 anti_spam pubsub_subscription muc_notifications"
+    echo "    $0 mod_anti_spam mod_pubsub_subscription mod_muc_notifications"
     exit 1
 }
 
@@ -62,15 +64,24 @@ is_in_array() {
     return 1
 }
 
+normalize_modname() {
+    # Accept names with or without leading mod_
+    local raw="$1"
+    echo "${raw#mod_}"
+}
+
 for mod in "$@"; do
-    if is_in_array "$mod" "${ROCKS_MODULES[@]}"; then
-        install_via_rocks "$mod"
+    # Normalize provided names to strip any leading mod_
+    mod_normalized="$(normalize_modname "$mod")"
+
+    if is_in_array "$mod_normalized" "${ROCKS_MODULES[@]}"; then
+        install_via_rocks "$mod_normalized"
         continue
     fi
 
-    if ! copy_module "$mod"; then
-        echo "[INFO] Falling back to rocks installation for $mod ..."
-        install_via_rocks "$mod"
+    if ! copy_module "$mod_normalized"; then
+        echo "[INFO] Falling back to rocks installation for $mod_normalized ..."
+        install_via_rocks "$mod_normalized"
     fi
 done
 

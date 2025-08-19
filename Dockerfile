@@ -96,7 +96,27 @@ RUN chown root:prosody /etc/prosody/prosody.cfg.lua && \
 WORKDIR /tmp
 RUN hg clone https://hg.prosody.im/prosody-modules/ prosody-modules && \
     mkdir -p /usr/local/lib/prosody/community-modules && \
-    /usr/local/bin/install-community-modules.sh anti_spam pubsub_subscription firewall muc_notifications admin_blocklist spam_reporting csi_battery_saver invites pastebin cloud_notify server_contact_info server_info cloud_notify_extensions cloud_notify_encrypted cloud_notify_filters cloud_notify_priority_tag muc_offline_delivery && \
+    /usr/local/bin/install-community-modules.sh \
+    mod_anti_spam \
+    mod_admin_blocklist \
+    mod_spam_reporting \
+    mod_cloud_notify \
+    mod_cloud_notify_extensions \
+    mod_cloud_notify_encrypted \
+    mod_cloud_notify_filters \
+    mod_cloud_notify_priority_tag \
+    mod_csi_battery_saver \
+    mod_invites \
+    mod_muc_notifications \
+    mod_muc_offline_delivery \
+    mod_vcard_muc \
+    mod_s2s_status \
+    mod_log_slow_events \
+    mod_pastebin \
+    mod_server_contact_info \
+    mod_server_info \
+    mod_reload_modules \
+    mod_pubsub_subscription && \
     CFLAGS="-Wno-deprecated-declarations" luarocks install luaossl && \
     rm -rf /tmp/prosody-modules && \
     find /usr/local/lib/prosody/community-modules -type d -name 'luarocks' -exec rm -rf {} + && \
