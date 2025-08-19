@@ -18,16 +18,22 @@ ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
 	certificate = "certs/live/atl.chat/fullchain.pem",
 }
-name = "atl.chat MUC"
+name = "muc.atl.chat"
 description = "atl.chat MUC rooms and conferences (XEP-0045)"
 
 -- MUC-specific modules
 modules_enabled = {
 	-- "muc",
-	"muc_mam",
+	"muc_mam", -- Message Archive Management for MUC events
+	"vcard_muc", -- vCard support for MUC users
+	"muc_notifications", -- Push notifications for MUC events
+	"muc_offline_delivery", -- Offline delivery for MUC events
 	-- "pastebin",
-	-- "muc_offline_delivery",
 }
+
+restrict_room_creation = false
+muc_room_default_public = true
+muc_room_default_persistent = true
 
 -- General MUC configuration
 -- max_history_messages = 50

@@ -223,20 +223,6 @@ smacks_config = {
 	mobile_ack_frequency = 10, -- Less frequent acks for mobile
 }
 
--- ===============================================
--- PLUGIN MANAGEMENT
--- ===============================================
-
-plugin_paths = {
-	"/usr/local/lib/prosody/community-modules",
-	"/var/lib/prosody/custom_plugins",
-}
-plugin_server = "https://modules.prosody.im/rocks/"
-
--- ===============================================
--- PERFORMANCE TUNING
--- ===============================================
-
 -- Lua garbage collection
 lua_gc_step_size = 13 -- GC step size
 lua_gc_pause = 110 -- GC pause percentage

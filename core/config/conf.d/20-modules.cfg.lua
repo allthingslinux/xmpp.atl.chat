@@ -15,6 +15,7 @@ modules_enabled = {
 	-- CORE PROTOCOL MODULES (Required)
 	-- ===============================================
 	"roster", -- Allow users to have a roster/contact list (RFC 6121)
+	"legacyauth", -- Legacy authentication. Only used by some old clients and bots.
 	"saslauth", -- SASL authentication for clients and servers (RFC 4422)
 	"tls", -- TLS encryption support for c2s/s2s connections (RFC 6120)
 	"dialback", -- Server-to-server authentication via dialback (XEP-0220)
@@ -22,6 +23,7 @@ modules_enabled = {
 	"presence", -- Presence information and subscriptions (RFC 6121)
 	"message", -- Message routing and delivery (RFC 6120)
 	"iq", -- Info/Query request-response semantics (RFC 6120)
+	"s2s_status", -- https://modules.prosody.im/mod_s2s_status.html
 
 	-- ===============================================
 	-- DISCOVERY & CAPABILITIES
@@ -56,11 +58,6 @@ modules_enabled = {
 	"bookmarks", -- Bookmark storage and synchronization (XEP-0048/XEP-0402)
 
 	-- ===============================================
-	-- MULTI-USER CHAT SUPPORT
-	-- ===============================================
-	"muc_notifications", -- Push notifications for MUC events
-
-	-- ===============================================
 	-- PUSH NOTIFICATIONS
 	-- ===============================================
 	"cloud_notify", -- Push notifications for mobile devices (XEP-0357)
@@ -70,7 +67,6 @@ modules_enabled = {
 	-- SECURITY & PRIVACY
 	-- ===============================================
 	"blocklist", -- User blocking functionality (XEP-0191)
-	"firewall", -- Advanced traffic filtering and rules
 	"anti_spam", -- Spam prevention and detection
 	"spam_reporting", -- Spam reporting mechanisms (XEP-0377)
 	"admin_blocklist", -- Administrative blocking controls
@@ -98,17 +94,18 @@ modules_enabled = {
 	"bosh", -- BOSH (HTTP binding) for web clients (XEP-0124, XEP-0206)
 	"websocket", -- WebSocket connections for web clients (RFC 7395)
 	"http_files", -- Static file serving over HTTP
+	"turn_external", -- External TURN server support
 
 	-- ===============================================
 	-- SYSTEM & PLATFORM
 	-- ===============================================
-	"posix", -- POSIX functionality (daemonization, syslog, etc.)
 	"groups", -- Shared roster groups support
 
 	-- ===============================================
 	-- COMPLIANCE & CONTACT INFORMATION
 	-- ===============================================
-	-- "server_contact_info", -- Contact information advertisement (XEP-0157)
+	"server_contact_info", -- Contact information advertisement (XEP-0157)
+	"server_info", -- Server information (XEP-0157)
 
 	-- ===============================================
 	-- MONITORING & METRICS
