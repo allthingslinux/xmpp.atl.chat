@@ -91,9 +91,12 @@ local __http_scheme = "https"
 http_default_host = __http_host
 http_external_url = __http_scheme .. "://" .. __http_host .. "/"
 
--- Bind addresses for HTTP/HTTPS
-http_interfaces = { "0.0.0.0" }
-https_interfaces = { "0.0.0.0" }
+-- Port/interface defaults per Prosody 0.12 docs:
+-- http_ports = { 5280 } (already set above)
+-- https_ports = { 5281 } (already set above)
+-- http binds to loopback by default; https binds publicly
+http_interfaces = { "127.0.0.1", "::1" }
+https_interfaces = { "*", "::" }
 
 -- Static file serving root (Prosody's web root; reverse proxy in front)
 http_files_dir = "/usr/share/prosody/www"
@@ -129,10 +132,11 @@ http_file_share_expire_after = 30 * 24 * 3600 -- 30 days expiration
 http_file_share_path = "/var/lib/prosody/http_file_share"
 
 -- Optional global quota via env var
-if Lua.os and Lua.os.getenv and Lua.tonumber then
-	if Lua.os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") then
-		http_file_share_global_quota = Lua.tonumber(Lua.os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA"))
-	end
+do
+    local q = os.getenv and os.getenv("PROSODY_UPLOAD_GLOBAL_QUOTA") or nil
+    if q then
+        http_file_share_global_quota = tonumber(q)
+    end
 end
 
 -- BOSH/WebSocket tuning
@@ -143,7 +147,8 @@ bosh_max_wait = 120
 bosh_session_timeout = 300
 bosh_hold_timeout = 60
 bosh_window = 5
-consider_bosh_secure = false
+-- From Prosody 0.12+, X-Forwarded-Proto from trusted proxies is honored,
+-- so consider_bosh_secure is generally unnecessary.
 
 websocket_frame_buffer_limit = 2 * 1024 * 1024
 websocket_frame_fragment_limit = 8
