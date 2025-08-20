@@ -125,7 +125,7 @@ trusted_proxies = {
 }
 
 -- Enable CORS for BOSH and WebSocket endpoints
-http_cors_override = {docker co mpose down
+http_cors_override = {
 	bosh = { enabled = true },
 	websocket = { enabled = true },
 	file_share = { enabled = true },
