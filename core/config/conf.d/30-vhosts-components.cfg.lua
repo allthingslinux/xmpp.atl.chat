@@ -3,13 +3,14 @@
 -- ===============================================
 
 -- Single VirtualHost
-VirtualHost("atl.chat")
+VirtualHost "atl.chat"
 ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
 	certificate = "certs/live/atl.chat/fullchain.pem",
 }
 
-Component("muc.atl.chat", "muc")
+Component "muc.atl.chat" "muc"
+
 ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
 	certificate = "certs/live/atl.chat/fullchain.pem",
@@ -18,9 +19,9 @@ name = "muc.atl.chat"
 
 -- MUC-specific modules
 modules_enabled = {
-	-- "muc",
+	-- "muc", -- Not needed here; this is a dedicated MUC component
 	"muc_mam", -- Message Archive Management for MUC events
-	-- "vcard_muc", -- vCard support for MUC users (conflicts with built-in muc_vcard on Prosody 13)
+	-- "vcard_muc", -- Conflicts with built-in muc_vcard on Prosody 13
 	"muc_notifications", -- Push notifications for MUC events
 	"muc_offline_delivery", -- Offline delivery for MUC events
 	-- "pastebin",
@@ -30,7 +31,7 @@ restrict_room_creation = false
 muc_room_default_public = true
 muc_room_default_persistent = true
 muc_room_locking = false
-vcard_to_pep = true
+-- vcard_to_pep = true
 
 -- General MUC configuration
 -- max_history_messages = 50
@@ -55,11 +56,11 @@ vcard_to_pep = true
 -- muc_log_compression = true
 -- muc_mam_smart_enable = false
 
-muc_dont_archive_namespaces = {
-	-- "http://jabber.org/protocol/chatstates",
-	-- "urn:xmpp:jingle-message:0",
-	-- "http://jabber.org/protocol/muc#user",
-}
+-- muc_dont_archive_namespaces = {
+-- "http://jabber.org/protocol/chatstates",
+-- "urn:xmpp:jingle-message:0",
+-- "http://jabber.org/protocol/muc#user",
+-- }
 
 -- muc_archive_policy = "all"
 -- muc_log_notification = true
@@ -69,7 +70,7 @@ muc_dont_archive_namespaces = {
 -- pastebin_line_threshold = 6
 
 -- HTTP File Upload component
-Component("upload.atl.chat", "http_file_share")
+Component "upload.atl.chat" "http_file_share"
 ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
 	certificate = "certs/live/atl.chat/fullchain.pem",
@@ -78,7 +79,7 @@ name = "upload.atl.chat"
 http_external_url = "https://upload.atl.chat/"
 
 -- SOCKS5 Proxy component
-Component("proxy.atl.chat", "proxy65")
+Component "proxy.atl.chat" "proxy65"
 ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
 	certificate = "certs/live/atl.chat/fullchain.pem",

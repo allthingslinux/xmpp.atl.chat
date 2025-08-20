@@ -99,7 +99,7 @@ modules_enabled = {
 	"bosh", -- BOSH (HTTP binding) for web clients (XEP-0124, XEP-0206)
 	"websocket", -- WebSocket connections for web clients (RFC 7395)
 	"http_files", -- Static file serving over HTTP
-	"proxy65", -- Enables a file transfer proxy service which clients behind NAT can use
+	-- "proxy65", -- Disabled here; provided via dedicated Component `proxy.atl.chat`
 	-- "turn_external", -- External TURN server support
 
 	-- ===============================================
