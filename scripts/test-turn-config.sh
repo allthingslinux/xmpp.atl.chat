@@ -54,7 +54,8 @@ if ! grep -q "turn_external_secret" core/config/conf.d/05-network.cfg.lua; then
     exit 1
 fi
 
-echo "✅ TURN configuration found in network config"
+  echo "✅ TURN configuration found in network config"
+  echo "✅ COTURN configuration file found"
 
 # Check docker-compose.yml for COTURN service
 if ! grep -q "xmpp-coturn:" docker-compose.yml; then

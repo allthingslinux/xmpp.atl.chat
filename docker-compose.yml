@@ -230,31 +230,15 @@ services:
       - '${TURNS_PORT:-5349}:5349/udp'
       - '${TURN_MIN_PORT:-50000}-${TURN_MAX_PORT:-50100}:50000-50100/udp'
     environment:
-      - TURN_NO_MULTICAST_PEERS=true
-      - TURN_STALE_NONCE=true
-      - TURN_SECURE_STUN=true
-      - TURN_LOG_FILE=stdout
-      - TURN_VERBOSE=false
+      - TURN_SECRET=${TURN_SECRET:-ChangeMe123!}
+      - TURN_REALM=${TURN_REALM:-atl.chat}
+      - TURN_DOMAIN=${TURN_DOMAIN:-atl.chat}
     volumes:
       - xmpp_coturn_data:/var/lib/coturn
+      - ./deployment/coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
     command: >
       turnserver
-        --listening-port=3478
-        --tls-listening-port=5349
-        --min-port=50000
-        --max-port=50100
-        --realm=${TURN_REALM:-atl.chat}
-        --server-name=${TURN_DOMAIN:-atl.chat}
-        --lt-cred-mech
-        --use-auth-secret
-        --static-auth-secret=${TURN_SECRET:-ChangeMe123!}
-        --no-multicast-peers
-        --mobility
-        --no-cli
-        --tls-min-version=1.2
-        --cipher-list=ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS
-        --log-file=stdout
-        --simple-log
+        -c /etc/coturn/turnserver.conf
     # Production resource limits
     deploy:
       resources:
