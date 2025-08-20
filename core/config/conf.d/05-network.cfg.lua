@@ -108,7 +108,7 @@ http_external_url = __http_scheme .. "://" .. __http_host .. "/"
 -- http_ports = { 5280 } (already set above)
 -- https_ports = { 5281 } (already set above)
 -- http binds to loopback by default; https binds publicly for reverse proxy
-http_interfaces = { "127.0.0.1" }
+http_interfaces = { "*" }
 https_interfaces = { "*" }
 
 -- Static file serving root (Prosody's web root; reverse proxy in front)

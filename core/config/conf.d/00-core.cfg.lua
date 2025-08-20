@@ -10,6 +10,7 @@ group = "prosody"
 -- Server identity
 server_name = "atl.chat"
 admins = { "admin@atl.chat" }
+allow_registration=true = true
 
 -- ===============================================
 -- DATA STORAGE
