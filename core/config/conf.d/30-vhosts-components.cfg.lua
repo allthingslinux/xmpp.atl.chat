@@ -2,6 +2,8 @@
 -- VIRTUAL HOSTS + COMPONENTS
 -- ===============================================
 
+allow_registration = true
+
 -- Single VirtualHost
 VirtualHost "atl.chat"
 ssl = {
@@ -24,6 +26,7 @@ modules_enabled = {
 	-- "vcard_muc", -- Conflicts with built-in muc_vcard on Prosody 13
 	"muc_notifications", -- Push notifications for MUC events
 	"muc_offline_delivery", -- Offline delivery for MUC events
+	-- "muc_local_only",
 	-- "pastebin",
 }
 
@@ -31,6 +34,7 @@ restrict_room_creation = false
 muc_room_default_public = true
 muc_room_default_persistent = true
 muc_room_locking = false
+muc_room_default_public_jids = true
 -- vcard_to_pep = true
 
 -- General MUC configuration

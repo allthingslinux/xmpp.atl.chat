@@ -7,10 +7,7 @@ pidfile = "/var/run/prosody/prosody.pid"
 user = "prosody"
 group = "prosody"
 
--- Server identity
-server_name = "atl.chat"
 admins = { "admin@atl.chat" }
-allow_registration = true
 
 -- ===============================================
 -- DATA STORAGE
