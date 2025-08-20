@@ -22,6 +22,9 @@
 -- Default service ports (override as needed)
 -- ===============================================
 
+-- Legacy SSL ports, deprecated but compliance tester wants this?
+legacy_ssl_ports = { 5223 }
+
 -- Client-to-server (XMPP over TCP, STARTTLS-capable)
 c2s_ports = { 5222 }
 
@@ -122,7 +125,7 @@ trusted_proxies = {
 }
 
 -- Enable CORS for BOSH and WebSocket endpoints
-http_cors_override = {
+http_cors_override = {docker co mpose down
 	bosh = { enabled = true },
 	websocket = { enabled = true },
 	file_share = { enabled = true },
