@@ -56,7 +56,7 @@ modules_enabled = {
 	-- ===============================================
 	-- USER PROFILES & PERSONAL DATA
 	-- ===============================================
-	"vcard", -- Allow users to set vCards containing contact information (XEP-0054)
+	-- "vcard", -- Allow users to set vCards containing contact information (XEP-0054)
 	"vcard_legacy", -- Legacy vCard support for older clients (XEP-0054)
 	"private", -- Private XML storage for client data (XEP-0049)
 	"pep", -- Personal Eventing Protocol for presence extensions (XEP-0163)
