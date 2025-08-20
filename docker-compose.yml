@@ -230,7 +230,6 @@ services:
       - '${TURNS_PORT:-5349}:5349/udp'
       - '${TURN_MIN_PORT:-50000}-${TURN_MAX_PORT:-50100}:50000-50100/udp'
     environment:
-      - TURN_NO_LOOPBACK_PEERS=true
       - TURN_NO_MULTICAST_PEERS=true
       - TURN_STALE_NONCE=true
       - TURN_SECURE_STUN=true
@@ -249,15 +248,11 @@ services:
         --lt-cred-mech
         --use-auth-secret
         --static-auth-secret=${TURN_SECRET:-ChangeMe123!}
-        --no-loopback-peers
         --no-multicast-peers
         --mobility
         --no-cli
-        --no-tlsv1
-        --no-tlsv1_1
+        --tls-min-version=1.2
         --cipher-list=ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS
-        --no-sslv2
-        --no-sslv3
         --log-file=stdout
         --simple-log
     # Production resource limits
