@@ -101,9 +101,6 @@ RUN mkdir -p /usr/local/lib/prosody/community-modules && \
     mod_spam_reporting \
     mod_cloud_notify \
     mod_cloud_notify_extensions \
-    mod_cloud_notify_encrypted \
-    mod_cloud_notify_filters \
-    mod_cloud_notify_priority_tag \
     mod_csi_battery_saver \
     mod_invites \
     mod_muc_notifications \
