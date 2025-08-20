@@ -182,10 +182,11 @@ http_status_allow_ips = { "127.0.0.1", "::1", "172.18.0.0/16" }
 
 -- TURN external configuration (XEP-0215)
 -- A secret shared with the TURN server, used to dynamically generate credentials
-turn_external_secret = Lua.os.getenv("TURN_SECRET") or "ChangeMe123!"
+turn_external_secret = Lua.os.getenv("TURN_SECRET") or "vEIheW+T+MiuulmzX69ck7UJ3ZxuhZLZiykq9XvBU98="
 
 -- DNS hostname of the TURN (and STUN) server
-turn_external_host = Lua.os.getenv("TURN_DOMAIN") or "atl.chat"
+-- Use dedicated TURN subdomain for clean separation
+turn_external_host = Lua.os.getenv("TURN_DOMAIN") or "turn.atl.chat"
 
 -- Port number used by TURN (and STUN) server
 turn_external_port = Lua.tonumber(Lua.os.getenv("TURN_PORT")) or 3478
@@ -198,4 +199,5 @@ turn_external_ttl = 86400
 turn_external_tcp = true
 
 -- Optional: Port offering TURN over TLS (if using TURNS)
--- turn_external_tls_port = Lua.tonumber(Lua.os.getenv("TURNS_PORT")) or 5349
+-- Enable TLS support for secure TURN connections
+turn_external_tls_port = Lua.tonumber(Lua.os.getenv("TURNS_PORT")) or 5349

@@ -214,6 +214,11 @@ services:
     env_file:
       - path: .env
         required: true
+    environment:
+      - TURN_SECRET=${TURN_SECRET}
+      - TURN_DOMAIN=${TURN_DOMAIN}
+      - TURN_REALM=${TURN_REALM}
+    command: ["-c", "/etc/turnserver.conf"]
     security_opt:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -229,18 +234,11 @@ services:
       - '${TURNS_PORT:-5349}:5349'
       - '${TURNS_PORT:-5349}:5349/udp'
       - '${TURN_MIN_PORT:-50000}-${TURN_MAX_PORT:-50100}:50000-50100/udp'
-    environment:
-      - TURN_SECRET=${TURN_SECRET:-ChangeMe123!}
-      - TURN_REALM=${TURN_REALM:-atl.chat}
-      - TURN_DOMAIN=${TURN_DOMAIN:-atl.chat}
+
     volumes:
       - xmpp_coturn_data:/var/lib/coturn
-      - ./deployment/coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
-    command: >
-      sh -c "
-        envsubst < /etc/coturn/turnserver.conf > /tmp/turnserver.conf &&
-        turnserver -c /tmp/turnserver.conf
-      "
+      - ./.runtime/turn/turnserver.conf:/etc/turnserver.conf:ro
+      - ./.runtime/certs:/etc/ssl:ro
     # Production resource limits
     deploy:
       resources:
