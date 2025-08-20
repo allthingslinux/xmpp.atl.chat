@@ -163,9 +163,7 @@ http_paths = {
 	file_share = "/upload",
 	files = "/",
 	pastebin = "/paste",
-	-- Advertise defaults for maximum client compatibility
 	bosh = "/http-bind",
 	websocket = "/xmpp-websocket",
-	-- Converse.js base path
 	conversejs = "/conversejs",
 }
