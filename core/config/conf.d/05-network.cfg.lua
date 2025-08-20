@@ -51,7 +51,12 @@ https_ports = { 5281 }
 --   interfaces = { "127.0.0.1", "::1" }
 -- The special "*" means all IPv4; "::" means all IPv6.
 
-interfaces = { "127.0.0.1" } -- Restrict to loopback (adjust if public exposure is required)
+interfaces = { "127.0.0.1" } -- Restrict to loopback (default)
+-- Expose XMPP services publicly; override per-service so HTTP can remain loopback
+c2s_interfaces = { "*", "::" }
+c2s_direct_tls_interfaces = { "*", "::" }
+s2s_interfaces = { "*", "::" }
+s2s_direct_tls_interfaces = { "*", "::" }
 local_interfaces = { "127.0.0.1" } -- Private services bind here by default
 
 -- If you need to hint external/public addresses (behind NAT)
@@ -103,8 +108,8 @@ http_external_url = __http_scheme .. "://" .. __http_host .. "/"
 -- http_ports = { 5280 } (already set above)
 -- https_ports = { 5281 } (already set above)
 -- http binds to loopback by default; https binds publicly
-http_interfaces = { "127.0.0.1", "::1" }
-https_interfaces = { "*", "::" }
+http_interfaces = { "127.0.0.1" }
+https_interfaces = { "127.0.0.1" }
 
 -- Static file serving root (Prosody's web root; reverse proxy in front)
 http_files_dir = "/usr/share/prosody/www"
