@@ -125,6 +125,7 @@ trusted_proxies = {
 http_cors_override = {
 	bosh = { enabled = true },
 	websocket = { enabled = true },
+	file_share = { enabled = true },
 }
 
 -- Additional security headers for HTTP responses
