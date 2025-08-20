@@ -17,3 +17,4 @@ cloudflare-credentials.ini
 .kiro/
 
 .runtime
+.env.backup

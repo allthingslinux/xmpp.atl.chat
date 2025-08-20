@@ -55,7 +55,26 @@ fi
 
 # Source environment variables
 print_status "Loading environment variables..."
-export $(grep -v '^#' .env | xargs)
+if [ -f ".env" ]; then
+    # Load environment variables safely
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        [[ $line =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${line// /}" ]] && continue
+
+        # Extract variable name and value
+        if [[ $line =~ ^([^=]+)=(.*)$ ]]; then
+            var_name="${BASH_REMATCH[1]}"
+            var_value="${BASH_REMATCH[2]}"
+            # Remove quotes if present
+            var_value="${var_value%\"}"
+            var_value="${var_value#\"}"
+            var_value="${var_value%\'}"
+            var_value="${var_value#\'}"
+            export "$var_name=$var_value"
+        fi
+    done < ".env"
+fi
 
 # Set default values
 TURN_SECRET=${TURN_SECRET:-"vEIheW+T+MiuulmzX69ck7UJ3ZxuhZLZiykq9XvBU98="}
