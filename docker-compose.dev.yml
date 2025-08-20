@@ -46,7 +46,7 @@ services:
 
     # Volume mounts
     volumes:
-      - ./app/config:/etc/prosody/config:rw        # Prosody configuration
+      - ./app/config/prosody:/etc/prosody/config:rw        # Prosody configuration
       - xmpp_prosody_data:/var/lib/prosody/data    # Persistent data
       - xmpp_prosody_uploads:/var/lib/prosody/uploads  # File uploads
       - xmpp_certs:/etc/prosody/certs              # SSL certificates
@@ -76,8 +76,6 @@ services:
     depends_on:
       xmpp-postgres-dev:
         condition: service_healthy
-
-
 
     # Network configuration
     networks:

@@ -234,54 +234,48 @@ validate_configuration() {
 setup_community_modules() {
     log_info "Setting up community modules..."
 
-    # Check if additional modules are requested via environment variable
-    if [[ -n "${PROSODY_EXTRA_MODULES:-}" ]]; then
-        log_info "Installing additional community modules: ${PROSODY_EXTRA_MODULES}"
-
-        # Install mercurial if not already present (for runtime module installation)
-        if ! command -v hg > /dev/null 2>&1; then
-            log_info "Installing mercurial for module management..."
-            apt-get update && apt-get install -y mercurial && apt-get clean && rm -rf /var/lib/apt/lists/*
-        fi
-
-        # Clone or update prosody-modules repository if needed
-        local modules_repo="/tmp/prosody-modules"
-        if [[ ! -d "$modules_repo" ]]; then
-            log_info "Cloning prosody-modules repository..."
-            hg clone https://hg.prosody.im/prosody-modules/ "$modules_repo"
-        else
-            log_info "Updating prosody-modules repository..."
-            (cd "$modules_repo" && hg pull -u)
-        fi
-
-        # Install each requested module
-        IFS=',' read -ra MODULES <<< "$PROSODY_EXTRA_MODULES"
-        for module in "${MODULES[@]}"; do
-            module=$(echo "$module" | xargs) # trim whitespace
-
-            # Add mod_ prefix if not present
-            if [[ "$module" != mod_* ]]; then
-                module="mod_$module"
-            fi
-
-            log_info "Installing community module: $module"
-
-            if [[ -d "$modules_repo/$module" ]]; then
-                mkdir -p "/usr/local/lib/prosody/community-modules/"
-                cp -r "$modules_repo/$module" "/usr/local/lib/prosody/community-modules/"
-                chown -R prosody:prosody "/usr/local/lib/prosody/community-modules/$module"
-                log_info "Successfully installed: $module"
-            else
-                log_warn "Module not found in repository: $module"
-            fi
-        done
-
-        # Clean up temporary repository
-        rm -rf "$modules_repo"
+    # Check if community modules source exists
+    local source_dir="/usr/local/lib/prosody/community-modules/source"
+    if [[ ! -d "$source_dir" ]]; then
+        log_warn "Community modules source not found at $source_dir"
+        log_warn "Modules will need to be installed manually or via prosodyctl"
+        return 0
     fi
 
-    # Ensure proper ownership of all modules
-    chown -R prosody:prosody /usr/local/lib/prosody/community-modules 2> /dev/null || true
+    # Install default modules if PROSODY_EXTRA_MODULES is not set
+    local modules_to_install=()
+    if [[ -n "${PROSODY_EXTRA_MODULES:-}" ]]; then
+        IFS=',' read -ra modules_to_install <<< "$PROSODY_EXTRA_MODULES"
+    else
+        # Default modules to install
+        modules_to_install=(
+            "mod_cloud_notify"
+            "mod_cloud_notify_extensions"
+            "mod_muc_notifications"
+            "mod_muc_offline_delivery"
+            "mod_http_status"
+            "mod_admin_web"
+            "mod_compliance_latest"
+        )
+    fi
+
+    log_info "Installing community modules: ${modules_to_install[*]}"
+
+    # Check if modules are available from local directories
+    local enabled_dir="/usr/local/lib/prosody/prosody-modules-enabled"
+    if [[ ! -d "$enabled_dir" ]]; then
+        log_warn "Community modules not found"
+        log_info "To set up modules locally, run: ./scripts/setup-modules-locally.sh"
+        log_info "Then rebuild the Docker image"
+        return 0
+    else
+        log_info "Using community modules from local directories"
+        local module_count=$(ls "$enabled_dir" 2> /dev/null | wc -l)
+        log_info "Enabled modules: $module_count modules"
+    fi
+
+    # Ensure proper ownership
+    chown -R prosody:prosody /usr/local/lib/prosody/prosody-modules-enabled 2> /dev/null || true
 }
 
 # ============================================================================

@@ -250,10 +250,20 @@ This automated system provides:
 
 ## Installing Community Modules (Best Practice)
 
-Instead of copying the entire prosody-modules repository, use the provided script to install only the modules you need (and their dependencies):
+Instead of copying the entire prosody-modules repository, use the local-first approach to manage modules:
 
-```sh
-/scripts/setup/install-community-modules.sh anti_spam firewall muc_notifications
+```bash
+# Setup modules locally (run once)
+./scripts/setup-modules-locally.sh
+
+# Enable additional modules
+make enable-module MODULE=mod_new_module
+
+# List available modules
+make list-modules
+
+# Rebuild container to apply changes
+make dev-build
 ```
 
-This approach avoids manifest errors and keeps your image clean.
+This approach avoids build-time network calls and keeps your development workflow efficient.

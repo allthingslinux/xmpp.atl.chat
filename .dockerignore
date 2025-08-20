@@ -74,8 +74,6 @@ systemd/
 # Scripts (some are runtime, keep only necessary ones)
 scripts/
 !scripts/setup/entrypoint.sh
-!scripts/setup/install-community-modules.sh
-!scripts/install-modules.sh
 !scripts/maintenance/health-check.sh
 
 # Templates (not needed in container)

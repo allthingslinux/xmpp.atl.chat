@@ -1,4 +1,4 @@
-.PHONY: help dev dev-up dev-down dev-logs dev-build dev-clean prod prod-up prod-down prod-logs prod-build prod-clean build clean logs status install-modules install-module test db-backup db-restore
+.PHONY: help dev dev-up dev-down dev-logs dev-build dev-clean prod prod-up prod-down prod-logs prod-build prod-clean build clean logs status setup-modules update-modules list-modules enable-module test db-backup db-restore
 
 # Default target
 help: ## Show this help message
@@ -25,9 +25,20 @@ dev-logs: ## View development logs
 dev-build: ## Build development containers
 	docker compose -f docker-compose.dev.yml build --no-cache
 
-dev-clean: ## Clean development environment (remove containers and volumes)
+dev-clean: ## Clean development environment (targeted cleanup: only xmpp-server-dev resources)
+	@echo "🧹 Performing targeted development environment cleanup..."
+	@echo "Stopping and removing containers..."
 	docker compose -f docker-compose.dev.yml down -v --remove-orphans
-	docker system prune -f
+	@echo "Removing XMPP development networks..."
+	docker network ls --filter "label=com.docker.compose.project=xmpp-server-dev" -q | xargs -r docker network rm
+	@echo "Removing XMPP development volumes..."
+	docker volume ls --filter "label=com.docker.compose.project=xmpp-server-dev" -q | xargs -r docker volume rm
+	@echo "Removing XMPP development images..."
+	docker image ls --filter "label=com.docker.compose.project=xmpp-server-dev" -q | xargs -r docker rmi
+	@echo "Removing dangling images and build cache..."
+	docker image prune -f
+	docker builder prune -f
+	@echo "✅ Targeted development cleanup complete!"
 
 # Production Environment
 prod: prod-up ## Start production environment
@@ -45,21 +56,43 @@ prod-logs: ## View production logs
 prod-build: ## Build production containers
 	docker compose build --no-cache
 
-prod-clean: ## Clean production environment (remove containers and volumes)
+prod-clean: ## Clean production environment (targeted cleanup: only xmpp-server resources)
+	@echo "🧹 Performing targeted production environment cleanup..."
+	@echo "Stopping and removing containers..."
 	docker compose down -v --remove-orphans
+	@echo "Removing XMPP production networks..."
+	docker network ls --filter "label=com.docker.compose.project=xmpp-server" -q | xargs -r docker network rm
+	@echo "Removing XMPP production volumes..."
+	docker volume ls --filter "label=com.docker.compose.project=xmpp-server" -q | xargs -r docker volume rm
+	@echo "Removing XMPP production images..."
+	docker image ls --filter "label=com.docker.compose.project=xmpp-server" -q | xargs -r docker rmi
+	@echo "Removing dangling images and build cache..."
+	docker image prune -f
+	docker builder prune -f
+	@echo "✅ Targeted production cleanup complete!"
 
 # General Commands
 build: ## Build all containers
 	docker compose -f docker-compose.dev.yml build
 	docker compose build
 
-clean: ## Clean all environments
+clean: ## Clean all environments (FULL WIPE: containers, networks, volumes, images)
+	@echo "🧹 Performing FULL cleanup of all environments..."
 	@echo "Cleaning development environment..."
 	docker compose -f docker-compose.dev.yml down -v --remove-orphans
 	@echo "Cleaning production environment..."
 	docker compose down -v --remove-orphans
-	@echo "Cleaning unused Docker resources..."
-	docker system prune -f
+	@echo "Removing Docker networks..."
+	docker network prune -f
+	@echo "Removing Docker volumes..."
+	docker volume prune -f
+	@echo "Removing Docker images..."
+	docker image prune -f
+	@echo "Removing build cache..."
+	docker builder prune -f
+	@echo "System-wide cleanup..."
+	docker system prune -a -f --volumes
+	@echo "✅ Full cleanup complete!"
 
 logs: ## View logs from all running containers
 	docker compose -f docker-compose.dev.yml logs -f || docker compose logs -f
@@ -71,31 +104,18 @@ status: ## Check status of all services
 	@echo "=== Production Services ==="
 	docker compose ps
 
-# Module Management
-install-modules: ## Install default Prosody community modules in running container
-	@echo "Installing default modules in development environment..."
-	@CONTAINER=$$(docker compose -f docker-compose.dev.yml ps -q xmpp-prosody-dev 2>/dev/null); \
-	if [ -n "$$CONTAINER" ]; then \
-		docker exec $$CONTAINER /usr/local/bin/install-modules.sh --default; \
-	else \
-		echo "Development environment not running. Starting it first..."; \
-		$(MAKE) dev-up; \
-		sleep 10; \
-		CONTAINER=$$(docker compose -f docker-compose.dev.yml ps -q xmpp-prosody-dev); \
-		docker exec $$CONTAINER /usr/local/bin/install-modules.sh --default; \
-	fi
+# Module Management (Local-First Approach)
+setup-modules: ## Setup Prosody community modules locally (run once)
+	@echo "Setting up Prosody community modules locally..."
+	./scripts/setup-modules-locally.sh
 
-install-module: ## Install specific module (usage: make install-module MODULE=mod_cloud_notify)
-	@echo "Installing module: $(MODULE)"
-	@CONTAINER=$$(docker compose -f docker-compose.dev.yml ps -q xmpp-prosody-dev 2>/dev/null); \
-	if [ -n "$$CONTAINER" ]; then \
-		docker exec $$CONTAINER /usr/local/bin/install-modules.sh $(MODULE); \
+update-modules: ## Update local Prosody community modules repository
+	@echo "Updating local Prosody community modules..."
+	@if [[ -d "prosody-modules/.hg" ]]; then \
+		(cd prosody-modules && (hg pull bundle 2>/dev/null || hg pull default) && hg update); \
+		echo "✅ Modules updated successfully"; \
 	else \
-		echo "Development environment not running. Starting it first..."; \
-		$(MAKE) dev-up; \
-		sleep 10; \
-		CONTAINER=$$(docker compose -f docker-compose.dev.yml ps -q xmpp-prosody-dev); \
-		docker exec $$CONTAINER /usr/local/bin/install-modules.sh $(MODULE); \
+		echo "❌ prosody-modules repository not found. Run 'make setup-modules' first"; \
 	fi
 
 # Database Commands
@@ -132,6 +152,10 @@ test: ## Run basic connectivity tests
 	else \
 		echo "Development environment not running"; \
 	fi
+
+test-admin: ## Run comprehensive admin interface tests
+	@echo "Running admin interface test suite..."
+	@./tests/test-admin-interface.sh
 
 # Utility Commands
 shell: ## Open shell in running Prosody container
@@ -227,14 +251,28 @@ list-modules: ## List installed Prosody modules
 		echo "Development environment not running"; \
 	fi
 
-search-module: ## Search for available modules (usage: make search-module QUERY=cloud)
-	@echo "Searching for modules matching: $(QUERY)"
-	@echo "Note: This requires internet access in the container"
-	@CONTAINER=$$(docker compose -f docker-compose.dev.yml ps -q xmpp-prosody-dev 2>/dev/null); \
-	if [ -n "$$CONTAINER" ]; then \
-		docker exec $$CONTAINER /usr/local/bin/install-modules.sh --search "$(QUERY)"; \
+list-modules: ## List available local modules
+	@echo "Available modules in prosody-modules repository:"
+	@if [[ -d "prosody-modules" ]]; then \
+		ls prosody-modules/ | grep "^mod_" | sort; \
 	else \
-		echo "Development environment not running"; \
+		echo "❌ prosody-modules repository not found. Run 'make setup-modules' first"; \
+	fi
+
+enable-module: ## Enable a module (usage: make enable-module MODULE=mod_new_module)
+	@echo "Enabling module: $(MODULE)"
+	@if [[ ! -d "prosody-modules/$(MODULE)" ]]; then \
+		echo "❌ Module $(MODULE) not found in prosody-modules repository"; \
+		echo "Run 'make list-modules' to see available modules"; \
+		exit 1; \
+	fi
+	@mkdir -p prosody-modules-enabled
+	@if [[ -L "prosody-modules-enabled/$(MODULE)" ]]; then \
+		echo "✅ Module $(MODULE) is already enabled"; \
+	else \
+		ln -sf "../prosody-modules/$(MODULE)" "prosody-modules-enabled/$(MODULE)"; \
+		echo "✅ Module $(MODULE) enabled successfully"; \
+		echo "📝 Rebuild the container to apply changes: make dev-build"; \
 	fi
 
 # Certificate Management

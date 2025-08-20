@@ -131,7 +131,7 @@ installer_plugin_path = "/usr/local/lib/prosody/modules"
 
 ### Community Modules
 
-- Installed to `/usr/local/lib/prosody/community-modules/` by copying only the modules you need (and their dependencies) using the `install-community-modules.sh` script.
+- Installed to `/usr/local/lib/prosody/prosody-modules-enabled/` by using the local-first approach with `setup-modules-locally.sh` script.
 - Do not copy the entire prosody-modules repository or all modules.
 - No need to clean up luarocks directories if you use this approach.
 

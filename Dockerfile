@@ -99,6 +99,7 @@ RUN apt-get update && \
     lua-event \
     lua-ldap \
     lua-luaossl \
+    liblua5.4-dev \
     libicu72 \
     libidn2-0 \
     ca-certificates \
@@ -120,32 +121,22 @@ COPY --from=builder /usr/bin/luarocks* /usr/bin/
 # --- User, permissions, and directories ---
 RUN groupadd -r prosody && \
     useradd -r -g prosody prosody && \
-    mkdir -p /var/lib/prosody /var/lib/prosody/custom_plugins /var/log/prosody /var/run/prosody /certs /usr/local/lib/prosody/community-modules /etc/prosody/certs && \
-    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs /usr/local/lib/prosody/community-modules /etc/prosody/certs
+    mkdir -p /var/lib/prosody /var/lib/prosody/custom_plugins /var/log/prosody /var/run/prosody /certs /etc/prosody/certs && \
+    chown -R prosody:prosody /var/lib/prosody /var/log/prosody /var/run/prosody /certs /etc/prosody/certs
 
 # Copy scripts and make executable
 COPY --chown=prosody:prosody scripts/setup/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chown=prosody:prosody scripts/maintenance/health-check.sh /usr/local/bin/health-check.sh
 
-COPY scripts/setup/install-community-modules.sh /usr/local/bin/install-community-modules.sh
-COPY scripts/install-modules.sh /usr/local/bin/install-modules.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/health-check.sh
 
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/health-check.sh /usr/local/bin/install-community-modules.sh /usr/local/bin/install-modules.sh
+# --- Community modules (local-first approach) ---
+# Using local cache approach: modules are cloned locally and enabled via symlinks
+# Only the enabled modules directory is copied (not the full repository)
+COPY prosody-modules-enabled /usr/local/lib/prosody/prosody-modules-enabled
 
-# --- Install community modules (optional - can be installed at runtime) ---
-# Note: Community modules installation may hit rate limits during build
-# They can be installed at runtime using: prosodyctl install --server=https://modules.prosody.im/rocks/ mod_name
-# Or using the install-modules.sh script in the running container
-WORKDIR /tmp
-RUN mkdir -p /usr/local/lib/prosody/community-modules && \
-    echo "Community modules installation skipped during build to avoid rate limits" && \
-    echo "To install community modules at runtime, run:" && \
-    echo "  prosodyctl install --server=https://modules.prosody.im/rocks/ mod_cloud_notify" && \
-    echo "  prosodyctl install --server=https://modules.prosody.im/rocks/ mod_cloud_notify_extensions" && \
-    echo "  prosodyctl install --server=https://modules.prosody.im/rocks/ mod_muc_notifications" && \
-    echo "  prosodyctl install --server=https://modules.prosody.im/rocks/ mod_muc_offline_delivery" && \
-    echo "Or use the install script: /usr/local/bin/install-community-modules.sh" && \
-    rm -rf /tmp/* /var/tmp/*
+# Ensure the directory exists even if cache is not available
+RUN mkdir -p /usr/local/lib/prosody/prosody-modules-enabled
 
 # --- Expose all relevant ports ---
 EXPOSE 5222 5223 5269 5270 5280 5281 5347 5000
@@ -157,11 +148,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 CMD /usr
 VOLUME ["/var/lib/prosody", "/var/log/prosody", "/certs"]
 
 # Set Lua paths for modules and C libraries
-ENV LUA_PATH="/usr/lib/prosody/?.lua;/usr/lib/prosody/?/init.lua;/usr/local/lib/prosody/?.lua;/usr/local/lib/prosody/?/init.lua;/var/lib/prosody/custom_plugins/?.lua;/var/lib/prosody/custom_plugins/?/init.lua;/var/lib/prosody/custom_plugins/share/lua/5.4/?.lua;/var/lib/prosody/custom_plugins/share/lua/5.4/?/init.lua;;" \
+ENV LUA_PATH="/usr/lib/prosody/?.lua;/usr/lib/prosody/?/init.lua;/usr/local/lib/prosody/?.lua;/usr/local/lib/prosody/?/init.lua;/usr/local/lib/prosody/prosody-modules-enabled/?.lua;/usr/local/lib/prosody/prosody-modules-enabled/?/init.lua;/var/lib/prosody/custom_plugins/?.lua;/var/lib/prosody/custom_plugins/?/init.lua;;" \
     LUA_CPATH="/usr/lib/prosody/?.so;/usr/local/lib/prosody/?.so;;"
 
 WORKDIR /var/lib/prosody
-USER prosody
 
 # --- Entrypoint as PID 1 for signal handling ---
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
