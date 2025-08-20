@@ -38,6 +38,11 @@ allow_unencrypted_plain_auth = false
 -- Channel binding strengthens SASL against MITM
 tls_channel_binding = true
 
+-- Recommended privacy defaults for push notifications
+-- See https://modules.prosody.im/mod_cloud_notify.html
+-- push_notification_with_body = false
+-- push_notification_with_sender = false
+
 -- ===============================================
 -- AUTHENTICATION & ACCOUNT POLICY
 -- ===============================================
