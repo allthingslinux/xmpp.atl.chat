@@ -267,6 +267,49 @@ services:
       - xmpp_network_dev
 
   # ============================================================================
+  # CONVERSE.JS WEB CLIENT (Development)
+  # ============================================================================
+  xmpp-conversejs-dev:
+    image: nginx:stable-alpine
+    container_name: xmpp-conversejs-dev
+    hostname: xmpp-conversejs-dev
+    restart: unless-stopped
+    init: true
+
+    # Security configuration
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+
+    # Logging configuration
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
+
+    # Port mapping
+    ports:
+      - '8083:80'  # Converse.js web interface
+
+    # Volume mounts
+    volumes:
+      - ./web/conversejs:/usr/share/nginx/html:ro
+
+    # Service dependencies
+    depends_on:
+      - xmpp-prosody-dev
+
+    # Network configuration
+    networks:
+      - xmpp_network_dev
+
+    # Graceful shutdown
+    stop_signal: SIGQUIT
+    stop_grace_period: 30s
+
+  # ============================================================================
   # LOG VIEWER - DOZZLE (Development)
   # ============================================================================
   xmpp-logs-dev:
@@ -309,7 +352,7 @@ services:
 
     # Volume mounts
     volumes:
-      - ./config/nginx-docker.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx-docker.dev.conf:/etc/nginx/nginx.conf:ro
       - ./.runtime/certs:/opt/xmpp.atl.chat/certs:ro
 
     # Service dependencies
