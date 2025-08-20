@@ -30,6 +30,11 @@ modules_enabled = {
 	-- "pastebin",
 }
 
+-- MUC push notification configuration
+-- Ensure MUC messages trigger push notifications for offline users
+muc_notifications = true
+muc_offline_delivery = true
+
 restrict_room_creation = false
 muc_room_default_public = true
 muc_room_default_persistent = true

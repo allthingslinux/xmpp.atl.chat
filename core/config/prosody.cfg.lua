@@ -1087,8 +1087,8 @@ modules_enabled = {
 	-- ===============================================
 	-- PUSH NOTIFICATIONS
 	-- ===============================================
-	-- "cloud_notify", -- Push notifications for mobile devices (XEP-0357)
-	-- "cloud_notify_extensions", -- Enhanced push notification features
+	"cloud_notify", -- Push notifications for mobile devices (XEP-0357)
+	"cloud_notify_extensions", -- Enhanced push notification features
 
 	-- ===============================================
 	-- SECURITY & PRIVACY
@@ -1159,5 +1159,6 @@ Include("conf.d/00-core.cfg.lua")
 Include("conf.d/05-network.cfg.lua")
 Include("conf.d/11-logging.cfg.lua")
 Include("conf.d/21-security.cfg.lua")
+Include("conf.d/25-push-notifications.cfg.lua")
 Include("conf.d/30-vhosts-components.cfg.lua")
 Include("conf.d/90-contact-compliance.cfg.lua")
