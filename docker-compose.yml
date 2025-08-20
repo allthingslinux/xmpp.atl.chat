@@ -237,8 +237,10 @@ services:
       - xmpp_coturn_data:/var/lib/coturn
       - ./deployment/coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
     command: >
-      turnserver
-        -c /etc/coturn/turnserver.conf
+      sh -c "
+        envsubst < /etc/coturn/turnserver.conf > /tmp/turnserver.conf &&
+        turnserver -c /tmp/turnserver.conf
+      "
     # Production resource limits
     deploy:
       resources:
