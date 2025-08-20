@@ -106,6 +106,8 @@ RUN mkdir -p /usr/local/lib/prosody/community-modules && \
     mod_muc_notifications \
     mod_muc_offline_delivery \
     mod_vcard_muc \
+    mod_http_upload \
+    mod_http_status \
     mod_compliance_latest \
     mod_s2s_status \
     mod_log_slow_events \
