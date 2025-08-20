@@ -2,11 +2,6 @@
 -- CONTACT INFO, ROLES, ACCOUNT CLEANUP
 -- ===============================================
 
-disco_items = {
-	{ "discord.gg/linux", "Discord" },
-	{ "irc.atl.chat", "IRC" },
-}
-
 contact_info = {
 	admin = {
 		"xmpp:admin@atl.chat",
