@@ -166,14 +166,18 @@ http_paths = {
 	bosh = "/http-bind",
 	websocket = "/xmpp-websocket",
 	conversejs = "/conversejs",
+    status = "/status",
 }
 
 -- HTTP Status API (mod_http_status) for monitoring
 -- Allow access from any IP for monitoring (accessible from anywhere)
-http_status_allow_ips = { "*" }
+-- http_status_allow_ips = { "*" }
 
--- Optional: Allow access from specific CIDR range for monitoring networks
--- http_status_allow_cidr = "10.0.0.0/8"
+-- Alternative: Allow access from specific IPs (more secure)
+-- http_status_allow_ips = { "127.0.0.1"; "::1"; "172.18.0.0/16"; "76.215.15.63" }
+
+-- Allow access from any IP using CIDR notation (0.0.0.0/0 covers all IPv4)
+http_status_allow_cidr = "0.0.0.0/0"
 
 -- ===============================================
 -- TURN/STUN EXTERNAL SERVICES (XEP-0215)
