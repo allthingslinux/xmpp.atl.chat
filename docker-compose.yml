@@ -228,7 +228,7 @@ services:
       - '${TURN_PORT:-3478}:3478/udp'
       - '${TURNS_PORT:-5349}:5349'
       - '${TURNS_PORT:-5349}:5349/udp'
-      - '${TURN_MIN_PORT:-49152}-${TURN_MAX_PORT:-65535}:49152-65535/udp'
+      - '${TURN_MIN_PORT:-50000}-${TURN_MAX_PORT:-50100}:50000-50100/udp'
     environment:
       - TURN_NO_LOOPBACK_PEERS=true
       - TURN_NO_MULTICAST_PEERS=true
@@ -242,8 +242,8 @@ services:
       turnserver
         --listening-port=3478
         --tls-listening-port=5349
-        --min-port=49152
-        --max-port=65535
+        --min-port=50000
+        --max-port=50100
         --realm=${TURN_REALM:-atl.chat}
         --server-name=${TURN_DOMAIN:-atl.chat}
         --lt-cred-mech
