@@ -20,7 +20,7 @@ name = "muc.atl.chat"
 modules_enabled = {
 	-- "muc",
 	"muc_mam", -- Message Archive Management for MUC events
-	"vcard_muc", -- vCard support for MUC users (conflicts with built-in muc_vcard on Prosody 13)
+	-- "vcard_muc", -- vCard support for MUC users (conflicts with built-in muc_vcard on Prosody 13)
 	"muc_notifications", -- Push notifications for MUC events
 	"muc_offline_delivery", -- Offline delivery for MUC events
 	-- "pastebin",
