@@ -47,7 +47,6 @@ sasl_mechanisms = {
 	"SCRAM-SHA-256",
 	"SCRAM-SHA-1",
 	"DIGEST-MD5",
-	"PLAIN", -- only over encrypted channels
 }
 
 -- Account lifecycle and registration hygiene

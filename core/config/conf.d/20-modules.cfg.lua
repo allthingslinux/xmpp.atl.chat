@@ -27,6 +27,7 @@ modules_enabled = {
 	"message", -- Message routing and delivery (RFC 6120)
 	"iq", -- Info/Query request-response semantics (RFC 6120)
 	"s2s_status", -- https://modules.prosody.im/mod_s2s_status.html
+	"s2s_bidi", -- XEP-0288: Bidirectional Server-to-Server Connections
 
 	-- ===============================================
 	-- DISCOVERY & CAPABILITIES
@@ -54,7 +55,7 @@ modules_enabled = {
 	-- ===============================================
 	-- USER PROFILES & PERSONAL DATA
 	-- ===============================================
-	"vcard4", -- vCard 4.0 user profiles (RFC 6350, XEP-0292)
+	"vcard", -- Allow users to set vCards containing contact information (XEP-0054)
 	"vcard_legacy", -- Legacy vCard support for older clients (XEP-0054)
 	"private", -- Private XML storage for client data (XEP-0049)
 	"pep", -- Personal Eventing Protocol for presence extensions (XEP-0163)
