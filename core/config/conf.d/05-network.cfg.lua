@@ -169,9 +169,10 @@ http_paths = {
 }
 
 -- HTTP Status API (mod_http_status) for monitoring
--- Allow access from localhost and Docker network for health checks
-http_status_allow_ips = { "127.0.0.1", "::1", "172.18.0.0/16" }
--- Optional: Allow access from specific CIDR range
+-- Allow access from any IP for monitoring (accessible from anywhere)
+http_status_allow_ips = { "*" }
+
+-- Optional: Allow access from specific CIDR range for monitoring networks
 -- http_status_allow_cidr = "10.0.0.0/8"
 
 -- ===============================================
