@@ -1,16 +1,6 @@
-# ============================================================================
-# PRODUCTION DOCKER COMPOSE CONFIGURATION
-# Professional Prosody XMPP Server - Production Environment
-# ============================================================================
-# Optimized configuration with resource limits and security settings
-# Usage: docker compose up -d
-
 name: xmpp-server
 
 services:
-  # ============================================================================
-  # PROSODY XMPP SERVER
-  # ============================================================================
   xmpp-prosody:
     build:
       context: .
@@ -22,7 +12,7 @@ services:
     init: true
     env_file:
       - path: .env.production
-        required: false  # Allow running without env file for backwards compatibility
+        required: true
     security_opt:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -32,8 +22,6 @@ services:
         max-size: "50m"
         max-file: "5"
         compress: "true"
-    # All configuration comes from .env.production file
-    # No hardcoded environment variables
     ports:
       - '${PROSODY_C2S_PORT:-5222}:5222'
       - '${PROSODY_S2S_PORT:-5269}:5269'
@@ -43,13 +31,14 @@ services:
       - '${PROSODY_HTTPS_PORT:-5281}:5281'
       - '${PROSODY_PROXY65_PORT:-5000}:5000'
     volumes:
-      - ./app/config:ro:/etc/prosody/config:ro
+      - ./app/config:/etc/prosody/config:ro
+      - ./scripts:/opt/prosody/scripts:ro
+      - ./.runtime/certs:/etc/prosody/certs
+      - ./.runtime/logs:/var/log/prosody
+      - ./web/assets:/usr/share/prosody/www:ro
+      # Data volumes
       - xmpp_prosody_data:/var/lib/prosody/data
       - xmpp_prosody_uploads:/var/lib/prosody/uploads
-      - ./.runtime/certs:/etc/prosody/certs
-      - ./scripts:/opt/prosod./scripts:ro
-      - ./.runtime/logs:/var/log/prosody
-      - ./web/assets:ro:/usr/share/prosody/www:ro
     healthcheck:
       test: ['CMD', '/usr/local/bin/health-check.sh']
       interval: 30s
@@ -57,7 +46,6 @@ services:
       retries: 3
       start_period: 60s
     stop_grace_period: 60s
-    # Production resource limits
     deploy:
       resources:
         limits:
@@ -66,12 +54,10 @@ services:
         reservations:
           memory: 256M
           cpus: '0.5'
-    # Production sysctls for high performance
     sysctls:
       - net.core.somaxconn=65535
       - net.ipv4.tcp_keepalive_time=600
       - net.ipv4.ip_local_port_range=1024 65535
-    # Ulimits for high concurrency
     ulimits:
       nofile:
         soft: 65536
@@ -85,9 +71,6 @@ services:
     networks:
       - xmpp_network
 
-  # ============================================================================
-  # NGINX REVERSE PROXY (Production)
-  # ============================================================================
   xmpp-nginx:
     image: nginx:stable
     container_name: xmpp-nginx
@@ -109,9 +92,9 @@ services:
     stop_signal: SIGQUIT
     stop_grace_period: 30s
     volumes:
-      - ./deploy/reverse-proxy/nginx/nginx-docker.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx-docker.conf:/etc/nginx/nginx.conf:ro
       - ./.runtime/certs:/opt/xmpp.atl.chat/certs:ro
-      - ./web/assets:ro:/usr/share/nginx/html:ro
+      - ./web/assets:/usr/share/nginx/html:ro
     depends_on:
       - xmpp-prosody
     networks:
@@ -141,9 +124,6 @@ services:
     networks:
       - xmpp_network
 
-  # ============================================================================
-  # POSTGRESQL DATABASE
-  # ============================================================================
   xmpp-postgres:
     image: postgres:17-alpine
     container_name: xmpp-postgres
@@ -167,8 +147,7 @@ services:
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       - xmpp_postgres_data:/var/lib/postgresql/data
-      - ./core/database/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
-    # Production PostgreSQL optimization
+      - ./database/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     command: >
       postgres
         -c max_connections=200
@@ -183,7 +162,6 @@ services:
         -c work_mem=4MB
         -c min_wal_size=1GB
         -c max_wal_size=4GB
-    # Production resource limits
     deploy:
       resources:
         limits:
@@ -201,9 +179,6 @@ services:
     networks:
       - xmpp_network
 
-  # ============================================================================
-  # COTURN - TURN/STUN SERVER
-  # ============================================================================
   xmpp-coturn:
     image: coturn/coturn:latest
     container_name: xmpp-coturn
@@ -213,9 +188,9 @@ services:
       - path: .env.production
         required: false
     environment:
-      - TURN_SECRET=${TURN_SECRET}
-      - TURN_DOMAIN=${TURN_DOMAIN}
-      - TURN_REALM=${TURN_REALM}
+      - TURN_SECRET=${TURN_SECRET:-"your-turn-secret-here"}
+      - TURN_DOMAIN=${TURN_DOMAIN:-"your-domain.com"}
+      - TURN_REALM=${TURN_REALM:-"your-domain.com"}
     command: ["-c", "/etc/turnserver.conf"]
     security_opt:
       - no-new-privileges:true
@@ -232,12 +207,10 @@ services:
       - '${TURNS_PORT:-5349}:5349'
       - '${TURNS_PORT:-5349}:5349/udp'
       - '${TURN_MIN_PORT:-50000}-${TURN_MAX_PORT:-50100}:50000-50100/udp'
-
     volumes:
       - xmpp_coturn_data:/var/lib/coturn
       - ./.runtime/turn/turnserver.conf:/etc/turnserver.conf:ro
       - ./.runtime/certs:/etc/ssl:ro
-    # Production resource limits
     deploy:
       resources:
         limits:
@@ -249,47 +222,6 @@ services:
     networks:
       - xmpp_network
 
-  # ============================================================================
-  # ADMINER - DATABASE MANAGEMENT
-  # ============================================================================
-  # xmpp-adminer:
-  #   image: adminer:latest
-  #   container_name: xmpp-adminer
-  #   hostname: xmpp-adminer
-  #   restart: unless-stopped
-  #   env_file:
-  #     - path: .env
-  #       required: true
-  #   logging:
-  #     driver: json-file
-  #     options:
-  #       max-size: "50m"
-  #       max-file: "5"
-  #       compress: "true"
-  #   ports:
-  #     - '${ADMINER_PORT:-8080}:8080'
-  #   environment:
-  #     ADMINER_DEFAULT_DRIVER: "pgsql"
-  #     ADMINER_DEFAULT_SERVER: "xmpp-postgres"
-  #     ADMINER_DEFAULT_DB: ${POSTGRES_DB:-prosody}
-  #     ADMINER_DEFAULT_USERNAME: ${POSTGRES_USER:-prosody}
-  #     ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
-  #     ADMINER_AUTO_LOGIN: ${ADMINER_AUTO_LOGIN:-false}
-  #   command: ["sh", "-c", "php -S 0.0.0.0:8080 -t /var/www/html"]
-  #   configs:
-  #     - source: adminer-index.php
-  #       target: /var/www/html/index.php
-  #     - source: adminer-theme.css
-  #       target: /var/www/html/adminer.css
-  #   # depends_on:
-  #   #   xmpp-postgres:
-  #   #     condition: service_healthy
-  #   networks:
-  #     - xmpp_network
-
-  # ============================================================================
-  # CERTIFICATE MANAGEMENT SERVICES
-  # ============================================================================
   xmpp-certbot:
     image: certbot/dns-cloudflare:latest
     container_name: xmpp-certbot
@@ -297,7 +229,7 @@ services:
     profiles: ["cert-issue"]
     env_file:
       - path: .env.production
-        required: false
+        required: true
     volumes:
       - ./.runtime/certs:/etc/letsencrypt
       - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
@@ -330,8 +262,6 @@ services:
     networks:
       - xmpp_network
 
-  # Removed separate service-host issuer; atl.chat wildcard covers xmpp.atl.chat
-
   xmpp-cert-monitor:
     image: alpine:latest
     container_name: xmpp-cert-monitor
@@ -341,8 +271,8 @@ services:
         required: false
     init: true
     volumes:
-      - ./.runtime:/ap./.runtime
-      - ./scripts:/ap./scripts:ro
+      - ./.runtime:/app/.runtime
+      - ./scripts:/app/scripts:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     working_dir: /app
     command: >
@@ -357,11 +287,6 @@ services:
     depends_on:
       - xmpp-prosody
 
-  
-
-# ============================================================================
-# VOLUMES
-# ============================================================================
 volumes:
   xmpp_prosody_data:
     driver: local
@@ -376,36 +301,7 @@ volumes:
     driver: local
     name: xmpp_coturn_data
 
-# ============================================================================
-# NETWORKS
-# ============================================================================
 networks:
   xmpp_network:
     name: xmpp_network
     driver: bridge
-    # ipam:
-    #   config:
-    #     - subnet: 172.20.0.0/16
-
-# ============================================================================
-# CONFIGS
-# ============================================================================
-# configs:
-#   adminer-index.php:
-#     content: |
-#       <?php
-#         // Only auto-login in development environments
-#         if (getenv('ADMINER_AUTO_LOGIN') === 'true' && empty($$_GET)) {
-#           $$_POST['auth'] = [
-#             'server' => getenv('ADMINER_DEFAULT_SERVER'),
-#             'username' => getenv('ADMINER_DEFAULT_USERNAME'),
-#             'password' => getenv('ADMINER_DEFAULT_PASSWORD'),
-#             'driver' => getenv('ADMINER_DEFAULT_DRIVER'),
-#             'db' => getenv('ADMINER_DEFAULT_DB'),
-#           ];
-#         }
-#         include './adminer.php';
-#       ?>
-
-#   adminer-theme.css:
-#     file: ./web/themes/adminer-theme.css

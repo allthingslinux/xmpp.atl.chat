@@ -309,3 +309,53 @@ cert-dashboard: ## Generate certificate health dashboard
 	else \
 		echo "Development environment not running"; \
 	fi
+
+# ============================================================================
+# RUNTIME DIRECTORY MANAGEMENT
+# ============================================================================
+
+runtime-init: ## Initialize runtime directory structure
+	@echo "Initializing runtime directory..."
+	@mkdir -p .runtime/certs/live .runtime/certs/accounts .runtime/certs/archive
+	@mkdir -p .runtime/logs .runtime/backups .runtime/cache .runtime/db
+	@mkdir -p .runtime/sessions .runtime/uploads .runtime/turn
+	@echo "Runtime directory structure initialized"
+
+runtime-clean: ## Clean runtime directory (remove all data)
+	@echo "Cleaning runtime directory..."
+	@rm -rf .runtime/*
+	@echo "Runtime directory cleaned"
+
+runtime-backup: ## Backup runtime directory
+	@echo "Backing up runtime directory..."
+	@BACKUP_FILE="runtime-backup-$$(date +%Y%m%d_%H%M%S).tar.gz"; \
+	tar -czf "$$BACKUP_FILE" .runtime/; \
+	echo "Runtime backup saved to: $$BACKUP_FILE"
+
+runtime-restore: ## Restore runtime directory (usage: make runtime-restore FILE=backup.tar.gz)
+	@echo "Restoring runtime directory from: $(FILE)"
+	@if [ -f "$(FILE)" ]; then \
+		rm -rf .runtime.bak; \
+		mv .runtime .runtime.bak 2>/dev/null || true; \
+		mkdir -p .runtime; \
+		tar -xzf "$(FILE)" -C .runtime --strip-components=1 2>/dev/null || tar -xzf "$(FILE)" -C ./; \
+		echo "Runtime directory restored from: $(FILE)"; \
+	else \
+		echo "Backup file not found: $(FILE)"; \
+		exit 1; \
+	fi
+
+runtime-logs: ## Show runtime logs
+	@echo "=== Runtime Logs ==="
+	@find .runtime/logs -name "*.log" -type f -exec echo "=== {} ===" \; -exec tail -20 {} \; 2>/dev/null || echo "No log files found"
+
+runtime-status: ## Show runtime directory status
+	@echo "=== Runtime Directory Status ==="
+	@echo "Directory: .runtime/"
+	@du -sh .runtime/ 2>/dev/null || echo "Runtime directory not found"
+	@echo ""
+	@echo "Subdirectories:"
+	@find .runtime -type d -exec ls -ld {} \; 2>/dev/null | sort || echo "No subdirectories found"
+	@echo ""
+	@echo "Files:"
+	@find .runtime -type f -exec ls -lh {} \; 2>/dev/null | head -20 || echo "No files found"

@@ -68,7 +68,7 @@ logs/
 certs/
 
 # Deployment files (not needed in container)
-deployment/
+
 systemd/
 
 # Scripts (some are runtime, keep only necessary ones)

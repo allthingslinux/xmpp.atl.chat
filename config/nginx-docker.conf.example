@@ -1,7 +1,7 @@
-# Example nginx config for docker stack. Copy to deployment path if customizing.
+# Example nginx config for docker stack. Copy to config/nginx-docker.conf if customizing.
 # Defaults expect Prosody service name 'xmpp-prosody' and certs under /opt/xmpp.atl.chat/certs.
 
-# See deployment/reverse-proxy/nginx/nginx-docker.conf for the maintained version
+# This is the maintained version for use with the XMPP server
 
 user nginx;
 worker_processes auto;
