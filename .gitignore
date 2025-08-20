@@ -11,8 +11,9 @@ certs/
 
 # Environment configuration
 .env
+.env.test
+.env.local
 cloudflare-credentials.ini
-.env.dev
 
 .kiro/
 

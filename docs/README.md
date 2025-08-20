@@ -30,7 +30,9 @@ New to XMPP or need to deploy quickly? Start here:
 | **[User Guide](guides/users/user-guide.md)** | Complete user documentation | End users |
 | **[Administration Guide](guides/administration/administration.md)** | Server administration with prosody-manager | Administrators |
 | **[Deployment Guide](guides/deployment/deployment.md)** | Production deployment | DevOps teams |
+| **[TURN/STUN Setup](guides/deployment/turn-stun-setup.md)** | Voice/video calling setup | DevOps teams |
 | **[prosody-manager Guide](guides/administration/prosody-manager-guide.md)** | Complete CLI tool reference | Administrators |
+| **[Migration Guide](guides/administration/migration-guide.md)** | Migrate from legacy scripts to CLI | Administrators |
 
 ### 📋 **Reference Documentation**
 
@@ -44,6 +46,7 @@ New to XMPP or need to deploy quickly? Start here:
 | **[Module Reference](reference/modules.md)** | Complete module documentation and configuration | Administrators |
 | **[Community Modules](reference/community-modules-setup.md)** | Third-party module installation | Administrators |
 | **[Module Management](reference/module-management.md)** | Prosody module system | Administrators |
+| **[Certificate Monitoring](reference/certificate-monitoring-implementation.md)** | SSL certificate monitoring and renewal | Administrators |
 
 ### 💻 **Developer Documentation**
 
@@ -164,9 +167,11 @@ docs/
 │   │   └── user-guide.md       # Complete user documentation
 │   ├── administration/
 │   │   ├── administration.md   # Complete admin guide with security & DNS
-│   │   └── prosody-manager-guide.md # CLI tool documentation
+│   │   ├── prosody-manager-guide.md # CLI tool documentation
+│   │   └── migration-guide.md  # Migration from legacy scripts to CLI
 │   └── deployment/
-│       └── deployment.md       # Production deployment guide
+│       ├── deployment.md       # Production deployment guide
+│       └── turn-stun-setup.md # TURN/STUN server setup for voice/video
 ├── dev/                        # Developer and technical documentation
 │   ├── architecture.md         # System design and components
 │   ├── localhost-testing.md    # Development environment
@@ -177,7 +182,8 @@ docs/
 │   ├── xep-compliance.md       # Supported XMPP Extension Protocols
 │   ├── modules.md              # Complete module documentation
 │   ├── community-modules-setup.md # Third-party modules
-│   └── module-management.md    # Module system reference
+│   ├── module-management.md    # Module system reference
+│   └── certificate-monitoring-implementation.md # SSL certificate monitoring
 └── assets/                     # Documentation assets and diagrams
     ├── architecture/           # Architecture diagrams
     ├── diagrams/               # Technical diagrams

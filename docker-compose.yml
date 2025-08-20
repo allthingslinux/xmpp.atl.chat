@@ -21,8 +21,8 @@ services:
     restart: unless-stopped
     init: true
     env_file:
-      - path: .env
-        required: true
+      - path: .env.production
+        required: false  # Allow running without env file for backwards compatibility
     security_opt:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -32,10 +32,8 @@ services:
         max-size: "50m"
         max-file: "5"
         compress: "true"
-    environment:
-      - PROSODY_DB_HOST=xmpp-postgres
-      - PROSODY_DB_PORT=5432
-      - PROSODY_PASTEBIN_PATH=/paste
+    # All configuration comes from .env.production file
+    # No hardcoded environment variables
     ports:
       - '${PROSODY_C2S_PORT:-5222}:5222'
       - '${PROSODY_S2S_PORT:-5269}:5269'
@@ -45,13 +43,13 @@ services:
       - '${PROSODY_HTTPS_PORT:-5281}:5281'
       - '${PROSODY_PROXY65_PORT:-5000}:5000'
     volumes:
-      - ./core/config:/etc/prosody/config:ro
+      - ./app/config:ro:/etc/prosody/config:ro
       - xmpp_prosody_data:/var/lib/prosody/data
       - xmpp_prosody_uploads:/var/lib/prosody/uploads
       - ./.runtime/certs:/etc/prosody/certs
-      - ./scripts:/opt/prosody/scripts:ro
+      - ./scripts:/opt/prosod./scripts:ro
       - ./.runtime/logs:/var/log/prosody
-      - ./static-files:/usr/share/prosody/www:ro
+      - ./web/assets:ro:/usr/share/prosody/www:ro
     healthcheck:
       test: ['CMD', '/usr/local/bin/health-check.sh']
       interval: 30s
@@ -111,9 +109,9 @@ services:
     stop_signal: SIGQUIT
     stop_grace_period: 30s
     volumes:
-      - ./deployment/reverse-proxy/nginx/nginx-docker.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/reverse-proxy/nginx/nginx-docker.conf:/etc/nginx/nginx.conf:ro
       - ./.runtime/certs:/opt/xmpp.atl.chat/certs:ro
-      - ./static-files:/usr/share/nginx/html:ro
+      - ./web/assets:ro:/usr/share/nginx/html:ro
     depends_on:
       - xmpp-prosody
     networks:
@@ -154,8 +152,8 @@ services:
     stop_signal: SIGTERM
     stop_grace_period: 60s
     env_file:
-      - path: .env
-        required: true
+      - path: .env.production
+        required: false
     security_opt:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -212,8 +210,8 @@ services:
     hostname: xmpp-coturn
     restart: unless-stopped
     env_file:
-      - path: .env
-        required: true
+      - path: .env.production
+        required: false
     environment:
       - TURN_SECRET=${TURN_SECRET}
       - TURN_DOMAIN=${TURN_DOMAIN}
@@ -298,8 +296,8 @@ services:
     hostname: xmpp-certbot
     profiles: ["cert-issue"]
     env_file:
-      - path: .env
-        required: true
+      - path: .env.production
+        required: false
     volumes:
       - ./.runtime/certs:/etc/letsencrypt
       - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
@@ -323,8 +321,8 @@ services:
     container_name: xmpp-certbot-renew
     hostname: xmpp-certbot-renew
     env_file:
-      - path: .env
-        required: true
+      - path: .env.production
+        required: false
     volumes:
       - ./.runtime/certs:/etc/letsencrypt
       - ./cloudflare-credentials.ini:/etc/letsencrypt/cloudflare-credentials.ini:ro
@@ -339,18 +337,18 @@ services:
     container_name: xmpp-cert-monitor
     hostname: xmpp-cert-monitor
     env_file:
-      - path: .env
-        required: true
+      - path: .env.production
+        required: false
     init: true
     volumes:
-      - ./.runtime:/app/.runtime
-      - ./scripts:/app/scripts:ro
+      - ./.runtime:/ap./.runtime
+      - ./scripts:/ap./scripts:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     working_dir: /app
     command: >
       sh -c "
         apk add --no-cache bash curl jq openssl docker-cli &&
-        /app/scripts/cert-monitor-runner.sh
+        /ap./scripts/cert-monitor-runner.sh
       "
     stop_grace_period: 10s
     networks:

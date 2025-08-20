@@ -1,0 +1,24 @@
+# XMPP Server Security Policy
+# See https://securitytxt.org/ for format specification
+
+# Contact information for security issues
+Contact: mailto:security@allthingslinux.org
+Contact: xmpp:security@atl.chat
+
+# Encryption contact (for encrypted communication)
+Encryption: https://keys.openpgp.org/vks/v1/by-fingerprint/FINGERPRINT_HERE
+
+# Preferred languages
+Preferred-Languages: en
+
+# Security policy
+Policy: https://docs.atl.chat/security-policy.html
+
+# Security acknowledgments
+Acknowledgments: https://docs.atl.chat/security-acknowledgments.html
+
+# Canonical URL (where this file is officially hosted)
+Canonical: https://xmpp.atl.chat/.well-known/security.txt
+
+# Expires (should be updated regularly)
+Expires: 2025-01-01T00:00:00Z

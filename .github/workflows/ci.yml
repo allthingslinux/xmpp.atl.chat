@@ -5,7 +5,7 @@ on:
     branches: [ main, develop ]
     paths:
       - '**/*.sh'
-      - 'prosody-manager'
+
       - '**/*.lua'
       - '**/*.yml'
       - '**/*.yaml'
@@ -18,7 +18,7 @@ on:
     branches: [ main, develop ]
     paths:
       - '**/*.sh'
-      - 'prosody-manager'
+
       - '**/*.lua'
       - '**/*.yml'
       - '**/*.yaml'
@@ -41,14 +41,14 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           scandir: './scripts'
-          additional_files: 'prosody-manager'
+
           severity: error
           
       - name: Find all shell scripts
         id: find-scripts
         run: |
           # Find all shell scripts in the repository
-          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*" | sort)
+          scripts=$(find . -type f -name "*.sh" -not -path "./.git/*" | sort)
           echo "Found shell scripts:"
           echo "$scripts"
           
@@ -98,7 +98,7 @@ jobs:
       - name: Find shell scripts
         id: find-scripts
         run: |
-          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*" | sort)
+          scripts=$(find . -type f -name "*.sh" -not -path "./.git/*" | sort)
           echo "scripts<<EOF" >> $GITHUB_OUTPUT
           echo "$scripts" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -108,7 +108,7 @@ jobs:
           echo "Checking shell script formatting with shfmt..."
           
           # Simple check using file list
-          files=$(find . -name "*.sh" -o -name "prosody-manager" | grep -v ".git")
+          files=$(find . -name "*.sh" | grep -v ".git")
           
           if ! shfmt -d -i 4 -ci $files; then
             echo "❌ Shell scripts are not properly formatted"

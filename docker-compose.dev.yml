@@ -1,17 +1,7 @@
-# ============================================================================
-# DEVELOPMENT DOCKER COMPOSE CONFIGURATION
-# Professional Prosody XMPP Server - Development Environment
-# ============================================================================
-# Optimized for local development with relaxed security and enhanced debugging
-# Usage: docker compose -f docker-compose.dev.yml up -d
-
 name: xmpp-server-dev
 
 services:
-  # ============================================================================
-  # PROSODY XMPP SERVER (Development)
-  # ============================================================================
-  xmpp-prosody:
+  xmpp-prosody-dev:
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,7 +11,7 @@ services:
     restart: unless-stopped
     init: true
     env_file:
-      - path: .env.dev
+      - path: .env.development
         required: true
     logging:
       driver: json-file
@@ -29,13 +19,6 @@ services:
         max-size: "10m"
         max-file: "3"
         compress: "true"
-    environment:
-      - PROSODY_DB_HOST=xmpp-postgres-dev
-      - PROSODY_DB_PORT=5432
-      - PROSODY_LOG_LEVEL=info
-      - PROSODY_ALLOW_REGISTRATION=true
-      - PROSODY_DEVELOPMENT_MODE=true
-      - PROSODY_PASTEBIN_PATH=/paste
     ports:
       - '5222:5222'
       - '5269:5269'
@@ -44,13 +27,13 @@ services:
       - '5280:5280'
       - '5281:5281'
     volumes:
-      - ./core/config:/etc/prosody/config:rw  # Read-write for development
+      - ./app/config:/etc/prosody/config:rw  # Read-write for development
       - xmpp_prosody_data:/var/lib/prosody/data
       - xmpp_prosody_uploads:/var/lib/prosody/uploads
       - xmpp_certs:/etc/prosody/certs  # Self-signed certificates
       - ./scripts:/opt/prosody/scripts:ro
       - ./.runtime/logs:/var/log/prosody
-      - ./static-files:/usr/share/prosody/www:ro
+      - ./web/assets:/usr/share/prosody/www:ro
     healthcheck:
       test: ['CMD', '/usr/local/bin/health-check.sh']
       interval: 15s
@@ -68,23 +51,20 @@ services:
           memory: 128M
           cpus: '0.25'
     depends_on:
-      xmpp-postgres:
+      xmpp-postgres-dev:
         condition: service_healthy
     networks:
       - xmpp_network_dev
 
-  # ============================================================================
-  # POSTGRESQL DATABASE (Development)
-  # ============================================================================
-  xmpp-postgres:
+  xmpp-postgres-dev:
     image: postgres:17-alpine
     container_name: xmpp-postgres-dev
     hostname: xmpp-postgres-dev
     restart: unless-stopped
     stop_grace_period: 60s
     env_file:
-      - path: .env.dev
-        required: true
+      - path: .env.development
+        required: false
     logging:
       driver: json-file
       options:
@@ -94,11 +74,10 @@ services:
     environment:
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     ports:
-      - '5432:5432'  # Expose for development tools
+      - '5432:5432'
     volumes:
       - xmpp_postgres_data:/var/lib/postgresql/data
       - ./core/database/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
-    # Development PostgreSQL settings (lighter)
     command: >
       postgres
         -c max_connections=50
@@ -120,16 +99,13 @@ services:
     networks:
       - xmpp_network_dev
 
-  # ============================================================================
-  # COTURN - TURN/STUN SERVER (Development)
-  # ============================================================================
-  xmpp-coturn:
+  xmpp-coturn-dev:
     image: coturn/coturn:latest
     container_name: xmpp-coturn-dev
     hostname: xmpp-coturn-dev
     restart: unless-stopped
     env_file:
-      - path: .env.dev
+      - path: .env.development
         required: true
     logging:
       driver: json-file
@@ -170,16 +146,14 @@ services:
         --simple-log
     networks:
       - xmpp_network_dev
-  # ============================================================================
-  # ADMINER - DATABASE MANAGEMENT (Development)
-  # ============================================================================
-  xmpp-adminer:
+
+  xmpp-adminer-dev:
     image: adminer:latest
     container_name: xmpp-adminer-dev
     hostname: xmpp-adminer-dev
     restart: unless-stopped
     env_file:
-      - path: .env.dev
+      - path: .env.development
         required: true
     logging:
       driver: json-file
@@ -203,15 +177,11 @@ services:
       - source: adminer-theme.css
         target: /var/www/html/adminer.css
     depends_on:
-      xmpp-postgres:
+      xmpp-postgres-dev:
         condition: service_healthy
     networks:
       - xmpp_network_dev
 
-  # ============================================================================
-  # DEVELOPMENT TOOLS
-  # ============================================================================
-  
   # Log viewer for development
   xmpp-logs-dev:
     image: amir20/dozzle:latest
@@ -228,7 +198,6 @@ services:
     networks:
       - xmpp_network_dev
 
-  # NGINX reverse proxy for local/dev testing on standard ports
   xmpp-nginx-dev:
     image: nginx:stable
     container_name: xmpp-nginx-dev
@@ -242,17 +211,13 @@ services:
       - ./deployment/reverse-proxy/nginx/nginx-docker.conf:/etc/nginx/nginx.conf:ro
       - ./certs-dev:/opt/xmpp.atl.chat/certs:ro
     depends_on:
-      xmpp-prosody:
+      xmpp-prosody-dev:
         condition: service_healthy
     stop_signal: SIGQUIT
     stop_grace_period: 30s
     networks:
       - xmpp_network_dev
   
-
-# ============================================================================
-# DEVELOPMENT VOLUMES
-# ============================================================================
 volumes:
   xmpp_prosody_data:
     external: true
@@ -270,13 +235,9 @@ volumes:
     external: true
     name: xmpp_certs_dev
 
-# ============================================================================
-# DEVELOPMENT NETWORK
-# ============================================================================
 networks:
   xmpp_network_dev:
     name: xmpp_network_dev
-
 
 configs:
   adminer-index.php:
