@@ -56,7 +56,7 @@ modules_enabled = {
 	-- USER PROFILES & PERSONAL DATA
 	-- ===============================================
 	"vcard", -- Allow users to set vCards containing contact information (XEP-0054)
-	"vcard_legacy", -- Legacy vCard support for older clients (XEP-0054)
+	-- "vcard_legacy", -- Legacy vCard support for older clients (XEP-0054)
 	"private", -- Private XML storage for client data (XEP-0049)
 	"pep", -- Personal Eventing Protocol for presence extensions (XEP-0163)
 	"bookmarks", -- Bookmark storage and synchronization (XEP-0402, XEP-0411)
@@ -98,7 +98,7 @@ modules_enabled = {
 	"bosh", -- BOSH (HTTP binding) for web clients (XEP-0124, XEP-0206)
 	"websocket", -- WebSocket connections for web clients (RFC 7395)
 	"http_files", -- Static file serving over HTTP
-	"turn_external", -- External TURN server support
+	-- "turn_external", -- External TURN server support
 
 	-- ===============================================
 	-- SYSTEM & PLATFORM
