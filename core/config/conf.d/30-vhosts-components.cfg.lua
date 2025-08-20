@@ -9,17 +9,12 @@ ssl = {
 	certificate = "certs/live/atl.chat/fullchain.pem",
 }
 
--- disco_expose_admins = false
-
 Component("muc.atl.chat", "muc")
-
--- Use wildcard certificate that covers *.atl.chat
 ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
 	certificate = "certs/live/atl.chat/fullchain.pem",
 }
 name = "muc.atl.chat"
-description = "atl.chat MUC rooms and conferences (XEP-0045)"
 
 -- MUC-specific modules
 modules_enabled = {
@@ -78,9 +73,7 @@ ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
 	certificate = "certs/live/atl.chat/fullchain.pem",
 }
-
-name = "File Upload Service"
-description = "HTTP file upload and sharing (XEP-0363)"
+name = "upload.atl.chat"
 http_external_url = "https://upload.atl.chat/"
 
 -- SOCKS5 Proxy component
@@ -89,6 +82,5 @@ ssl = {
 	key = "certs/live/atl.chat/privkey.pem",
 	certificate = "certs/live/atl.chat/fullchain.pem",
 }
-name = "SOCKS5 Proxy"
-description = "File transfer proxy service (XEP-0065)"
+name = "proxy.atl.chat"
 proxy65_address = "proxy.atl.chat"

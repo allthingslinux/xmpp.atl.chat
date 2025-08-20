@@ -48,7 +48,7 @@ modules_enabled = {
 	-- ===============================================
 	-- CLIENT STATE & OPTIMIZATION
 	-- ===============================================
-	"csi_simple", -- Client State Indication for mobile optimization (XEP-0352)
+	-- "csi_simple", -- Client State Indication for mobile optimization (XEP-0352)
 	"csi_battery_saver", -- Enhanced CSI with battery saving features
 
 	-- ===============================================
@@ -58,7 +58,7 @@ modules_enabled = {
 	"vcard_legacy", -- Legacy vCard support for older clients (XEP-0054)
 	"private", -- Private XML storage for client data (XEP-0049)
 	"pep", -- Personal Eventing Protocol for presence extensions (XEP-0163)
-	"bookmarks", -- Bookmark storage and synchronization (XEP-0048/XEP-0402)
+	"bookmarks", -- Bookmark storage and synchronization (XEP-0402, XEP-0411)
 
 	-- ===============================================
 	-- PUSH NOTIFICATIONS
@@ -78,7 +78,7 @@ modules_enabled = {
 	-- REGISTRATION & USER MANAGEMENT
 	-- ===============================================
 	"register", -- In-band user registration (XEP-0077)
-	"invites", -- User invitation system
+	-- "invites", -- User invitation system
 	"welcome", -- Welcome messages for new users
 	"watchregistrations", -- Administrative alerts for new registrations
 
