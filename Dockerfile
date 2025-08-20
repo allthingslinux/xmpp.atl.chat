@@ -117,7 +117,7 @@ RUN mkdir -p /usr/local/lib/prosody/community-modules && \
     echo "Community modules installed successfully"
 
 # --- Expose all relevant ports ---
-EXPOSE 5222 5223 5269 5270 5280 5281 5347
+EXPOSE 5222 5223 5269 5270 5280 5281 5347 5000
 
 # --- Healthcheck, volumes, environment, and entrypoint ---
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 CMD /usr/local/bin/health-check.sh
