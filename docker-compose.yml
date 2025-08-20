@@ -206,72 +206,71 @@ services:
   # ============================================================================
   # COTURN - TURN/STUN SERVER
   # ============================================================================
-  # xmpp-coturn:
-  #   image: coturn/coturn:latest
-  #   container_name: xmpp-coturn
-  #   hostname: xmpp-coturn
-  #   restart: unless-stopped
-  #   env_file:
-  #     - path: .env
-  #       required: true
-  #   security_opt:
-  #     - no-new-privileges:true
-  #     - apparmor:docker-default
-  #   logging:
-  #     driver: json-file
-  #     options:
-  #       max-size: "50m"
-  #       max-file: "5"
-  #       compress: "true"
-  #   ports:
-  #     - '${TURN_PORT:-3478}:3478'
-  #     - '${TURN_PORT:-3478}:3478/udp'
-  #     - '${TURNS_PORT:-5349}:5349'
-  #     - '${TURNS_PORT:-5349}:5349/udp'
-  #     - '${TURN_MIN_PORT:-49152}-${TURN_MAX_PORT:-65535}:49152-65535/udp'
-  #   environment:
-  #     - TURN_NO_LOOPBACK_PEERS=true
-  #     - TURN_NO_MULTICAST_PEERS=true
-  #     - TURN_STALE_NONCE=true
-  #     - TURN_SECURE_STUN=true
-  #     - TURN_LOG_FILE=stdout
-  #     - TURN_VERBOSE=false
-  #   volumes:
-  #     - xmpp_coturn_data:/var/lib/coturn
-  #   command: >
-  #     turnserver
-  #       --listening-port=3478
-  #       --tls-listening-port=5349
-  #       --min-port=49152
-  #       --max-port=65535
-  #       --realm=${TURN_REALM:-localhost}
-  #       --server-name=${TURN_DOMAIN:-localhost}
-  #       --lt-cred-mech
-  #       --user=${TURN_USERNAME:-prosody}:${TURN_PASSWORD:-changeme}
-  #       --use-auth-secret
-  #       --static-auth-secret=${TURN_SECRET:-changeme}
-  #       --no-loopback-peers
-  #       --no-multicast-peers
-  #       --mobility
-  #       --no-cli
-  #       --no-tlsv1
-  #       --no-tlsv1_1
-  #       --cipher-list=ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS
-  #       --no-sslv2
-  #       --no-sslv3
-  #       --log-file=stdout
-  #       --simple-log
-  #   # Production resource limits
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 256M
-  #         cpus: '1.0'
-  #       reservations:
-  #         memory: 64M
-  #         cpus: '0.25'
-  #   networks:
-  #     - xmpp_network
+  xmpp-coturn:
+    image: coturn/coturn:latest
+    container_name: xmpp-coturn
+    hostname: xmpp-coturn
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: true
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+    ports:
+      - '${TURN_PORT:-3478}:3478'
+      - '${TURN_PORT:-3478}:3478/udp'
+      - '${TURNS_PORT:-5349}:5349'
+      - '${TURNS_PORT:-5349}:5349/udp'
+      - '${TURN_MIN_PORT:-49152}-${TURN_MAX_PORT:-65535}:49152-65535/udp'
+    environment:
+      - TURN_NO_LOOPBACK_PEERS=true
+      - TURN_NO_MULTICAST_PEERS=true
+      - TURN_STALE_NONCE=true
+      - TURN_SECURE_STUN=true
+      - TURN_LOG_FILE=stdout
+      - TURN_VERBOSE=false
+    volumes:
+      - xmpp_coturn_data:/var/lib/coturn
+    command: >
+      turnserver
+        --listening-port=3478
+        --tls-listening-port=5349
+        --min-port=49152
+        --max-port=65535
+        --realm=${TURN_REALM:-atl.chat}
+        --server-name=${TURN_DOMAIN:-atl.chat}
+        --lt-cred-mech
+        --use-auth-secret
+        --static-auth-secret=${TURN_SECRET:-ChangeMe123!}
+        --no-loopback-peers
+        --no-multicast-peers
+        --mobility
+        --no-cli
+        --no-tlsv1
+        --no-tlsv1_1
+        --cipher-list=ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS
+        --no-sslv2
+        --no-sslv3
+        --log-file=stdout
+        --simple-log
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '1.0'
+        reservations:
+          memory: 64M
+          cpus: '0.25'
+    networks:
+      - xmpp_network
 
   # ============================================================================
   # ADMINER - DATABASE MANAGEMENT
@@ -396,9 +395,9 @@ volumes:
   xmpp_postgres_data:
     driver: local
     name: xmpp_postgres_data
-  # xmpp_coturn_data:
-  #   driver: local
-  #   name: xmpp_coturn_data
+  xmpp_coturn_data:
+    driver: local
+    name: xmpp_coturn_data
 
 # ============================================================================
 # NETWORKS

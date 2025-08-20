@@ -173,3 +173,29 @@ http_paths = {
 http_status_allow_ips = { "127.0.0.1", "::1", "172.18.0.0/16" }
 -- Optional: Allow access from specific CIDR range
 -- http_status_allow_cidr = "10.0.0.0/8"
+
+-- ===============================================
+-- TURN/STUN EXTERNAL SERVICES (XEP-0215)
+-- ===============================================
+-- External TURN/STUN server configuration for audio/video calls
+-- These services are provided by the COTURN container
+
+-- TURN external configuration (XEP-0215)
+-- A secret shared with the TURN server, used to dynamically generate credentials
+turn_external_secret = os.getenv("TURN_SECRET") or "ChangeMe123!"
+
+-- DNS hostname of the TURN (and STUN) server
+turn_external_host = os.getenv("TURN_DOMAIN") or "atl.chat"
+
+-- Port number used by TURN (and STUN) server
+turn_external_port = tonumber(os.getenv("TURN_PORT")) or 3478
+
+-- How long the generated credentials are valid (default: 1 day)
+turn_external_ttl = 86400
+
+-- Whether to announce TURN (and STUN) over TCP, in addition to UDP
+-- Note: Most clients prefer UDP, but TCP can help with restrictive firewalls
+turn_external_tcp = true
+
+-- Optional: Port offering TURN over TLS (if using TURNS)
+-- turn_external_tls_port = tonumber(os.getenv("TURNS_PORT")) or 5349

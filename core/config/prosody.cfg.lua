@@ -1126,7 +1126,7 @@ modules_enabled = {
 	"http_files", -- Static file serving over HTTP
 	"http_status", -- HTTP status API for monitoring (XEP-0156)
 	-- "proxy65", -- Disabled here; provided via dedicated Component `proxy.atl.chat`
-	-- "turn_external", -- External TURN server support
+	"turn_external", -- External TURN server support (XEP-0215)
 
 	-- ===============================================
 	-- SYSTEM & PLATFORM
