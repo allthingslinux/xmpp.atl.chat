@@ -99,7 +99,6 @@ RUN mkdir -p /usr/local/lib/prosody/community-modules && \
     mod_anti_spam \
     mod_admin_blocklist \
     mod_spam_reporting \
-    mod_cloud_notify \
     mod_cloud_notify_extensions \
     mod_csi_battery_saver \
     mod_invites \

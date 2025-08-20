@@ -1087,7 +1087,7 @@ modules_enabled = {
 	-- ===============================================
 	-- PUSH NOTIFICATIONS
 	-- ===============================================
-	"cloud_notify", -- Push notifications for mobile devices (XEP-0357)
+	-- "cloud_notify", -- Push notifications for mobile devices (XEP-0357)
 	-- "cloud_notify_extensions", -- Enhanced push notification features
 
 	-- ===============================================
@@ -1106,6 +1106,7 @@ modules_enabled = {
 	"welcome", -- Welcome messages for new users
 	"watchregistrations", -- Administrative alerts for new registrations
     "mimicking", -- Prevent address spoofing
+    "flags", -- Module to view and manage flags on user accounts via shell/API.
 
 	-- ===============================================
 	-- ADMINISTRATIVE INTERFACES
