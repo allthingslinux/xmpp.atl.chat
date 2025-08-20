@@ -22,9 +22,6 @@
 -- Default service ports (override as needed)
 -- ===============================================
 
--- Legacy SSL ports, deprecated but compliance tester wants this?
-legacy_ssl_ports = { 5223 }
-
 -- Client-to-server (XMPP over TCP, STARTTLS-capable)
 c2s_ports = { 5222 }
 
