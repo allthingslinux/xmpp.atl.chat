@@ -20,7 +20,7 @@ name = "muc.atl.chat"
 modules_enabled = {
 	-- "muc",
 	"muc_mam", -- Message Archive Management for MUC events
-	-- "vcard_muc", -- vCard support for MUC users (conflicts with built-in muc_vcard on Prosody 13)
+	"vcard_muc", -- vCard support for MUC users (conflicts with built-in muc_vcard on Prosody 13)
 	"muc_notifications", -- Push notifications for MUC events
 	"muc_offline_delivery", -- Offline delivery for MUC events
 	-- "pastebin",
@@ -29,10 +29,11 @@ modules_enabled = {
 restrict_room_creation = false
 muc_room_default_public = true
 muc_room_default_persistent = true
+muc_room_locking = false
+vcard_to_pep = true
 
 -- General MUC configuration
 -- max_history_messages = 50
--- muc_room_locking = false
 -- muc_room_lock_timeout = 300
 -- muc_tombstones = true
 -- muc_room_cache_size = 1000
@@ -60,12 +61,12 @@ muc_dont_archive_namespaces = {
 	-- "http://jabber.org/protocol/muc#user",
 }
 
-muc_archive_policy = "all"
-muc_log_notification = true
+-- muc_archive_policy = "all"
+-- muc_log_notification = true
 
 -- Pastebin settings
-pastebin_threshold = 800
-pastebin_line_threshold = 6
+-- pastebin_threshold = 800
+-- pastebin_line_threshold = 6
 
 -- HTTP File Upload component
 Component("upload.atl.chat", "http_file_share")

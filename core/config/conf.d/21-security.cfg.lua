@@ -19,12 +19,12 @@ limits = {
 -- Global TLS configuration. See:
 -- https://prosody.im/doc/certificates
 -- https://prosody.im/doc/security
-ssl = {
-	protocol = "tlsv1_2+",
-	ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
-	curve = "secp384r1",
-	options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
-}
+-- ssl = {
+-- protocol = "tlsv1_2+",
+-- ciphers = "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS",
+-- curve = "secp384r1",
+-- options = { "cipher_server_preference", "single_dh_use", "single_ecdh_use" },
+-- }
 
 -- Let's Encrypt certificate location (mounted into the container)
 certificates = "certs"

@@ -28,6 +28,7 @@ modules_enabled = {
 	"iq", -- Info/Query request-response semantics (RFC 6120)
 	"s2s_status", -- https://modules.prosody.im/mod_s2s_status.html
 	"s2s_bidi", -- XEP-0288: Bidirectional Server-to-Server Connections
+	"limits",
 
 	-- ===============================================
 	-- DISCOVERY & CAPABILITIES
@@ -65,7 +66,7 @@ modules_enabled = {
 	-- PUSH NOTIFICATIONS
 	-- ===============================================
 	"cloud_notify", -- Push notifications for mobile devices (XEP-0357)
-	"cloud_notify_extensions", -- Enhanced push notification features
+	-- "cloud_notify_extensions", -- Enhanced push notification features
 
 	-- ===============================================
 	-- SECURITY & PRIVACY
@@ -98,6 +99,7 @@ modules_enabled = {
 	"bosh", -- BOSH (HTTP binding) for web clients (XEP-0124, XEP-0206)
 	"websocket", -- WebSocket connections for web clients (RFC 7395)
 	"http_files", -- Static file serving over HTTP
+	"proxy65", -- Enables a file transfer proxy service which clients behind NAT can use
 	-- "turn_external", -- External TURN server support
 
 	-- ===============================================

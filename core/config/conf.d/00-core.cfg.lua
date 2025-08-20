@@ -114,26 +114,26 @@ storage = {
 -- }
 
 -- Stream Management (XEP-0198)
-smacks_config = {
-	-- Session resumption timeouts
-	resumption_timeout = 300, -- 5 minutes
-	max_resumption_timeout = 3600, -- 1 hour maximum
-	hibernation_timeout = 60, -- 1 minute
-	max_hibernation_timeout = 300, -- 5 minutes maximum
+-- smacks_config = {
+-- 	-- Session resumption timeouts
+-- 	resumption_timeout = 300, -- 5 minutes
+-- 	max_resumption_timeout = 3600, -- 1 hour maximum
+-- 	hibernation_timeout = 60, -- 1 minute
+-- 	max_hibernation_timeout = 300, -- 5 minutes maximum
 
-	-- Queue management
-	max_unacked_stanzas = 500, -- Maximum unacknowledged stanzas
-	max_queue_size = 1000, -- Maximum queue size
+-- 	-- Queue management
+-- 	max_unacked_stanzas = 500, -- Maximum unacknowledged stanzas
+-- 	max_queue_size = 1000, -- Maximum queue size
 
-	-- Acknowledgment settings
-	ack_frequency = 5, -- Request ack every 5 stanzas
-	ack_timeout = 60, -- Timeout for ack requests
+-- 	-- Acknowledgment settings
+-- 	ack_frequency = 5, -- Request ack every 5 stanzas
+-- 	ack_timeout = 60, -- Timeout for ack requests
 
-	-- Mobile-specific settings
-	mobile_resumption_timeout = 900, -- 15 minutes for mobile
-	mobile_hibernation_timeout = 300, -- 5 minutes for mobile
-	mobile_ack_frequency = 10, -- Less frequent acks for mobile
-}
+-- 	-- Mobile-specific settings
+-- 	mobile_resumption_timeout = 900, -- 15 minutes for mobile
+-- 	mobile_hibernation_timeout = 300, -- 5 minutes for mobile
+-- 	mobile_ack_frequency = 10, -- Less frequent acks for mobile
+-- }
 
 -- Lua garbage collection
 lua_gc_step_size = 13 -- GC step size
