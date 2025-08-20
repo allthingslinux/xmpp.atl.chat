@@ -77,6 +77,8 @@ services:
       xmpp-postgres-dev:
         condition: service_healthy
 
+
+
     # Network configuration
     networks:
       - xmpp_network_dev
@@ -261,6 +263,42 @@ services:
     depends_on:
       xmpp-postgres-dev:
         condition: service_healthy
+
+    # Network configuration
+    networks:
+      - xmpp_network_dev
+
+  # ============================================================================
+  # ADMIN USER CREATION (Development)
+  # ============================================================================
+  xmpp-admin-init-dev:
+    image: alpine:latest
+    container_name: xmpp-admin-init-dev
+    hostname: xmpp-admin-init-dev
+    restart: "no"  # Run once and exit
+
+    # Environment configuration
+    env_file:
+      - path: .env.development
+        required: true
+
+    # Volume mounts
+    volumes:
+      - ./scripts:/opt/prosody/scripts:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    # Service dependencies
+    depends_on:
+      xmpp-prosody-dev:
+        condition: service_healthy
+
+    # Wait for Prosody and create admin user
+    command: >
+      sh -c "
+        apk add --no-cache bash curl &&
+        sleep 2 &&
+        /opt/prosody/scripts/create-admin-user.sh
+      "
 
     # Network configuration
     networks:
