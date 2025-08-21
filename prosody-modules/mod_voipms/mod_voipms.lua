@@ -178,12 +178,18 @@ module:hook("message/bare", function(event)
         if code == 200 then
             local resp, err = json.decode(response_body)
             if not resp or resp.status ~= "success" then
-                module:log("error", "Failed to send %s: %s", method, err or (resp and resp.status) or "unknown")
+                local err_msg = string.format("Failed to send %s: %s", method, err or (resp and resp.status) or "unknown")
+                module:log("error", "%s", err_msg)
+                local err_reply = st.error_reply(stanza, "cancel", "remote-server-error", err_msg)
+                module:send(err_reply)
             else
                 module:log("info", "Sent %s from %s to %s", method, from_number, dst_number)
             end
         else
-            module:log("error", "HTTP error sending %s: code %s", method, tostring(code))
+            local err_msg = string.format("HTTP error sending %s: code %s", method, tostring(code))
+            module:log("error", "%s", err_msg)
+            local err_reply = st.error_reply(stanza, "cancel", "remote-server-error", err_msg)
+            module:send(err_reply)
         end
     end)
 
