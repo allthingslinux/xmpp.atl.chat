@@ -36,34 +36,34 @@ readonly NC='\033[0m'
 log_info() {
     local msg="[$(date +'%Y-%m-%d %H:%M:%S')] [INFO] $1"
     echo -e "${BLUE}$msg${NC}"
-    echo "$msg" >> "$LOG_FILE"
+    echo "$msg" >>"$LOG_FILE"
 }
 
 log_success() {
     local msg="[$(date +'%Y-%m-%d %H:%M:%S')] [SUCCESS] $1"
     echo -e "${GREEN}$msg${NC}"
-    echo "$msg" >> "$LOG_FILE"
+    echo "$msg" >>"$LOG_FILE"
 }
 
 log_warn() {
     local msg="[$(date +'%Y-%m-%d %H:%M:%S')] [WARN] $1"
     echo -e "${YELLOW}$msg${NC}"
-    echo "$msg" >> "$LOG_FILE"
-    echo "$msg" >> "$ALERT_LOG_FILE"
+    echo "$msg" >>"$LOG_FILE"
+    echo "$msg" >>"$ALERT_LOG_FILE"
 }
 
 log_error() {
     local msg="[$(date +'%Y-%m-%d %H:%M:%S')] [ERROR] $1"
     echo -e "${RED}$msg${NC}"
-    echo "$msg" >> "$LOG_FILE"
-    echo "$msg" >> "$ALERT_LOG_FILE"
+    echo "$msg" >>"$LOG_FILE"
+    echo "$msg" >>"$ALERT_LOG_FILE"
 }
 
 log_critical() {
     local msg="[$(date +'%Y-%m-%d %H:%M:%S')] [CRITICAL] $1"
     echo -e "${RED}${BOLD}$msg${NC}"
-    echo "$msg" >> "$LOG_FILE"
-    echo "$msg" >> "$ALERT_LOG_FILE"
+    echo "$msg" >>"$LOG_FILE"
+    echo "$msg" >>"$ALERT_LOG_FILE"
 }
 
 # ============================================================================
@@ -95,9 +95,9 @@ load_config() {
     CERT_WARNING_THRESHOLD="${CERT_WARNING_THRESHOLD:-$DEFAULT_WARNING_THRESHOLD}"
     CERT_CRITICAL_THRESHOLD="${CERT_CRITICAL_THRESHOLD:-$DEFAULT_CRITICAL_THRESHOLD}"
     CERT_RENEWAL_THRESHOLD="${CERT_RENEWAL_THRESHOLD:-$DEFAULT_RENEWAL_THRESHOLD}"
-    CERT_CHECK_INTERVAL="${CERT_CHECK_INTERVAL:-3600}"  # 1 hour default
+    CERT_CHECK_INTERVAL="${CERT_CHECK_INTERVAL:-3600}" # 1 hour default
     CERT_RENEWAL_RETRY_COUNT="${CERT_RENEWAL_RETRY_COUNT:-3}"
-    CERT_RENEWAL_RETRY_DELAY="${CERT_RENEWAL_RETRY_DELAY:-300}"  # 5 minutes
+    CERT_RENEWAL_RETRY_DELAY="${CERT_RENEWAL_RETRY_DELAY:-300}" # 5 minutes
     CERT_ALERT_EMAIL="${CERT_ALERT_EMAIL:-${LETSENCRYPT_EMAIL:-}}"
     CERT_WEBHOOK_URL="${CERT_WEBHOOK_URL:-}"
     PROSODY_DOMAIN="${PROSODY_DOMAIN:-localhost}"
@@ -121,7 +121,7 @@ get_container_name() {
         return 0
     fi
 
-    echo "xmpp-prosody-1"  # Default fallback
+    echo "xmpp-prosody-1" # Default fallback
 }
 
 # Check if running in container
@@ -137,7 +137,7 @@ run_in_container() {
         # Return mock data for specific commands
         case "$1" in
             "test")
-                return 0  # Pretend files exist
+                return 0 # Pretend files exist
                 ;;
             "openssl")
                 if [[ "$2" == "x509" ]]; then
@@ -190,9 +190,9 @@ days_until_expiry() {
     current_epoch=$(date +%s)
 
     if [[ "$expiry_epoch" -eq 0 ]]; then
-        echo "-1"  # Certificate not found or invalid
+        echo "-1" # Certificate not found or invalid
     else
-        echo $(( (expiry_epoch - current_epoch) / 86400 ))
+        echo $(((expiry_epoch - current_epoch) / 86400))
     fi
 }
 
@@ -270,30 +270,30 @@ monitor_certificates() {
     local timestamp
     timestamp=$(date -Iseconds)
 
-    echo "{" > "$status_file"
-    echo "  \"timestamp\": \"$timestamp\"," >> "$status_file"
-    echo "  \"thresholds\": {" >> "$status_file"
-    echo "    \"warning\": $CERT_WARNING_THRESHOLD," >> "$status_file"
-    echo "    \"critical\": $CERT_CRITICAL_THRESHOLD" >> "$status_file"
-    echo "  }," >> "$status_file"
-    echo "  \"certificates\": [" >> "$status_file"
+    echo "{" >"$status_file"
+    echo "  \"timestamp\": \"$timestamp\"," >>"$status_file"
+    echo "  \"thresholds\": {" >>"$status_file"
+    echo "    \"warning\": $CERT_WARNING_THRESHOLD," >>"$status_file"
+    echo "    \"critical\": $CERT_CRITICAL_THRESHOLD" >>"$status_file"
+    echo "  }," >>"$status_file"
+    echo "  \"certificates\": [" >>"$status_file"
 
     local first=true
     for domain in "${domains[@]}"; do
         if [[ "$first" == "false" ]]; then
-            echo "," >> "$status_file"
+            echo "," >>"$status_file"
         fi
         first=false
 
         local cert_info
         cert_info=$(check_certificate_status "$domain")
         local status days_left expiry_date issuer subject
-        IFS='|' read -r status days_left expiry_date issuer subject <<< "$cert_info"
+        IFS='|' read -r status days_left expiry_date issuer subject <<<"$cert_info"
 
         ((cert_count++))
 
         case "$status" in
-            "critical"|"missing"|"missing_key"|"invalid")
+            "critical" | "missing" | "missing_key" | "invalid")
                 ((critical_count++))
                 overall_status="critical"
                 ;;
@@ -306,24 +306,24 @@ monitor_certificates() {
         esac
 
         # Add to JSON report
-        echo "    {" >> "$status_file"
-        echo "      \"domain\": \"$domain\"," >> "$status_file"
-        echo "      \"status\": \"$status\"," >> "$status_file"
-        echo "      \"days_until_expiry\": $days_left," >> "$status_file"
-        echo "      \"expiry_date\": \"$expiry_date\"," >> "$status_file"
-        echo "      \"issuer\": \"$issuer\"," >> "$status_file"
-        echo "      \"subject\": \"$subject\"" >> "$status_file"
-        echo "    }" >> "$status_file"
+        echo "    {" >>"$status_file"
+        echo "      \"domain\": \"$domain\"," >>"$status_file"
+        echo "      \"status\": \"$status\"," >>"$status_file"
+        echo "      \"days_until_expiry\": $days_left," >>"$status_file"
+        echo "      \"expiry_date\": \"$expiry_date\"," >>"$status_file"
+        echo "      \"issuer\": \"$issuer\"," >>"$status_file"
+        echo "      \"subject\": \"$subject\"" >>"$status_file"
+        echo "    }" >>"$status_file"
     done
 
-    echo "  ]," >> "$status_file"
-    echo "  \"summary\": {" >> "$status_file"
-    echo "    \"overall_status\": \"$overall_status\"," >> "$status_file"
-    echo "    \"total_certificates\": $cert_count," >> "$status_file"
-    echo "    \"warning_count\": $warning_count," >> "$status_file"
-    echo "    \"critical_count\": $critical_count" >> "$status_file"
-    echo "  }" >> "$status_file"
-    echo "}" >> "$status_file"
+    echo "  ]," >>"$status_file"
+    echo "  \"summary\": {" >>"$status_file"
+    echo "    \"overall_status\": \"$overall_status\"," >>"$status_file"
+    echo "    \"total_certificates\": $cert_count," >>"$status_file"
+    echo "    \"warning_count\": $warning_count," >>"$status_file"
+    echo "    \"critical_count\": $critical_count" >>"$status_file"
+    echo "  }" >>"$status_file"
+    echo "}" >>"$status_file"
 
     log_info "Certificate monitoring complete. Status: $overall_status"
     log_info "Total: $cert_count, Warnings: $warning_count, Critical: $critical_count"
@@ -441,8 +441,8 @@ copy_letsencrypt_to_prosody() {
     log_info "Copying Let's Encrypt certificates to Prosody for $domain"
 
     # Copy certificate files
-    if docker cp ".runtime/certs/live/$domain/fullchain.pem" "$container_name:/etc/prosody/certs/$domain.crt" && \
-       docker cp ".runtime/certs/live/$domain/privkey.pem" "$container_name:/etc/prosody/certs/$domain.key"; then
+    if docker cp ".runtime/certs/live/$domain/fullchain.pem" "$container_name:/etc/prosody/certs/$domain.crt" &&
+        docker cp ".runtime/certs/live/$domain/privkey.pem" "$container_name:/etc/prosody/certs/$domain.key"; then
 
         # Set proper permissions
         run_in_container chown prosody:prosody "/etc/prosody/certs/$domain.crt" "/etc/prosody/certs/$domain.key"
@@ -481,7 +481,7 @@ auto_renewal_check() {
         local cert_info
         cert_info=$(check_certificate_status "$domain")
         local status days_left
-        IFS='|' read -r status days_left _ _ _ <<< "$cert_info"
+        IFS='|' read -r status days_left _ _ _ <<<"$cert_info"
 
         if [[ "$days_left" -le "$CERT_RENEWAL_THRESHOLD" ]] && [[ "$days_left" -gt 0 ]]; then
             log_info "Certificate for $domain needs renewal ($days_left days left, threshold: $CERT_RENEWAL_THRESHOLD)"
@@ -546,7 +546,8 @@ Please check certificate status and renew if necessary.
     # Send webhook alert if configured
     if [[ -n "$CERT_WEBHOOK_URL" ]] && command -v curl >/dev/null 2>&1; then
         local webhook_payload
-        webhook_payload=$(cat <<EOF
+        webhook_payload=$(
+            cat <<EOF
 {
   "text": "$subject",
   "attachments": [
@@ -588,7 +589,7 @@ generate_dashboard() {
 
     log_info "Generating certificate health dashboard..."
 
-    cat > "$dashboard_file" << 'EOF'
+    cat >"$dashboard_file" <<'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -781,7 +782,7 @@ EOF
 
 # Show help
 show_help() {
-    cat << EOF
+    cat <<EOF
 Certificate Monitoring and Renewal System
 
 USAGE:
@@ -872,7 +873,7 @@ main() {
         "config")
             show_config
             ;;
-        "help"|"--help"|"-h")
+        "help" | "--help" | "-h")
             show_help
             ;;
         *)

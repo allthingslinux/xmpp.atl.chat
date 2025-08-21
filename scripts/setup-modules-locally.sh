@@ -22,7 +22,7 @@ if [[ ! -d "$PROSODY_MODULES_DIR/.hg" ]]; then
         echo "📦 Using local bundle to avoid rate limiting..."
         hg clone "prosody-modules.zstd-v2" "$PROSODY_MODULES_DIR"
         # Set up paths to use official repo for future updates
-        cat > "$PROSODY_MODULES_DIR/.hg/hgrc" << 'EOF'
+        cat >"$PROSODY_MODULES_DIR/.hg/hgrc" <<'EOF'
 [paths]
 default = https://hg.prosody.im/prosody-modules/
 bundle = ../prosody-modules.zstd-v2
@@ -33,7 +33,7 @@ EOF
     fi
 else
     echo "⬆️  Updating existing repository..."
-    (cd "$PROSODY_MODULES_DIR" && (hg pull bundle 2> /dev/null && echo "📦 Updated from bundle" || (hg pull default && echo "🌐 Updated from official repo")) && hg update)
+    (cd "$PROSODY_MODULES_DIR" && (hg pull bundle 2>/dev/null && echo "📦 Updated from bundle" || (hg pull default && echo "🌐 Updated from official repo")) && hg update)
 fi
 
 # Create enabled directory
