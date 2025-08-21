@@ -6,7 +6,6 @@ description = "Allowlist for prosody-modules directories"
 paths = ["prosody-modules", "prosody-modules-enabled"]
 
 
-
 # Also exclude common false positives
 regexes = [
     "AKIA[0-9A-Z]{16}",    # AWS Access Key ID
