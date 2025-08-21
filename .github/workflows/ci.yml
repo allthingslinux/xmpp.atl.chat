@@ -98,10 +98,10 @@ jobs:
 
           if [ -z "$files" ]; then
             echo "No ${{ matrix.language }} files found"
-            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           else
-            echo "skip=false" >> $GITHUB_OUTPUT
-            echo "files=$files" >> $GITHUB_OUTPUT
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "files=$files" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run sh-checker (shell files only)
@@ -257,7 +257,7 @@ jobs:
           # Get image size from local build for testing
           docker build -t xmpp-atl-chat:size-test .
           size=$(docker images xmpp-atl-chat:size-test --format "{{.Size}}")
-          echo "size=$size" >> $GITHUB_OUTPUT
+          echo "size=$size" >> "$GITHUB_OUTPUT"
           echo "Image size: $size bytes"
 
       - name: Build test image
@@ -438,51 +438,51 @@ jobs:
     steps:
       - name: Generate summary
         run: |
-          echo "# CI Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "# CI Summary"
+            echo ""
+            echo "# Check each job status"
+            jobs_status=""
 
-          # Check each job status
-          jobs_status=""
+            check_job() {
+              local job_name="$1"
+              local status="$2"
+              local icon=""
 
-          check_job() {
-            local job_name="$1"
-            local status="$2"
-            local icon=""
+              if [ "$status" = "success" ]; then
+                icon="✅"
+                jobs_status="$jobs_status\n$icon $job_name: Passed"
+              elif [ "$status" = "failure" ]; then
+                icon="❌"
+                jobs_status="$jobs_status\n$icon $job_name: Failed"
+              elif [ "$status" = "skipped" ]; then
+                icon="⏭️"
+                jobs_status="$jobs_status\n$icon $job_name: Skipped"
+              else
+                icon="⏳"
+                jobs_status="$jobs_status\n$icon $job_name: $status"
+              fi
+            }
 
-            if [ "$status" = "success" ]; then
-              icon="✅"
-              jobs_status="$jobs_status\n$icon $job_name: Passed"
-            elif [ "$status" = "failure" ]; then
-              icon="❌"
-              jobs_status="$jobs_status\n$icon $job_name: Failed"
-            elif [ "$status" = "skipped" ]; then
-              icon="⏭️"
-              jobs_status="$jobs_status\n$icon $job_name: Skipped"
+            check_job "Changes Detection" "${{ needs.changes.result }}"
+            check_job "Linting" "${{ needs.lint.result }}"
+            check_job "Security Scan" "${{ needs.security.result }}"
+            check_job "Docker Build & Test" "${{ needs.docker.result }}"
+
+            echo "## Job Results"
+            echo "$jobs_status"
+            echo ""
+
+            # Overall status
+            if [ "${{ needs.changes.result }}" = "success" ] && \
+               [ "${{ needs.lint.result }}" = "success" ] && \
+               [ "${{ needs.security.result }}" = "success" ] && \
+               [ "${{ needs.docker.result }}" != "failure" ]; then
+              echo "🎉 **All checks passed!** Ready for merge."
             else
-              icon="⏳"
-              jobs_status="$jobs_status\n$icon $job_name: $status"
+              echo "⚠️  **Some checks failed or are incomplete.** Review the results above."
             fi
-          }
-
-          check_job "Changes Detection" "${{ needs.changes.result }}"
-          check_job "Linting" "${{ needs.lint.result }}"
-          check_job "Security Scan" "${{ needs.security.result }}"
-          check_job "Docker Build & Test" "${{ needs.docker.result }}"
-
-
-          echo "## Job Results" >> $GITHUB_STEP_SUMMARY
-          echo "$jobs_status" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Overall status
-          if [ "${{ needs.changes.result }}" = "success" ] && \
-             [ "${{ needs.lint.result }}" = "success" ] && \
-             [ "${{ needs.security.result }}" = "success" ] && \
-             [ "${{ needs.docker.result }}" != "failure" ]; then
-            echo "🎉 **All checks passed!** Ready for merge." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️  **Some checks failed or are incomplete.** Review the results above." >> $GITHUB_STEP_SUMMARY
-          fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Scheduled security scanning job
   scheduled-security:
@@ -528,14 +528,16 @@ jobs:
 
       - name: Security scan summary
         run: |
-          echo "## 🔒 Scheduled Security Scan Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Scan completed:** $(date)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Summary:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Secret scanning completed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Container scan completed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
-          echo "- Review any alerts in the Security tab" >> $GITHUB_STEP_SUMMARY
-          echo "- Address any critical vulnerabilities found" >> $GITHUB_STEP_SUMMARY 
+          {
+            echo "## 🔒 Scheduled Security Scan Report"
+            echo ""
+            echo "**Scan completed:** $(date)"
+            echo ""
+            echo "### Summary:"
+            echo "- ✅ Secret scanning completed"
+            echo "- ✅ Container scan completed"
+            echo ""
+            echo "### Next Steps:"
+            echo "- Review any alerts in the Security tab"
+            echo "- Address any critical vulnerabilities found"
+          } >> "$GITHUB_STEP_SUMMARY" 
