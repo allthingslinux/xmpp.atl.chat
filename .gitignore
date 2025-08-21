@@ -1,7 +1,6 @@
 .vscode
 .luarc.json
 prosody-hg
-prosody-modules
 .prosody-modules
 research/
 
@@ -11,10 +10,13 @@ certs/
 
 # Environment configuration
 .env
+.env.test
+.env.local
+.env.production.local
 cloudflare-credentials.ini
-.env.dev
 
 .kiro/
 
 .runtime
 .env.backup
+.env.production

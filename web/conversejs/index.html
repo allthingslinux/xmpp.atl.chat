@@ -14,13 +14,16 @@
         // Initialize Converse in fullscreen mode against your Prosody endpoints
         window.addEventListener('load', function () {
             if (window.converse && window.converse.initialize) {
+                // Development configuration - automatically detect environment
+                var isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
                 window.converse.initialize({
                     view_mode: 'fullscreen',
                     authentication: 'login',
-                    default_domain: 'atl.chat',
+                    default_domain: isLocalhost ? 'localhost' : 'atl.chat',
                     assets_path: 'https://cdn.conversejs.org/11.0.1/dist/',
-                    bosh_service_url: 'https://xmpp.atl.chat/http-bind',
-                    websocket_url: 'wss://xmpp.atl.chat/xmpp-websocket'
+                    bosh_service_url: isLocalhost ? 'http://localhost:8080/http-bind' : 'https://xmpp.atl.chat/http-bind',
+                    websocket_url: isLocalhost ? 'ws://localhost:8080/xmpp-websocket' : 'wss://xmpp.atl.chat/xmpp-websocket'
                 });
             }
         });

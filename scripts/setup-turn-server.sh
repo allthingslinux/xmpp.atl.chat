@@ -1,163 +1,138 @@
 #!/bin/bash
-# ============================================================================
-# COMPREHENSIVE TURN SERVER SETUP SCRIPT
-# ============================================================================
-# This script sets up the complete TURN/STUN server configuration for XMPP.atl.chat
+# TURN Server Configuration Setup Script
+# This script sets up the TURN server configuration with environment variables
 
 set -euo pipefail
+
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+TURN_CONFIG_FILE="${PROJECT_DIR}/.runtime/turn/turnserver.conf"
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Function to print colored output
-print_status() {
+log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
 
-print_success() {
+log_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
-print_error() {
+log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if we're in the right directory
-if [ ! -f "docker-compose.yml" ]; then
-    print_error "This script must be run from the xmpp.atl.chat directory"
-    exit 1
-fi
-
-print_status "Starting TURN server configuration setup..."
-
-# Check if .env file exists
-if [ ! -f ".env" ]; then
-    print_warning ".env file not found. Creating from template..."
-    if [ -f "templates/env/env.example" ]; then
-        cp templates/env/env.example .env
-        print_success "Created .env file from template"
-        print_warning "Please review and update the .env file with your actual values"
-        print_warning "Especially check: TURN_SECRET, TURN_DOMAIN, and TURN_REALM"
-        exit 1
-    else
-        print_error "No .env template found. Please create .env file manually."
-        exit 1
+# Load environment variables
+load_env() {
+    if [[ -f "${PROJECT_DIR}/.env" ]]; then
+        # shellcheck source=/dev/null
+        source "${PROJECT_DIR}/.env"
     fi
-fi
+}
 
-# Source environment variables
-print_status "Loading environment variables..."
-if [ -f ".env" ]; then
-    # Load environment variables safely
-    while IFS= read -r line; do
-        # Skip comments and empty lines
-        [[ $line =~ ^[[:space:]]*# ]] && continue
-        [[ -z "${line// /}" ]] && continue
+# Update TURN configuration with environment variables
+update_turn_config() {
+    log_info "Updating TURN server configuration..."
 
-        # Extract variable name and value
-        if [[ $line =~ ^([^=]+)=(.*)$ ]]; then
-            var_name="${BASH_REMATCH[1]}"
-            var_value="${BASH_REMATCH[2]}"
-            # Remove quotes if present
-            var_value="${var_value%\"}"
-            var_value="${var_value#\"}"
-            var_value="${var_value%\'}"
-            var_value="${var_value#\'}"
-            export "$var_name=$var_value"
-        fi
-    done < ".env"
-fi
-
-# Set default values
-TURN_SECRET=${TURN_SECRET:-"vEIheW+T+MiuulmzX69ck7UJ3ZxuhZLZiykq9XvBU98="}
-TURN_DOMAIN=${TURN_DOMAIN:-"turn.atl.chat"}
-TURN_REALM=${TURN_REALM:-"atl.chat"}
-TURN_PORT=${TURN_PORT:-"3478"}
-TURNS_PORT=${TURNS_PORT:-"5349"}
-
-print_status "Configuration values:"
-echo "  TURN Domain: $TURN_DOMAIN"
-echo "  TURN Realm: $TURN_REALM"
-echo "  TURN Port: $TURN_PORT"
-echo "  TURNS Port: $TURNS_PORT"
-echo "  TURN Secret: ${TURN_SECRET:0:10}..."
-
-# Check if envsubst is available
-if ! command -v envsubst &> /dev/null; then
-    print_warning "envsubst not found. Installing gettext..."
-    if command -v apt-get &> /dev/null; then
-        sudo apt-get update && sudo apt-get install -y gettext-base
-    elif command -v yum &> /dev/null; then
-        sudo yum install -y gettext
-    elif command -v pacman &> /dev/null; then
-        sudo pacman -S gettext
-    else
-        print_error "Could not install envsubst. Please install gettext-base package manually."
-        exit 1
+    # Create backup
+    if [[ -f "$TURN_CONFIG_FILE" ]]; then
+        cp "$TURN_CONFIG_FILE" "${TURN_CONFIG_FILE}.backup"
     fi
-fi
 
-# Create runtime directories
-print_status "Creating runtime directories..."
-mkdir -p .runtime/turn
-mkdir -p .runtime/certs
+    # Update configuration values
+    sed -i "s/vEIheW+T+MiuulmzX69ck7UJ3ZxuhZLZiykq9XvBU98=/${TURN_SECRET:-vEIheW+T+MiuulmzX69ck7UJ3ZxuhZLZiykq9XvBU98=}/g" "$TURN_CONFIG_FILE"
+    sed -i "s/realm=atl.chat/realm=${TURN_REALM:-atl.chat}/g" "$TURN_CONFIG_FILE"
+    sed -i "s/server-name=turn.atl.chat/server-name=${TURN_DOMAIN:-turn.atl.chat}/g" "$TURN_CONFIG_FILE"
 
-# Generate TURN configuration
-print_status "Generating TURN server configuration..."
-envsubst < deployment/coturn/turnserver.conf > .runtime/turn/turnserver.conf
+    log_success "TURN server configuration updated"
+}
 
-# Verify configuration
-print_status "Verifying TURN configuration..."
-if [ -f ".runtime/turn/turnserver.conf" ]; then
-    print_success "TURN configuration generated successfully"
+# Validate TURN configuration
+validate_turn_config() {
+    log_info "Validating TURN server configuration..."
 
-    # Check key configuration items
-    echo "Configuration verification:"
-    echo "  ✓ Secret configured: $(grep -c "static-auth-secret" .runtime/turn/turnserver.conf || echo "0")"
-    echo "  ✓ Realm configured: $(grep -c "realm" .runtime/turn/turnserver.conf || echo "0")"
-    echo "  ✓ Server name configured: $(grep -c "server-name" .runtime/turn/turnserver.conf || echo "0")"
-    echo "  ✓ Ports configured: $(grep -c "listening-port" .runtime/turn/turnserver.conf || echo "0")"
-else
-    print_error "Failed to generate TURN configuration file"
-    exit 1
-fi
+    if [[ ! -f "$TURN_CONFIG_FILE" ]]; then
+        log_error "TURN configuration file not found: $TURN_CONFIG_FILE"
+        return 1
+    fi
 
-# Check if certificates exist
-print_status "Checking SSL certificates..."
-if [ -d ".runtime/certs/live" ]; then
-    print_success "SSL certificates found in .runtime/certs/live"
-else
-    print_warning "SSL certificates not found in .runtime/certs/live"
-    print_warning "TURN over TLS may not work without proper certificates"
-fi
+    # Check for required configuration
+    if ! grep -q "use-auth-secret" "$TURN_CONFIG_FILE"; then
+        log_warn "use-auth-secret not found in TURN configuration"
+    fi
 
-# Test Docker Compose configuration
-print_status "Testing Docker Compose configuration..."
-if docker compose config > /dev/null 2>&1; then
-    print_success "Docker Compose configuration is valid"
-else
-    print_error "Docker Compose configuration has errors"
-    docker compose config
-    exit 1
-fi
+    if ! grep -q "fingerprint" "$TURN_CONFIG_FILE"; then
+        log_warn "fingerprint not found in TURN configuration"
+    fi
 
-# Display next steps
-print_success "TURN server configuration setup complete!"
-echo ""
-echo "Next steps:"
-echo "1. Review the generated configuration: .runtime/turn/turnserver.conf"
-echo "2. Ensure your .env file has the correct values"
-echo "3. Start the services: docker compose up -d"
-echo "4. Test TURN connectivity: docker exec xmpp-coturn turnutils_uclient -v -t -u username -w password $TURN_DOMAIN $TURN_PORT"
-echo "5. Test Prosody TURN integration: docker exec xmpp-prosody prosodyctl check turn"
-echo ""
-echo "For testing with external STUN server:"
-echo "  docker exec xmpp-prosody prosodyctl check turn -v --ping=stun.conversations.im"
+    log_success "TURN server configuration is valid"
+}
+
+# Setup TURN certificates
+setup_turn_certificates() {
+    log_info "Setting up TURN server certificates..."
+
+    # Ensure certificate directory exists
+    mkdir -p "${PROJECT_DIR}/.runtime/certs"
+
+    # Copy certificates from Let's Encrypt if available
+    if [[ -f "${PROJECT_DIR}/.runtime/certs/live/${PROSODY_DOMAIN:-example.com}/fullchain.pem" ]]; then
+        cp "${PROJECT_DIR}/.runtime/certs/live/${PROSODY_DOMAIN:-example.com}/fullchain.pem" "${PROJECT_DIR}/.runtime/certs/cert.pem"
+        cp "${PROJECT_DIR}/.runtime/certs/live/${PROSODY_DOMAIN:-example.com}/privkey.pem" "${PROJECT_DIR}/.runtime/certs/privkey.pem"
+        log_success "TURN certificates copied from Let's Encrypt"
+    else
+        log_warn "Let's Encrypt certificates not found. Using self-signed certificates for TURN server"
+        # Generate self-signed certificate for TURN server
+        openssl req -x509 -newkey rsa:4096 -keyout "${PROJECT_DIR}/.runtime/certs/privkey.pem" -out "${PROJECT_DIR}/.runtime/certs/cert.pem" -days 365 -nodes -subj "/C=US/ST=State/L=City/O=Organization/CN=${TURN_DOMAIN:-turn.atl.chat}"
+        log_success "Self-signed certificate generated for TURN server"
+    fi
+
+    # Set proper permissions
+    chmod 644 "${PROJECT_DIR}/.runtime/certs/cert.pem"
+    chmod 600 "${PROJECT_DIR}/.runtime/certs/privkey.pem"
+}
+
+# Main function
+main() {
+    echo "TURN Server Configuration Setup"
+    echo "==============================="
+    echo ""
+
+    # Load environment variables
+    load_env
+
+    # Update TURN configuration
+    update_turn_config
+
+    # Validate configuration
+    validate_turn_config
+
+    # Setup certificates
+    setup_turn_certificates
+
+    echo ""
+    log_success "TURN server setup completed successfully!"
+    echo ""
+    echo "TURN Server Configuration:"
+    echo "  Domain: ${TURN_DOMAIN:-turn.atl.chat}"
+    echo "  Realm: ${TURN_REALM:-atl.chat}"
+    echo "  Port: ${TURN_PORT:-3478}"
+    echo "  TLS Port: ${TURNS_PORT:-5349}"
+    echo "  Relay Ports: ${TURN_MIN_PORT:-50000}-${TURN_MAX_PORT:-50100}"
+    echo ""
+    echo "To start the TURN server:"
+    echo "  docker compose up xmpp-coturn"
+}
+
+# Run main function
+main "$@"

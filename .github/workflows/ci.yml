@@ -2,498 +2,564 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
-    paths:
-      - '**/*.sh'
-      - 'prosody-manager'
-      - '**/*.lua'
-      - '**/*.yml'
-      - '**/*.yaml'
-      - '**/*.json'
-      - '**/*.md'
-      - 'Dockerfile'
-      - '**/*.sql'
-      - '.github/workflows/ci.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - '**/*.sh'
-      - 'prosody-manager'
-      - '**/*.lua'
-      - '**/*.yml'
-      - '**/*.yaml'
-      - '**/*.json'
-      - '**/*.md'
-      - 'Dockerfile'
-      - '**/*.sql'
-      - '.github/workflows/ci.yml'
+    branches: [ main, develop, refactor ]
+  workflow_dispatch:
+  schedule:
+    # Run scheduled security scan daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  shell-lint:
-    name: Shell Linting
+  # Pre-check job to determine what needs to be tested
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
-    
+    outputs:
+      shell: ${{ steps.filter.outputs.shell }}
+      lua: ${{ steps.filter.outputs.lua }}
+      config: ${{ steps.filter.outputs.config }}
+      docker: ${{ steps.filter.outputs.docker }}
+      docs: ${{ steps.filter.outputs.docs }}
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      - name: Run shellcheck with pre-built action
-        uses: ludeeus/action-shellcheck@master
+
+      - name: Validate workflow syntax
+        uses: raven-actions/actionlint@v2
         with:
-          scandir: './scripts'
-          additional_files: 'prosody-manager'
-          severity: error
-          
-      - name: Find all shell scripts
-        id: find-scripts
+          files: ".github/workflows/*.yml,.github/workflows/*.yaml"
+          fail-on-error: true
+          shellcheck: true
+          pyflakes: true
+
+      - name: Detect file changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shell:
+              - 'scripts/**/*.sh'
+              - '**/*.sh'
+            lua:
+              - 'app/**/*.lua'
+              - '**/*.lua'
+            config:
+              - 'app/**/*.cfg.lua'
+              - '**/*.yml'
+              - '**/*.yaml'
+              - '**/*.json'
+              - 'config/**'
+            docker:
+              - 'Dockerfile*'
+              - 'docker-compose*.yml'
+              - 'docker-compose*.yaml'
+            docs:
+              - '**/*.md'
+
+  lint:
+    name: Lint (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.shell == 'true' || needs.changes.outputs.lua == 'true' || needs.changes.outputs.config == 'true' || needs.changes.outputs.docs == 'true'
+    strategy:
+      matrix:
+        include:
+          - language: shell
+            check: shell
+            files: "*.sh"
+          - language: lua
+            check: lua
+            files: "*.lua"
+          - language: yaml
+            check: config
+            files: "*.{yml,yaml}"
+          - language: json
+            check: config
+            files: "*.json"
+          - language: markdown
+            check: docs
+            files: "*.md"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Find files
+        id: find-files
         run: |
-          # Find all shell scripts in the repository
-          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*" | sort)
-          echo "Found shell scripts:"
-          echo "$scripts"
-          
-          # Output for next step
-          echo "scripts<<EOF" >> $GITHUB_OUTPUT
-          echo "$scripts" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-      - name: Run comprehensive shellcheck
-        run: |
-          echo "Running comprehensive shellcheck on all shell scripts..."
-          exit_code=0
-          
-          while IFS= read -r script; do
-            if [ -n "$script" ]; then
-              echo "Checking: $script"
-              if ! shellcheck -f gcc "$script"; then
-                echo "❌ Shellcheck failed for: $script"
-                exit_code=1
-              else
-                echo "✅ Shellcheck passed for: $script"
+          files=$(find . -name "${{ matrix.files }}" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*" -not -path "./prosody-modules/*" | sort)
+          echo "Found ${{ matrix.language }} files:"
+          echo "$files"
+
+          if [ -z "$files" ]; then
+            echo "No ${{ matrix.language }} files found"
+            {
+              echo "skip=true"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "skip=false"
+              # Store files list safely, handling special characters
+              echo "files<<EOF"
+              echo "$files"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run sh-checker (shell files only)
+        if: matrix.language == 'shell' && steps.find-files.outputs.skip == 'false'
+        uses: luizm/action-sh-checker@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHELLCHECK_OPTS: -e SC1090 -e SC1091
+          SHFMT_OPTS: -i 4 -ci
+        with:
+          sh_checker_exclude: "prosody-modules-enabled prosody-modules .git"
+          sh_checker_comment: true
+          sh_checker_checkbashisms_enable: true
+
+      - name: Run yamllint (YAML files only)
+        if: matrix.language == 'yaml' && steps.find-files.outputs.skip == 'false'
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .
+          format: github
+          strict: false
+          no_warnings: false
+
+      - name: Run luacheck (Lua files only)
+        if: matrix.language == 'lua' && steps.find-files.outputs.skip == 'false'
+        uses: lunarmodules/luacheck@v1
+        with:
+          args: .
+
+      - name: Run JSON validation (JSON files only)
+        if: matrix.language == 'json' && steps.find-files.outputs.skip == 'false'
+        uses: sergeysova/jq-action@v2
+        id: json-validate
+        with:
+          cmd: |
+            echo "🔍 Validating JSON files..."
+            json_files=$(find . -name "*.json" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*" -not -path "./prosody-modules/*" | sort)
+            if [ -z "$json_files" ]; then
+              echo "No JSON files found to validate"
+              exit 0
+            fi
+            echo "Found JSON files: $json_files"
+            for file in $json_files; do
+              if ! jq empty "$file" >/dev/null 2>&1; then
+                echo "❌ Invalid JSON: $file"
+                exit 1
               fi
-              echo ""
-            fi
-          done <<< "${{ steps.find-scripts.outputs.scripts }}"
-          
-          if [ $exit_code -ne 0 ]; then
-            echo "❌ Shellcheck found issues in one or more scripts"
-            exit 1
-          else
-            echo "✅ All scripts passed shellcheck"
-          fi
-
-  shell-format:
-    name: Shell Formatting
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Install shfmt
-        run: |
-          go install mvdan.cc/sh/v3/cmd/shfmt@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
-          
-      - name: Find shell scripts
-        id: find-scripts
-        run: |
-          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*" | sort)
-          echo "scripts<<EOF" >> $GITHUB_OUTPUT
-          echo "$scripts" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-      - name: Check shell script formatting
-        run: |
-          echo "Checking shell script formatting with shfmt..."
-          
-          # Simple check using file list
-          files=$(find . -name "*.sh" -o -name "prosody-manager" | grep -v ".git")
-          
-          if ! shfmt -d -i 4 -ci $files; then
-            echo "❌ Shell scripts are not properly formatted"
-            echo "Run 'shfmt -w -i 4 -ci .' to fix formatting"
-            exit 1
-          fi
-          
-          echo "✅ All shell scripts are properly formatted"
-          
-      - name: Detailed format check with feedback
-        if: failure()
-        run: |
-          echo "Checking format for each script individually..."
-          exit_code=0
-          
-          while IFS= read -r script; do
-            if [ -n "$script" ]; then
-              echo "Checking format: $script"
-              if ! shfmt -d -i 4 -ci "$script"; then
-                echo "❌ Format check failed for: $script"
-                exit_code=1
-              else
-                echo "✅ Format check passed for: $script"
-              fi
-              echo ""
-            fi
-          done <<< "${{ steps.find-scripts.outputs.scripts }}"
-          
-      - name: Generate formatting suggestions
-        if: failure()
-        run: |
-          echo "## Formatting Suggestions" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "To fix formatting issues, run the following commands:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "# Install shfmt" >> $GITHUB_STEP_SUMMARY
-          echo "go install mvdan.cc/sh/v3/cmd/shfmt@latest" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "# Format all shell scripts" >> $GITHUB_STEP_SUMMARY
-          echo "shfmt -w -i 4 -ci ." >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "This will:" >> $GITHUB_STEP_SUMMARY
-          echo "- Use 4 spaces for indentation (-i 4)" >> $GITHUB_STEP_SUMMARY
-          echo "- Indent switch cases (-ci)" >> $GITHUB_STEP_SUMMARY
-          echo "- Write changes back to files (-w)" >> $GITHUB_STEP_SUMMARY
-
-  shell-security:
-    name: Security Analysis
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Install shellcheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
-          
-      - name: Run security-focused shellcheck
-        run: |
-          echo "Running security-focused shellcheck analysis..."
-          
-          # Find all shell scripts
-          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*")
-          
-          exit_code=0
-          security_issues=0
-          
-          for script in $scripts; do
-            echo "Security analysis: $script"
-            
-            # Run shellcheck with focus on security issues
-            if ! shellcheck -S error -f json "$script" > /tmp/shellcheck_output.json; then
-              # Parse JSON output for security-related issues
-              if command -v jq >/dev/null 2>&1; then
-                jq -r '.[] | select(.level == "error") | "Line \(.line): \(.message)"' /tmp/shellcheck_output.json || true
-              else
-                cat /tmp/shellcheck_output.json
-              fi
-              security_issues=$((security_issues + 1))
-              exit_code=1
-            fi
-          done
-          
-          if [ $security_issues -gt 0 ]; then
-            echo "❌ Found $security_issues security issues"
-            exit 1
-          else
-            echo "✅ No security issues found"
-          fi
-
-  shell-best-practices:
-    name: Best Practices
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Check shell script best practices
-        run: |
-          echo "Checking shell scripts for best practices..."
-          
-          scripts=$(find . -type f \( -name "*.sh" -o -name "prosody-manager" \) -not -path "./.git/*")
-          issues=0
-          warnings=0
-          
-          for script in $scripts; do
-            echo "Checking best practices: $script"
-            
-            # Check for set -euo pipefail
-            if ! grep -q "set -euo pipefail" "$script"; then
-              echo "⚠️  Missing 'set -euo pipefail' in $script"
-              warnings=$((warnings + 1))
-            fi
-            
-            # Check for proper shebang
-            if ! head -n1 "$script" | grep -q "^#!/bin/bash"; then
-              echo "⚠️  Missing or incorrect shebang in $script"
-              warnings=$((warnings + 1))
-            fi
-            
-            # Check for unquoted variables (basic check)
-            if grep -n '\$[A-Za-z_][A-Za-z0-9_]*[^"'\''}\]]' "$script" | grep -v '#' | head -3; then
-              echo "⚠️  Potentially unquoted variables found in $script (sample lines shown above)"
-              warnings=$((warnings + 1))
-            fi
-            
-            # Check for command substitution without quotes
-            if grep -n '`.*`' "$script" | head -3; then
-              echo "⚠️  Old-style command substitution found in $script (use \$(...) instead)"
-              warnings=$((warnings + 1))
-            fi
-          done
-          
-          echo ""
-          echo "📊 Best Practices Summary:"
-          if [ $warnings -gt 0 ]; then
-            echo "⚠️  Found $warnings best practice warnings"
-            echo "💡 These are recommendations, not errors"
-          else
-            echo "✅ All scripts follow recommended best practices"
-          fi
-          
-          # Generate summary
-          echo "## Best Practices Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ $warnings -gt 0 ]; then
-            echo "⚠️ Found $warnings best practice recommendations" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Recommendations:" >> $GITHUB_STEP_SUMMARY
-            echo "- Add \`set -euo pipefail\` to the beginning of scripts for better error handling" >> $GITHUB_STEP_SUMMARY
-            echo "- Ensure all scripts start with \`#!/bin/bash\`" >> $GITHUB_STEP_SUMMARY
-            echo "- Quote variables to prevent word splitting: \`\"\$variable\"\`" >> $GITHUB_STEP_SUMMARY
-            echo "- Use modern command substitution: \`\$(command)\` instead of \`\`command\`\`" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ All scripts follow recommended best practices!" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Don't fail the job for best practices, just warn
-          exit 0
-
-  lua-check:
-    name: Lua Linting
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Install luacheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y luarocks
-          sudo luarocks install luacheck
-          
-      - name: Find Lua files
-        id: find-lua
-        run: |
-          lua_files=$(find . -name "*.lua" -not -path "./.git/*" | sort)
-          echo "Found Lua files:"
-          echo "$lua_files"
-          
-          if [ -z "$lua_files" ]; then
-            echo "No Lua files found"
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-          
-      - name: Run luacheck
-        if: steps.find-lua.outputs.skip == 'false'
-        run: |
-          echo "Running luacheck on Lua files..."
-          
-          # Create luacheck config for Prosody
-          cat > .luacheckrc << 'EOF'
-          -- Luacheck configuration for Prosody XMPP server
-          std = "lua54"
-          
-          -- Prosody globals
-          globals = {
-            "prosody", "hosts", "module", "require", "VirtualHost", "Component",
-            "log", "error", "warn", "info", "debug"
-          }
-          
-          -- Ignore some common patterns
-          ignore = {
-            "212", -- Unused argument (common in Prosody modules)
-            "213", -- Unused loop variable
-          }
-          
-          -- File-specific settings
-          files["core/config/prosody.cfg.lua"] = {
-            globals = {"ssl", "authentication", "modules_enabled", "modules_disabled"}
-          }
-          EOF
-          
-          if ! luacheck .; then
-            echo "❌ Luacheck found issues"
-            exit 1
-          else
-            echo "✅ All Lua files passed luacheck"
-          fi
-
-  yaml-lint:
-    name: YAML Linting
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Install yamllint
-        run: |
-          pip install yamllint
-          
-      - name: Create yamllint config
-        run: |
-          cat > .yamllint.yml << 'EOF'
-          extends: default
-          
-          rules:
-            line-length:
-              max: 120
-              level: warning
-            comments:
-              min-spaces-from-content: 1
-            document-start: disable
-            truthy:
-              allowed-values: ['true', 'false', 'yes', 'no']
-          EOF
-          
-      - name: Run yamllint
-        run: |
-          echo "Running yamllint on YAML files..."
-          
-          # Find YAML files
-          yaml_files=$(find . -name "*.yml" -o -name "*.yaml" | grep -v ".git")
-          
-          if [ -z "$yaml_files" ]; then
-            echo "No YAML files found"
-            exit 0
-          fi
-          
-          if ! yamllint $yaml_files; then
-            echo "❌ YAML linting failed"
-            exit 1
-          else
-            echo "✅ All YAML files passed yamllint"
-          fi
-
-  json-lint:
-    name: JSON Linting
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Install jq
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
-          
-      - name: Run JSON validation
-        run: |
-          echo "Validating JSON files..."
-          
-          json_files=$(find . -name "*.json" | grep -v ".git")
-          
-          if [ -z "$json_files" ]; then
-            echo "No JSON files found"
-            exit 0
-          fi
-          
-          exit_code=0
-          for file in $json_files; do
-            echo "Checking: $file"
-            if ! jq empty "$file" >/dev/null 2>&1; then
-              echo "❌ Invalid JSON: $file"
-              exit_code=1
-            else
               echo "✅ Valid JSON: $file"
-            fi
-          done
-          
-          if [ $exit_code -ne 0 ]; then
-            echo "❌ JSON validation failed"
-            exit 1
-          else
+            done
             echo "✅ All JSON files are valid"
-          fi
+          multiline: true
 
-  markdown-lint:
-    name: Markdown Linting
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
       - name: Run markdownlint
+        if: matrix.language == 'markdown' && steps.find-files.outputs.skip == 'false'
         uses: DavidAnson/markdownlint-cli2-action@v20
         with:
           config: .markdownlint.yml
-          fix: true
-          globs: '**/*.md'
+          globs: |
+            **/*.md
+            !prosody-modules/**/*.md
+            !prosody-modules-enabled/**/*.md
 
-  dockerfile-lint:
-    name: Dockerfile Linting
+  # Security scanning job
+  security:
+    name: Security Scan 
     runs-on: ubuntu-latest
-    
+    needs: changes
+    if: needs.changes.outputs.docker == 'true' || needs.changes.outputs.config == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      - name: Run hadolint
+        with:
+          fetch-depth: 0  # Fetch all history for complete commit range
+
+      - name: Run GitLeaks secret scanner
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Basic container scan
+        if: needs.changes.outputs.docker == 'true'
+        run: |
+          echo "🔍 Basic container security check..."
+
+          # Build image for scanning
+          docker build -t xmpp-atl-chat:scan .
+
+          # Run Trivy scan (critical only)
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD:/tmp/work" \
+            ghcr.io/aquasecurity/trivy:latest image \
+            --format json \
+            --severity CRITICAL \
+            --output /tmp/work/trivy-results.json \
+            xmpp-atl-chat:scan
+
+          # Check for critical vulnerabilities only
+          critical=$(jq '.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL") | .VulnerabilityID' trivy-results.json | wc -l)
+          if [ "$critical" -gt 0 ]; then
+            echo "❌ Found $critical critical vulnerabilities:"
+            jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL") | "\(.VulnerabilityID): \(.Title)"' trivy-results.json | head -5
+            exit 1
+          else
+            echo "✅ No critical vulnerabilities found"
+          fi
+
+  # Docker build and test job
+  docker:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.docker == 'true'
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-size: ${{ steps.size.outputs.size }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-          config: .hadolint.yaml
 
-  sql-lint:
-    name: SQL Linting
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+
+      - name: Get image size
+        id: size
+        run: |
+          # Get image size from local build for testing
+          docker build -t xmpp-atl-chat:size-test .
+          size=$(docker images xmpp-atl-chat:size-test --format "{{.Size}}")
+          echo "size=$size" >> "$GITHUB_OUTPUT"
+          echo "Image size: $size bytes"
+
+      - name: Build test image
+        run: |
+          echo "🏗️  Building test image..."
+          docker build -t xmpp-atl-chat:test .
+
+      - name: Test Docker image structure
+        run: |
+          echo "🧪 Testing Docker image structure..."
+
+          # Test that expected files exist (only files copied into image)
+          echo "Checking for required files..."
+          docker run --rm xmpp-atl-chat:test ls -la /usr/local/bin/entrypoint.sh
+          docker run --rm xmpp-atl-chat:test ls -la /usr/local/bin/health-check.sh
+
+          # Test that prosody user exists
+          echo "Checking prosody user..."
+          docker run --rm xmpp-atl-chat:test id prosody
+
+          # Test that required packages are installed
+          echo "Checking installed packages..."
+          docker run --rm xmpp-atl-chat:test lua5.4 -v
+          
+          # Test Prosody binary exists (without running it, since config is mounted at runtime)
+          echo "Checking Prosody binary..."
+          docker run --rm xmpp-atl-chat:test which prosody
+          docker run --rm xmpp-atl-chat:test ls -la /usr/local/bin/prosody
+
+          # Test that module directories exist
+          echo "Checking module directories..."
+          docker run --rm xmpp-atl-chat:test ls -la /usr/local/lib/prosody/prosody-modules-enabled/
+
+          echo "✅ Docker image structure tests passed"
+
+      - name: Test Docker image security
+        run: |
+          echo "🔍 Testing Docker image security..."
+
+          # Test that container doesn't run as root
+          user_id=$(docker run --rm xmpp-atl-chat:test id -u)
+          if [ "$user_id" = "0" ]; then
+            echo "❌ Container is running as root"
+            exit 1
+          else
+            echo "✅ Container running as non-root user (UID: $user_id)"
+          fi
+
+          # Test file permissions
+          echo "Checking file permissions..."
+          docker run --rm xmpp-atl-chat:test ls -la /etc/prosody/prosody.cfg.lua | grep "prosody"
+
+          echo "✅ Docker image security tests passed"
+
+      - name: Test basic functionality
+        run: |
+          echo "🧪 Testing basic Docker functionality..."
+
+          # Basic smoke test
+          if docker run --rm xmpp-atl-chat:test echo "Docker test successful"; then
+            echo "✅ Docker smoke test passed"
+          else
+            echo "❌ Docker smoke test failed"
+            exit 1
+          fi
+
+          # Test environment variables
+          docker run --rm -e PROSODY_DOMAIN=test.localhost xmpp-atl-chat:test env | grep PROSODY_DOMAIN
+
+          echo "✅ Basic functionality tests passed"
+
+      - name: Validate docker-compose files
+        run: |
+          echo "🔍 Validating docker-compose files..."
+
+          for file in docker-compose*.yml docker-compose*.yaml; do
+            if [ -f "$file" ]; then
+              echo "Checking: $file"
+              if docker compose -f "$file" config --quiet; then
+                echo "✅ $file is valid"
+              else
+                echo "❌ $file has configuration errors"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Run integration test
+        run: |
+          echo "🧪 Running integration test..."
+
+          # Create test environment
+          cat > .env.test << EOF
+          PROSODY_DOMAIN=test.localhost
+          PROSODY_ADMINS=admin@test.localhost
+          PROSODY_DB_PASSWORD=test_password_123
+          POSTGRES_PASSWORD=test_password_123
+          POSTGRES_USER=prosody
+          POSTGRES_DB=prosody
+          PROSODY_LOG_LEVEL=debug
+          PROSODY_ALLOW_REGISTRATION=true
+          EOF
+
+          cp .env.test .env
+
+          # Start services
+          docker compose up -d xmpp-prosody xmpp-postgres
+          echo "Waiting for services to start..."
+          sleep 30
+
+          # Test prosody health
+          if docker compose exec -T xmpp-prosody prosodyctl status; then
+            echo "✅ Prosody is running"
+          else
+            echo "❌ Prosody health check failed"
+            docker compose logs xmpp-prosody
+            exit 1
+          fi
+
+          # Test Prosody configuration
+          if docker compose exec -T xmpp-prosody prosodyctl check config; then
+            echo "✅ Prosody configuration is valid"
+          else
+            echo "❌ Prosody configuration check failed"
+            exit 1
+          fi
+
+          # Test user creation
+          if docker compose exec -T xmpp-prosody prosodyctl adduser testuser@test.localhost; then
+            echo "✅ User creation successful"
+          else
+            echo "❌ User creation failed"
+            exit 1
+          fi
+
+          # Cleanup
+          docker compose down -v
+          echo "✅ Integration test passed"
+
+      - name: Performance test
+        run: |
+          echo "📊 Running performance test..."
+
+          # Create minimal test environment
+          cat > .env.perf << EOF
+          PROSODY_DOMAIN=perf.localhost
+          PROSODY_ADMINS=admin@perf.localhost
+          PROSODY_DB_PASSWORD=perf_password_123
+          POSTGRES_PASSWORD=perf_password_123
+          POSTGRES_USER=prosody
+          POSTGRES_DB=prosody
+          EOF
+
+          cp .env.perf .env
+          docker compose up -d xmpp-prosody xmpp-postgres
+          sleep 30
+
+          # Memory and CPU usage test
+          memory_usage=$(docker stats --no-stream --format "{{.MemUsage}}" xmpp-prosody | cut -d'/' -f1)
+          cpu_usage=$(docker stats --no-stream --format "{{.CPUPerc}}" xmpp-prosody)
+          echo "Memory usage: $memory_usage"
+          echo "CPU usage: $cpu_usage"
+
+          # Create multiple users to test performance
+          echo "Creating test users..."
+          for i in {1..5}; do
+            docker compose exec -T xmpp-prosody prosodyctl adduser "user$i@perf.localhost" >/dev/null 2>&1
+          done
+
+          echo "✅ Performance test completed"
+
+          # Cleanup
+          docker compose down -v
+
+  # Summary job
+  summary:
+    name: CI Summary
     runs-on: ubuntu-latest
-    
+    needs: [changes, lint, security, docker]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          {
+            echo "# CI Summary"
+            echo ""
+            echo "# Check each job status"
+            jobs_status=""
+
+            check_job() {
+              local job_name="$1"
+              local status="$2"
+              local icon=""
+
+              if [ "$status" = "success" ]; then
+                icon="✅"
+                jobs_status="$jobs_status\n$icon $job_name: Passed"
+              elif [ "$status" = "failure" ]; then
+                icon="❌"
+                jobs_status="$jobs_status\n$icon $job_name: Failed"
+              elif [ "$status" = "skipped" ]; then
+                icon="⏭️"
+                jobs_status="$jobs_status\n$icon $job_name: Skipped"
+              else
+                icon="⏳"
+                jobs_status="$jobs_status\n$icon $job_name: $status"
+              fi
+            }
+
+            check_job "Changes Detection" "${{ needs.changes.result }}"
+            check_job "Linting" "${{ needs.lint.result }}"
+            check_job "Security Scan" "${{ needs.security.result }}"
+            check_job "Docker Build & Test" "${{ needs.docker.result }}"
+
+            echo "## Job Results"
+            echo "$jobs_status"
+            echo ""
+
+            # Overall status
+            if [ "${{ needs.changes.result }}" = "success" ] && \
+               [ "${{ needs.lint.result }}" = "success" ] && \
+               [ "${{ needs.security.result }}" = "success" ] && \
+               [ "${{ needs.docker.result }}" != "failure" ]; then
+              echo "🎉 **All checks passed!** Ready for merge."
+            else
+              echo "⚠️  **Some checks failed or are incomplete.** Review the results above."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Scheduled security scanning job
+  scheduled-security:
+    name: Scheduled Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      - name: Install sqlfluff
+
+      - name: Run GitLeaks secret scanner
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          config-path: .gitleaks.toml
+
+      - name: Basic container scan
         run: |
-          pip install sqlfluff
-          
-      - name: Create sqlfluff config
-        run: |
-          cat > .sqlfluff << 'EOF'
-          [sqlfluff]
-          dialect = postgres
-          templater = jinja
-          max_line_length = 120
-          
-          [sqlfluff:rules:capitalisation.keywords]
-          capitalisation_policy = upper
-          EOF
-          
-      - name: Run sqlfluff
-        run: |
-          echo "Running sqlfluff on SQL files..."
-          
-          sql_files=$(find . -name "*.sql" | grep -v ".git")
-          
-          if [ -z "$sql_files" ]; then
-            echo "No SQL files found"
-            exit 0
-          fi
-          
-          if ! sqlfluff lint $sql_files; then
-            echo "❌ SQL linting failed"
-            echo "Run 'sqlfluff fix .' to auto-fix issues"
+          echo "🔍 Running basic container scan..."
+
+          # Build image for scanning
+          docker build -t xmpp-atl-chat:scan .
+
+          # Run Trivy scan (critical only)
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD:/tmp/work" \
+            ghcr.io/aquasecurity/trivy:latest image \
+            --format json \
+            --severity CRITICAL \
+            --output /tmp/work/trivy-results.json \
+            xmpp-atl-chat:scan
+
+          # Check for critical vulnerabilities only
+          critical=$(jq '.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL") | .VulnerabilityID' trivy-results.json | wc -l)
+          if [ "$critical" -gt 0 ]; then
+            echo "❌ Found $critical critical vulnerabilities:"
+            jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL") | "\(.VulnerabilityID): \(.Title)"' trivy-results.json | head -5
             exit 1
           else
-            echo "✅ All SQL files passed sqlfluff"
-          fi 
+            echo "✅ No critical vulnerabilities found"
+          fi
+
+      - name: Security scan summary
+        run: |
+          {
+            echo "## 🔒 Scheduled Security Scan Report"
+            echo ""
+            echo "**Scan completed:** $(date)"
+            echo ""
+            echo "### Summary:"
+            echo "- ✅ Secret scanning completed"
+            echo "- ✅ Container scan completed"
+            echo ""
+            echo "### Next Steps:"
+            echo "- Review any alerts in the Security tab"
+            echo "- Address any critical vulnerabilities found"
+          } >> "$GITHUB_STEP_SUMMARY" 

@@ -1,28 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Simple wrapper script for certificate monitoring
+# This script is called by the docker-compose cert-monitor service
+
 set -euo pipefail
 
-TERMINATE=false
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-on_term() {
-    TERMINATE=true
-}
+echo "Starting certificate monitoring..."
 
-trap on_term TERM INT
-
-CERT_CHECK_INTERVAL="${CERT_CHECK_INTERVAL:-3600}"
-
-while true; do
-    /app/scripts/certificate-monitor.sh monitor || true
-    # Sleep in an interruptible way so TERM breaks promptly
-    SECONDS_TO_SLEEP="$CERT_CHECK_INTERVAL"
-    while [ "$SECONDS_TO_SLEEP" -gt 0 ]; do
-        if [ "$TERMINATE" = "true" ]; then
-            exit 0
-        fi
-        sleep 1 || true
-        SECONDS_TO_SLEEP=$((SECONDS_TO_SLEEP - 1))
-    done
-    if [ "$TERMINATE" = "true" ]; then
-        exit 0
-    fi
-done
+# Run the certificate monitoring script
+exec "$SCRIPT_DIR/certificate-monitor.sh" monitor

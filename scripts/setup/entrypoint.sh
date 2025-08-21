@@ -115,7 +115,7 @@ setup_directories() {
 
         # Ensure proper ownership (only if running as root)
         if [[ $EUID -eq 0 ]]; then
-            chown -R "$PROSODY_USER:$PROSODY_USER" "$dir" 2> /dev/null || true
+            chown -R "$PROSODY_USER:$PROSODY_USER" "$dir" 2>/dev/null || true
         fi
     done
 
@@ -138,8 +138,8 @@ setup_certificates() {
         if [[ $EUID -eq 0 ]]; then
             chown -R "$PROSODY_USER:$PROSODY_USER" "${PROSODY_CERT_DIR}/live/${PROSODY_DOMAIN}" || true
         fi
-        chmod 644 "$le_cert" 2> /dev/null || true
-        chmod 600 "$le_key" 2> /dev/null || true
+        chmod 644 "$le_cert" 2>/dev/null || true
+        chmod 600 "$le_key" 2>/dev/null || true
         return 0
     fi
 
@@ -148,7 +148,7 @@ setup_certificates() {
         log_info "Standard certificates found for ${PROSODY_DOMAIN}"
 
         # Check certificate validity
-        if openssl x509 -in "$cert_file" -noout -checkend 86400 > /dev/null 2>&1; then
+        if openssl x509 -in "$cert_file" -noout -checkend 86400 >/dev/null 2>&1; then
             log_info "Certificate is valid for at least 24 hours"
         else
             log_warn "Certificate expires within 24 hours - consider renewal"
@@ -161,13 +161,13 @@ setup_certificates() {
     log_warn "This is suitable for development only - use proper certificates in production"
 
     # Generate private key
-    openssl genrsa -out "$key_file" 4096 2> /dev/null
+    openssl genrsa -out "$key_file" 4096 2>/dev/null
 
     # Generate certificate with proper Subject Alternative Names
     openssl req -new -x509 -key "$key_file" -out "$cert_file" -days 365 \
         -subj "/CN=${PROSODY_DOMAIN}" \
         -addext "subjectAltName=DNS:${PROSODY_DOMAIN},DNS:*.${PROSODY_DOMAIN},DNS:muc.${PROSODY_DOMAIN},DNS:upload.${PROSODY_DOMAIN}" \
-        2> /dev/null
+        2>/dev/null
 
     # Set proper permissions (only if running as root)
     if [[ $EUID -eq 0 ]]; then
@@ -193,7 +193,7 @@ wait_for_database() {
     log_info "Waiting for database connection to ${host}:${port}..."
 
     while [[ $attempt -le $max_attempts ]]; do
-        if timeout 5 bash -c "</dev/tcp/${host}/${port}" 2> /dev/null; then
+        if timeout 5 bash -c "</dev/tcp/${host}/${port}" 2>/dev/null; then
             log_info "Database connection established"
             return 0
         fi
@@ -234,54 +234,48 @@ validate_configuration() {
 setup_community_modules() {
     log_info "Setting up community modules..."
 
-    # Check if additional modules are requested via environment variable
-    if [[ -n "${PROSODY_EXTRA_MODULES:-}" ]]; then
-        log_info "Installing additional community modules: ${PROSODY_EXTRA_MODULES}"
-
-        # Install mercurial if not already present (for runtime module installation)
-        if ! command -v hg > /dev/null 2>&1; then
-            log_info "Installing mercurial for module management..."
-            apt-get update && apt-get install -y mercurial && apt-get clean && rm -rf /var/lib/apt/lists/*
-        fi
-
-        # Clone or update prosody-modules repository if needed
-        local modules_repo="/tmp/prosody-modules"
-        if [[ ! -d "$modules_repo" ]]; then
-            log_info "Cloning prosody-modules repository..."
-            hg clone https://hg.prosody.im/prosody-modules/ "$modules_repo"
-        else
-            log_info "Updating prosody-modules repository..."
-            (cd "$modules_repo" && hg pull -u)
-        fi
-
-        # Install each requested module
-        IFS=',' read -ra MODULES <<< "$PROSODY_EXTRA_MODULES"
-        for module in "${MODULES[@]}"; do
-            module=$(echo "$module" | xargs) # trim whitespace
-
-            # Add mod_ prefix if not present
-            if [[ "$module" != mod_* ]]; then
-                module="mod_$module"
-            fi
-
-            log_info "Installing community module: $module"
-
-            if [[ -d "$modules_repo/$module" ]]; then
-                mkdir -p "/usr/local/lib/prosody/community-modules/"
-                cp -r "$modules_repo/$module" "/usr/local/lib/prosody/community-modules/"
-                chown -R prosody:prosody "/usr/local/lib/prosody/community-modules/$module"
-                log_info "Successfully installed: $module"
-            else
-                log_warn "Module not found in repository: $module"
-            fi
-        done
-
-        # Clean up temporary repository
-        rm -rf "$modules_repo"
+    # Check if community modules source exists
+    local source_dir="/usr/local/lib/prosody/community-modules/source"
+    if [[ ! -d "$source_dir" ]]; then
+        log_warn "Community modules source not found at $source_dir"
+        log_warn "Modules will need to be installed manually or via prosodyctl"
+        return 0
     fi
 
-    # Ensure proper ownership of all modules
-    chown -R prosody:prosody /usr/local/lib/prosody/community-modules 2> /dev/null || true
+    # Install default modules if PROSODY_EXTRA_MODULES is not set
+    local modules_to_install=()
+    if [[ -n "${PROSODY_EXTRA_MODULES:-}" ]]; then
+        IFS=',' read -ra modules_to_install <<<"$PROSODY_EXTRA_MODULES"
+    else
+        # Default modules to install
+        modules_to_install=(
+            "mod_cloud_notify"
+            "mod_cloud_notify_extensions"
+            "mod_muc_notifications"
+            "mod_muc_offline_delivery"
+            "mod_http_status"
+            "mod_admin_web"
+            "mod_compliance_latest"
+        )
+    fi
+
+    log_info "Installing community modules: ${modules_to_install[*]}"
+
+    # Check if modules are available from local directories
+    local enabled_dir="/usr/local/lib/prosody/prosody-modules-enabled"
+    if [[ ! -d "$enabled_dir" ]]; then
+        log_warn "Community modules not found"
+        log_info "To set up modules locally, run: ./scripts/setup-modules-locally.sh"
+        log_info "Then rebuild the Docker image"
+        return 0
+    else
+        log_info "Using community modules from local directories"
+        local module_count=$(ls "$enabled_dir" 2>/dev/null | wc -l)
+        log_info "Enabled modules: $module_count modules"
+    fi
+
+    # Ensure proper ownership
+    chown -R prosody:prosody /usr/local/lib/prosody/prosody-modules-enabled 2>/dev/null || true
 }
 
 # ============================================================================
@@ -292,21 +286,21 @@ setup_community_modules() {
 cleanup() {
     log_info "Received shutdown signal, stopping Prosody..."
 
-    if [[ -n "${PROSODY_PID:-}" ]] && kill -0 "$PROSODY_PID" 2> /dev/null; then
+    if [[ -n "${PROSODY_PID:-}" ]] && kill -0 "$PROSODY_PID" 2>/dev/null; then
         # Send SIGTERM for graceful shutdown
-        kill -TERM "$PROSODY_PID" 2> /dev/null || true
+        kill -TERM "$PROSODY_PID" 2>/dev/null || true
 
         # Wait for graceful shutdown (max 30 seconds)
         local timeout=30
-        while kill -0 "$PROSODY_PID" 2> /dev/null && [[ $timeout -gt 0 ]]; do
+        while kill -0 "$PROSODY_PID" 2>/dev/null && [[ $timeout -gt 0 ]]; do
             sleep 1
             ((timeout--))
         done
 
         # Force kill if still running
-        if kill -0 "$PROSODY_PID" 2> /dev/null; then
+        if kill -0 "$PROSODY_PID" 2>/dev/null; then
             log_warn "Prosody did not shut down gracefully, forcing termination"
-            kill -KILL "$PROSODY_PID" 2> /dev/null || true
+            kill -KILL "$PROSODY_PID" 2>/dev/null || true
         fi
     fi
 
@@ -326,15 +320,15 @@ main() {
 
     # Display version information
     local prosody_version
-    prosody_version=$(prosody --version 2> /dev/null | head -n1 || echo "Unknown")
+    prosody_version=$(prosody --version 2>/dev/null | head -n1 || echo "Unknown")
     log_info "Prosody version: $prosody_version"
 
     # Prefer mounted config if present
     if [[ -f "/etc/prosody/config/prosody.cfg.lua" ]]; then
         log_info "Detected mounted config at /etc/prosody/config/prosody.cfg.lua; syncing to ${PROSODY_CONFIG_FILE}"
         cp -f "/etc/prosody/config/prosody.cfg.lua" "${PROSODY_CONFIG_FILE}"
-        chown root:prosody "${PROSODY_CONFIG_FILE}" 2> /dev/null || true
-        chmod 640 "${PROSODY_CONFIG_FILE}" 2> /dev/null || true
+        chown root:prosody "${PROSODY_CONFIG_FILE}" 2>/dev/null || true
+        chmod 640 "${PROSODY_CONFIG_FILE}" 2>/dev/null || true
     fi
 
     # If a mounted conf.d exists, sync it into /etc/prosody/conf.d so Include() works
@@ -342,8 +336,8 @@ main() {
         log_info "Detected mounted conf.d include directory; syncing to /etc/prosody/conf.d"
         mkdir -p "/etc/prosody/conf.d"
         rsync -a --delete "/etc/prosody/config/conf.d/" "/etc/prosody/conf.d/"
-        chown -R root:prosody "/etc/prosody/conf.d" 2> /dev/null || true
-        find /etc/prosody/conf.d -type f -name '*.lua' -exec chmod 640 {} + 2> /dev/null || true
+        chown -R root:prosody "/etc/prosody/conf.d" 2>/dev/null || true
+        find /etc/prosody/conf.d -type f -name '*.lua' -exec chmod 640 {} + 2>/dev/null || true
     fi
 
     # Environment and setup

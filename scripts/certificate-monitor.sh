@@ -95,9 +95,9 @@ load_config() {
     CERT_WARNING_THRESHOLD="${CERT_WARNING_THRESHOLD:-$DEFAULT_WARNING_THRESHOLD}"
     CERT_CRITICAL_THRESHOLD="${CERT_CRITICAL_THRESHOLD:-$DEFAULT_CRITICAL_THRESHOLD}"
     CERT_RENEWAL_THRESHOLD="${CERT_RENEWAL_THRESHOLD:-$DEFAULT_RENEWAL_THRESHOLD}"
-    CERT_CHECK_INTERVAL="${CERT_CHECK_INTERVAL:-3600}"  # 1 hour default
+    CERT_CHECK_INTERVAL="${CERT_CHECK_INTERVAL:-3600}" # 1 hour default
     CERT_RENEWAL_RETRY_COUNT="${CERT_RENEWAL_RETRY_COUNT:-3}"
-    CERT_RENEWAL_RETRY_DELAY="${CERT_RENEWAL_RETRY_DELAY:-300}"  # 5 minutes
+    CERT_RENEWAL_RETRY_DELAY="${CERT_RENEWAL_RETRY_DELAY:-300}" # 5 minutes
     CERT_ALERT_EMAIL="${CERT_ALERT_EMAIL:-${LETSENCRYPT_EMAIL:-}}"
     CERT_WEBHOOK_URL="${CERT_WEBHOOK_URL:-}"
     PROSODY_DOMAIN="${PROSODY_DOMAIN:-localhost}"
@@ -121,12 +121,12 @@ get_container_name() {
         return 0
     fi
 
-    echo "xmpp-prosody-1"  # Default fallback
+    echo "xmpp-prosody-1" # Default fallback
 }
 
 # Check if running in container
 is_docker_environment() {
-    [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2>/dev/null
+    [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2> /dev/null
 }
 
 # Run command in container
@@ -137,7 +137,7 @@ run_in_container() {
         # Return mock data for specific commands
         case "$1" in
             "test")
-                return 0  # Pretend files exist
+                return 0 # Pretend files exist
                 ;;
             "openssl")
                 if [[ "$2" == "x509" ]]; then
@@ -154,7 +154,7 @@ run_in_container() {
     if is_docker_environment; then
         "$@"
     else
-        if ! docker ps --format "{{.Names}}" 2>/dev/null | grep -q prosody; then
+        if ! docker ps --format "{{.Names}}" 2> /dev/null | grep -q prosody; then
             log_warn "No Prosody container running. Skipping command: $*"
             return 1
         fi
@@ -171,10 +171,10 @@ get_cert_expiry() {
     local cert_file="$1"
     local expiry_date
 
-    if run_in_container test -f "$cert_file" 2>/dev/null; then
-        expiry_date=$(run_in_container openssl x509 -in "$cert_file" -noout -enddate 2>/dev/null | cut -d= -f2)
+    if run_in_container test -f "$cert_file" 2> /dev/null; then
+        expiry_date=$(run_in_container openssl x509 -in "$cert_file" -noout -enddate 2> /dev/null | cut -d= -f2)
         if [[ -n "$expiry_date" ]]; then
-            date -d "$expiry_date" +%s 2>/dev/null || echo "0"
+            date -d "$expiry_date" +%s 2> /dev/null || echo "0"
         else
             echo "0"
         fi
@@ -190,9 +190,9 @@ days_until_expiry() {
     current_epoch=$(date +%s)
 
     if [[ "$expiry_epoch" -eq 0 ]]; then
-        echo "-1"  # Certificate not found or invalid
+        echo "-1" # Certificate not found or invalid
     else
-        echo $(( (expiry_epoch - current_epoch) / 86400 ))
+        echo $(((expiry_epoch - current_epoch) / 86400))
     fi
 }
 
@@ -234,9 +234,9 @@ check_certificate_status() {
     fi
 
     # Get additional certificate info
-    expiry_date=$(run_in_container openssl x509 -in "$cert_file" -noout -enddate 2>/dev/null | cut -d= -f2 || echo "unknown")
-    issuer=$(run_in_container openssl x509 -in "$cert_file" -noout -issuer 2>/dev/null | sed 's/issuer=//' || echo "unknown")
-    subject=$(run_in_container openssl x509 -in "$cert_file" -noout -subject 2>/dev/null | sed 's/subject=//' || echo "unknown")
+    expiry_date=$(run_in_container openssl x509 -in "$cert_file" -noout -enddate 2> /dev/null | cut -d= -f2 || echo "unknown")
+    issuer=$(run_in_container openssl x509 -in "$cert_file" -noout -issuer 2> /dev/null | sed 's/issuer=//' || echo "unknown")
+    subject=$(run_in_container openssl x509 -in "$cert_file" -noout -subject 2> /dev/null | sed 's/subject=//' || echo "unknown")
 
     # Determine status based on days left
     if [[ "$days_left" -le "$CERT_CRITICAL_THRESHOLD" ]]; then
@@ -293,7 +293,7 @@ monitor_certificates() {
         ((cert_count++))
 
         case "$status" in
-            "critical"|"missing"|"missing_key"|"invalid")
+            "critical" | "missing" | "missing_key" | "invalid")
                 ((critical_count++))
                 overall_status="critical"
                 ;;
@@ -441,8 +441,8 @@ copy_letsencrypt_to_prosody() {
     log_info "Copying Let's Encrypt certificates to Prosody for $domain"
 
     # Copy certificate files
-    if docker cp ".runtime/certs/live/$domain/fullchain.pem" "$container_name:/etc/prosody/certs/$domain.crt" && \
-       docker cp ".runtime/certs/live/$domain/privkey.pem" "$container_name:/etc/prosody/certs/$domain.key"; then
+    if docker cp ".runtime/certs/live/$domain/fullchain.pem" "$container_name:/etc/prosody/certs/$domain.crt" \
+        && docker cp ".runtime/certs/live/$domain/privkey.pem" "$container_name:/etc/prosody/certs/$domain.key"; then
 
         # Set proper permissions
         run_in_container chown prosody:prosody "/etc/prosody/certs/$domain.crt" "/etc/prosody/certs/$domain.key"
@@ -538,15 +538,16 @@ Please check certificate status and renew if necessary.
     log_info "Sending alert notification: $subject"
 
     # Send email alert if configured
-    if [[ -n "$CERT_ALERT_EMAIL" ]] && command -v mail >/dev/null 2>&1; then
+    if [[ -n "$CERT_ALERT_EMAIL" ]] && command -v mail > /dev/null 2>&1; then
         echo "$message" | mail -s "$subject" "$CERT_ALERT_EMAIL"
         log_info "Email alert sent to $CERT_ALERT_EMAIL"
     fi
 
     # Send webhook alert if configured
-    if [[ -n "$CERT_WEBHOOK_URL" ]] && command -v curl >/dev/null 2>&1; then
+    if [[ -n "$CERT_WEBHOOK_URL" ]] && command -v curl > /dev/null 2>&1; then
         local webhook_payload
-        webhook_payload=$(cat <<EOF
+        webhook_payload=$(
+            cat << EOF
 {
   "text": "$subject",
   "attachments": [
@@ -872,7 +873,7 @@ main() {
         "config")
             show_config
             ;;
-        "help"|"--help"|"-h")
+        "help" | "--help" | "-h")
             show_help
             ;;
         *)
