@@ -112,7 +112,8 @@ test_compose_up() {
     local attempt=1
 
     while [[ $attempt -le $max_attempts ]]; do
-        local healthy_count=$(docker compose -f docker-compose.dev.yml ps --format json | jq -r '.State' | grep -c "running" 2>/dev/null || echo "0")
+        local healthy_count
+        healthy_count=$(docker compose -f docker-compose.dev.yml ps --format json | jq -r '.State' | grep -c "running" 2>/dev/null || echo "0")
 
         if [[ $healthy_count -ge 3 ]]; then # postgres, prosody, nginx should be running
             log_success "All services started successfully"
@@ -185,7 +186,8 @@ test_module_loading() {
 
     # Check if prosody-modules-enabled directory exists and has content
     local enabled_dir="/usr/local/lib/prosody/prosody-modules-enabled"
-    local module_count=$(docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev ls "$enabled_dir" 2>/dev/null | wc -l)
+    local module_count
+    module_count=$(docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev ls "$enabled_dir" 2>/dev/null | wc -l)
 
     if [[ $module_count -gt 0 ]]; then
         log_success "Found $module_count enabled modules"
@@ -194,7 +196,8 @@ test_module_loading() {
     fi
 
     # Check Prosody logs for module loading errors
-    local error_count=$(docker compose -f docker-compose.dev.yml logs xmpp-prosody-dev 2>/dev/null | grep -c "Unable to load module" || echo "0")
+    local error_count
+    error_count=$(docker compose -f docker-compose.dev.yml logs xmpp-prosody-dev 2>/dev/null | grep -c "Unable to load module" || echo "0")
 
     if [[ $error_count -eq 0 ]]; then
         log_success "No module loading errors found"
@@ -219,7 +222,8 @@ test_configuration() {
     fi
 
     # Check if required environment variables are set
-    local lua_path=$(docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev env | grep LUA_PATH | cut -d'=' -f2)
+    local lua_path
+    lua_path=$(docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev env | grep LUA_PATH | cut -d'=' -f2)
     if [[ -n "$lua_path" ]] && [[ "$lua_path" == *"/usr/local/lib/prosody/prosody-modules-enabled"* ]]; then
         log_success "LUA_PATH is correctly configured"
     else

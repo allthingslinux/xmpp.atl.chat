@@ -39,8 +39,8 @@ check_permissions() {
 
 # Generate secure password
 generate_password() {
-    local length=${1:-32}
-    openssl rand -base64 $length | tr -d '\n' | tr -d '/' | cut -c1-$length
+    local length="${1:-32}"
+    openssl rand -base64 "$length" | tr -d '\n' | tr -d '/' | cut -c1-"$length"
 }
 
 # Setup database password
@@ -50,7 +50,7 @@ setup_database_password() {
     if [[ -z "${PROSODY_DB_PASSWORD:-}" ]]; then
         local db_password
         db_password=$(generate_password 32)
-        echo "PROSODY_DB_PASSWORD=$db_password" >>.env.production.local
+        echo "PROSODY_DB_PASSWORD=$db_password" >> .env.production.local
         log_success "Generated database password"
     else
         log_info "Database password already set"
@@ -60,8 +60,8 @@ setup_database_password() {
     if [[ -z "${POSTGRES_PASSWORD:-}" ]]; then
         local pg_password
         pg_password=$(generate_password 32)
-        echo "POSTGRES_PASSWORD=$pg_password" >>.env.production.local
-        echo "ADMINER_DEFAULT_PASSWORD=$pg_password" >>.env.production.local
+        echo "POSTGRES_PASSWORD=$pg_password" >> .env.production.local
+        echo "ADMINER_DEFAULT_PASSWORD=$pg_password" >> .env.production.local
         log_success "Generated PostgreSQL passwords"
     fi
 }
@@ -73,7 +73,7 @@ setup_admin_password() {
     if [[ -z "${PROSODY_ADMIN_PASSWORD:-}" ]]; then
         local admin_password
         admin_password=$(generate_password 24)
-        echo "PROSODY_ADMIN_PASSWORD=$admin_password" >>.env.production.local
+        echo "PROSODY_ADMIN_PASSWORD=$admin_password" >> .env.production.local
         log_success "Generated admin password"
         log_warn "Save this password securely: $admin_password"
     else
@@ -88,7 +88,7 @@ setup_turn_secret() {
     if [[ -z "${TURN_SECRET:-}" ]]; then
         local turn_secret
         turn_secret=$(generate_password 40)
-        echo "TURN_SECRET=$turn_secret" >>.env.production.local
+        echo "TURN_SECRET=$turn_secret" >> .env.production.local
         log_success "Generated TURN secret"
     else
         log_info "TURN secret already set"
@@ -100,7 +100,7 @@ setup_cloudflare_credentials() {
     log_info "Setting up Cloudflare credentials for SSL certificates..."
 
     local cf_email cf_api_key
-    
+
     echo "Please enter your Cloudflare email:"
     read -r cf_email
 
@@ -109,12 +109,12 @@ setup_cloudflare_credentials() {
     echo
 
     if [[ -n "$cf_email" && -n "$cf_api_key" ]]; then
-        echo "CLOUDFLARE_EMAIL=$cf_email" >>.env.production.local
-        echo "CLOUDFLARE_API_KEY=$cf_api_key" >>.env.production.local
+        echo "CLOUDFLARE_EMAIL=$cf_email" >> .env.production.local
+        echo "CLOUDFLARE_API_KEY=$cf_api_key" >> .env.production.local
 
         # Create Cloudflare credentials file for Certbot
         mkdir -p .runtime
-        cat >.runtime/cloudflare-credentials.ini <<EOF
+        cat > .runtime/cloudflare-credentials.ini << EOF
 # Cloudflare API credentials for DNS-01 challenge
 dns_cloudflare_email = $cf_email
 dns_cloudflare_api_key = $cf_api_key

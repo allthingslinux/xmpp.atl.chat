@@ -136,7 +136,7 @@ main() {
 
     while true; do
         show_menu
-        read -p "Select an option (1-4): " choice
+        read -r -p "Select an option (1-4): " choice
 
         case $choice in
             1)
@@ -161,7 +161,7 @@ main() {
         esac
 
         echo
-        read -p "Press Enter to continue..."
+        read -r -p "Press Enter to continue..."
         clear
     done
 }
