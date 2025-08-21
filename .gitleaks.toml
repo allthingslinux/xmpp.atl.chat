@@ -3,7 +3,7 @@
 
 [allowlist]
 description = "Allowlist for prosody-modules directories"
-paths = ["prosody-modules/**", "prosody-modules-enabled/**"]
+paths = ["prosody-modules", "prosody-modules-enabled"]
 
 # Also exclude common false positives
 regexes = [

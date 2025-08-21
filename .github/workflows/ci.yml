@@ -186,8 +186,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-        with:
-          config: .gitleaks.toml
 
       - name: Basic container scan
         if: needs.changes.outputs.docker == 'true'
