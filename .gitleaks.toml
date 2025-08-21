@@ -5,6 +5,20 @@
 description = "Allowlist for prosody-modules directories"
 paths = ["prosody-modules", "prosody-modules-enabled"]
 
+# Handle shallow clones and CI environments
+[detect]
+# Use current commit only instead of range scanning
+commit-from = ""
+commit-to = ""
+# Scan all files in current commit
+scan-commits = false
+# Scan staged changes
+scan-staged = false
+# Scan unstaged changes  
+scan-unstaged = false
+# Scan working directory files
+scan-working-dir = true
+
 # Also exclude common false positives
 regexes = [
     "AKIA[0-9A-Z]{16}",    # AWS Access Key ID

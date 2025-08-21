@@ -180,6 +180,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Run GitLeaks secret scanner
         uses: gitleaks/gitleaks-action@v2
