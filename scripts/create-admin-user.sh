@@ -43,7 +43,7 @@ log_error() {
 
 # Check if we're running in Docker
 is_docker_environment() {
-    [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2>/dev/null
+    [[ -f /.dockerenv ]] || grep -q docker /proc/1/cgroup 2> /dev/null
 }
 
 # Get container name
@@ -70,7 +70,7 @@ run_in_container() {
     if is_docker_environment; then
         "$@"
     else
-        if ! docker ps --format "{{.Names}}" 2>/dev/null | grep -q prosody; then
+        if ! docker ps --format "{{.Names}}" 2> /dev/null | grep -q prosody; then
             log_warn "No Prosody container running"
             return 1
         fi
@@ -84,7 +84,7 @@ wait_for_prosody() {
 
     # Try to connect to Prosody port instead of using prosodyctl
     for _ in {1..30}; do
-        if timeout 1 bash -c "echo >/dev/tcp/xmpp-prosody-dev/5222" 2>/dev/null; then
+        if timeout 1 bash -c "echo >/dev/tcp/xmpp-prosody-dev/5222" 2> /dev/null; then
             log_success "Prosody is ready (port 5222 is open)"
             return 0
         fi
@@ -113,7 +113,7 @@ create_admin_user() {
     fi
 
     # Check if user exists
-    if run_in_container prosodyctl getpassword "$username" "$domain" >/dev/null 2>&1; then
+    if run_in_container prosodyctl getpassword "$username" "$domain" > /dev/null 2>&1; then
         log_warn "Admin user $jid already exists"
         return 0
     fi
@@ -121,8 +121,8 @@ create_admin_user() {
     log_info "Creating admin user: $jid"
 
     # Create the user
-    if run_in_container prosodyctl adduser "$username@$domain" <<<"$password
-$password" 2>/dev/null; then
+    if run_in_container prosodyctl adduser "$username@$domain" <<< "$password
+$password" 2> /dev/null; then
         log_success "Admin user created successfully: $jid"
         return 0
     else
