@@ -23,38 +23,37 @@ scrape_configs:
           instance_type: "xmpp_server"
           domain: "atl.chat" # Your XMPP domain
 
+# ============================================================================
+# POSTGRESQL DATABASE METRICS (if postgres_exporter is running)
+# ============================================================================
+# Uncomment if you have postgres_exporter running on your system
+# - job_name: 'postgresql-prosody'
+#   static_configs:
+#     - targets: ['xmpp.atl.chat:9187']  # Default postgres_exporter port
+#
+#   scrape_interval: 30s
+#   static_configs:
+#     - targets: ['xmpp.atl.chat:9187']
+#       labels:
+#         service: 'postgresql'
+#         database: 'prosody'
+#         environment: 'production'
 
-  # ============================================================================
-  # POSTGRESQL DATABASE METRICS (if postgres_exporter is running)
-  # ============================================================================
-  # Uncomment if you have postgres_exporter running on your system
-  # - job_name: 'postgresql-prosody'
-  #   static_configs:
-  #     - targets: ['xmpp.atl.chat:9187']  # Default postgres_exporter port
-  #
-  #   scrape_interval: 30s
-  #   static_configs:
-  #     - targets: ['xmpp.atl.chat:9187']
-  #       labels:
-  #         service: 'postgresql'
-  #         database: 'prosody'
-  #         environment: 'production'
-
-  # ============================================================================
-  # COTURN TURN/STUN SERVER METRICS (if coturn exporter is available)
-  # ============================================================================
-  # Note: Coturn doesn't have built-in Prometheus metrics
-  # You would need a separate exporter like coturn_exporter
-  # - job_name: 'coturn-stun'
-  #   static_configs:
-  #     - targets: ['xmpp.atl.chat:9641']  # Example coturn_exporter port
-  #
-  #   scrape_interval: 30s
-  #   static_configs:
-  #     - targets: ['xmpp.atl.chat:9641']
-  #       labels:
-  #         service: 'coturn'
-  #         environment: 'production'
+# ============================================================================
+# COTURN TURN/STUN SERVER METRICS (if coturn exporter is available)
+# ============================================================================
+# Note: Coturn doesn't have built-in Prometheus metrics
+# You would need a separate exporter like coturn_exporter
+# - job_name: 'coturn-stun'
+#   static_configs:
+#     - targets: ['xmpp.atl.chat:9641']  # Example coturn_exporter port
+#
+#   scrape_interval: 30s
+#   static_configs:
+#     - targets: ['xmpp.atl.chat:9641']
+#       labels:
+#         service: 'coturn'
+#         environment: 'production'
 # ============================================================================
 # PROSODY METRICS AVAILABLE
 # ============================================================================
