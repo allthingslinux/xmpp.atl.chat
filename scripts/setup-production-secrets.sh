@@ -48,7 +48,8 @@ setup_database_password() {
     log_info "Setting up database password..."
 
     if [[ -z "${PROSODY_DB_PASSWORD:-}" ]]; then
-        local db_password=$(generate_password 32)
+        local db_password
+        db_password=$(generate_password 32)
         echo "PROSODY_DB_PASSWORD=$db_password" >>.env.production.local
         log_success "Generated database password"
     else
@@ -57,7 +58,8 @@ setup_database_password() {
 
     # Also set PostgreSQL password for Docker
     if [[ -z "${POSTGRES_PASSWORD:-}" ]]; then
-        local pg_password=$(generate_password 32)
+        local pg_password
+        pg_password=$(generate_password 32)
         echo "POSTGRES_PASSWORD=$pg_password" >>.env.production.local
         echo "ADMINER_DEFAULT_PASSWORD=$pg_password" >>.env.production.local
         log_success "Generated PostgreSQL passwords"
@@ -69,7 +71,8 @@ setup_admin_password() {
     log_info "Setting up admin password..."
 
     if [[ -z "${PROSODY_ADMIN_PASSWORD:-}" ]]; then
-        local admin_password=$(generate_password 24)
+        local admin_password
+        admin_password=$(generate_password 24)
         echo "PROSODY_ADMIN_PASSWORD=$admin_password" >>.env.production.local
         log_success "Generated admin password"
         log_warn "Save this password securely: $admin_password"
@@ -83,7 +86,8 @@ setup_turn_secret() {
     log_info "Setting up TURN secret..."
 
     if [[ -z "${TURN_SECRET:-}" ]]; then
-        local turn_secret=$(generate_password 40)
+        local turn_secret
+        turn_secret=$(generate_password 40)
         echo "TURN_SECRET=$turn_secret" >>.env.production.local
         log_success "Generated TURN secret"
     else
@@ -95,6 +99,8 @@ setup_turn_secret() {
 setup_cloudflare_credentials() {
     log_info "Setting up Cloudflare credentials for SSL certificates..."
 
+    local cf_email cf_api_key
+    
     echo "Please enter your Cloudflare email:"
     read -r cf_email
 

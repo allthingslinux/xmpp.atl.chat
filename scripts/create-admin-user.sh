@@ -83,7 +83,7 @@ wait_for_prosody() {
     log_info "Waiting for Prosody to be ready..."
 
     # Try to connect to Prosody port instead of using prosodyctl
-    for i in {1..30}; do
+    for _ in {1..30}; do
         if timeout 1 bash -c "echo >/dev/tcp/xmpp-prosody-dev/5222" 2>/dev/null; then
             log_success "Prosody is ready (port 5222 is open)"
             return 0
