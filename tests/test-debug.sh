@@ -37,8 +37,8 @@ log_warning() {
 
 cleanup() {
     log_info "Cleaning up test environment..."
-    docker compose -f docker-compose.dev.yml down -v --remove-orphans 2> /dev/null || true
-    docker system prune -f 2> /dev/null || true
+    docker compose -f docker-compose.dev.yml down -v --remove-orphans 2>/dev/null || true
+    docker system prune -f 2>/dev/null || true
 }
 
 # Test 1: Check prerequisites
@@ -46,14 +46,14 @@ test_prerequisites() {
     log_info "Test 1: Checking prerequisites..."
 
     # Check if Docker is running
-    if ! docker info > /dev/null 2>&1; then
+    if ! docker info >/dev/null 2>&1; then
         log_failure "Docker is not running"
         return 1
     fi
     log_success "Docker is running"
 
     # Check if docker-compose exists
-    if ! command -v docker compose > /dev/null 2>&1; then
+    if ! command -v docker compose >/dev/null 2>&1; then
         log_failure "docker compose command not found"
         return 1
     fi
@@ -75,7 +75,7 @@ test_docker_build() {
     log_info "Test 2: Testing Docker build..."
 
     # Clean up any existing images
-    docker rmi allthingslinux/prosody:dev 2> /dev/null || true
+    docker rmi allthingslinux/prosody:dev 2>/dev/null || true
 
     # Build the image
     if docker build -t allthingslinux/prosody:dev .; then
@@ -112,7 +112,7 @@ test_compose_up() {
     local attempt=1
 
     while [[ $attempt -le $max_attempts ]]; do
-        local healthy_count=$(docker compose -f docker-compose.dev.yml ps --format json | jq -r '.State' | grep -c "running" 2> /dev/null || echo "0")
+        local healthy_count=$(docker compose -f docker-compose.dev.yml ps --format json | jq -r '.State' | grep -c "running" 2>/dev/null || echo "0")
 
         if [[ $healthy_count -ge 3 ]]; then # postgres, prosody, nginx should be running
             log_success "All services started successfully"
@@ -161,7 +161,7 @@ test_web_endpoints() {
     sleep 3
 
     # Test nginx dev endpoint
-    if curl -s -f http://localhost:8080/dev-test > /dev/null 2>&1; then
+    if curl -s -f http://localhost:8080/dev-test >/dev/null 2>&1; then
         log_success "Nginx dev-test endpoint is working"
     else
         log_failure "Nginx dev-test endpoint failed"
@@ -169,9 +169,9 @@ test_web_endpoints() {
     fi
 
     # Test status endpoint (if available)
-    if curl -s -f http://localhost:8080/status > /dev/null 2>&1; then
+    if curl -s -f http://localhost:8080/status >/dev/null 2>&1; then
         log_success "Prosody status endpoint is working"
-    elif curl -s -I http://localhost:8080/status 2> /dev/null | head -1 | grep -q "404"; then
+    elif curl -s -I http://localhost:8080/status 2>/dev/null | head -1 | grep -q "404"; then
         log_warning "Status endpoint returns 404 (module may not be enabled)"
     else
         log_failure "Status endpoint is not accessible"
@@ -185,7 +185,7 @@ test_module_loading() {
 
     # Check if prosody-modules-enabled directory exists and has content
     local enabled_dir="/usr/local/lib/prosody/prosody-modules-enabled"
-    local module_count=$(docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev ls "$enabled_dir" 2> /dev/null | wc -l)
+    local module_count=$(docker compose -f docker-compose.dev.yml exec xmpp-prosody-dev ls "$enabled_dir" 2>/dev/null | wc -l)
 
     if [[ $module_count -gt 0 ]]; then
         log_success "Found $module_count enabled modules"
@@ -194,7 +194,7 @@ test_module_loading() {
     fi
 
     # Check Prosody logs for module loading errors
-    local error_count=$(docker compose -f docker-compose.dev.yml logs xmpp-prosody-dev 2> /dev/null | grep -c "Unable to load module" || echo "0")
+    local error_count=$(docker compose -f docker-compose.dev.yml logs xmpp-prosody-dev 2>/dev/null | grep -c "Unable to load module" || echo "0")
 
     if [[ $error_count -eq 0 ]]; then
         log_success "No module loading errors found"
