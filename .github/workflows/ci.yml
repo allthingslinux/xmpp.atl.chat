@@ -92,7 +92,7 @@ jobs:
       - name: Find files
         id: find-files
         run: |
-          files=$(find . -name "${{ matrix.files }}" -not -path "./.git/*" | sort)
+          files=$(find . -name "${{ matrix.files }}" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*" | sort)
           echo "Found ${{ matrix.language }} files:"
           echo "$files"
 
@@ -101,7 +101,10 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "files=$files" >> "$GITHUB_OUTPUT"
+            # Store files list safely, handling special characters
+            echo "files<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$files" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run sh-checker (shell files only)
@@ -137,13 +140,21 @@ jobs:
         id: json-validate
         with:
           cmd: |
-            for file in $(find . -name "*.json" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*"); do
+            echo "🔍 Validating JSON files..."
+            json_files=$(find . -name "*.json" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*" | sort)
+            if [ -z "$json_files" ]; then
+              echo "No JSON files found to validate"
+              exit 0
+            fi
+            echo "Found JSON files: $json_files"
+            for file in $json_files; do
               if ! jq empty "$file" >/dev/null 2>&1; then
                 echo "❌ Invalid JSON: $file"
                 exit 1
               fi
               echo "✅ Valid JSON: $file"
             done
+            echo "✅ All JSON files are valid"
           multiline: true
 
       - name: Run markdownlint
@@ -167,6 +178,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
       - name: Basic container scan
         if: needs.changes.outputs.docker == 'true'
@@ -424,10 +436,6 @@ jobs:
 
           # Cleanup
           docker compose down -v
-
-
-
-
 
   # Summary job
   summary:
