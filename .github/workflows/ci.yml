@@ -92,7 +92,7 @@ jobs:
       - name: Find files
         id: find-files
         run: |
-          files=$(find . -name "${{ matrix.files }}" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*" | sort)
+          files=$(find . -name "${{ matrix.files }}" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*" -not -path "./prosody-modules/*" | sort)
           echo "Found ${{ matrix.language }} files:"
           echo "$files"
 
@@ -119,7 +119,7 @@ jobs:
           SHELLCHECK_OPTS: -e SC1090 -e SC1091
           SHFMT_OPTS: -i 4 -ci
         with:
-          sh_checker_exclude: "prosody-modules-enabled .git"
+          sh_checker_exclude: "prosody-modules-enabled prosody-modules .git"
           sh_checker_comment: true
           sh_checker_checkbashisms_enable: true
 
@@ -145,7 +145,7 @@ jobs:
         with:
           cmd: |
             echo "🔍 Validating JSON files..."
-            json_files=$(find . -name "*.json" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*" | sort)
+            json_files=$(find . -name "*.json" -not -path "./.git/*" -not -path "./prosody-modules-enabled/*" -not -path "./prosody-modules/*" | sort)
             if [ -z "$json_files" ]; then
               echo "No JSON files found to validate"
               exit 0
@@ -166,11 +166,14 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@v20
         with:
           config: .markdownlint.yml
-          globs: '**/*.md'
+          globs: |
+            **/*.md
+            !prosody-modules/**/*.md
+            !prosody-modules-enabled/**/*.md
 
   # Security scanning job
   security:
-    name: Security Scan
+    name: Security Scan 
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.docker == 'true' || needs.changes.outputs.config == 'true'
@@ -183,6 +186,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          config: .gitleaks.toml
 
       - name: Basic container scan
         if: needs.changes.outputs.docker == 'true'
