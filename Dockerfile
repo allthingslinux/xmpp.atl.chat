@@ -1,3 +1,4 @@
+
 # --- 1. Builder stage: Build Prosody and LuaRocks ---
 FROM debian:bookworm-slim AS builder
 
@@ -7,7 +8,7 @@ ARG PROSODY_VERSION=13.0.2
 # Set shell options for better error handling
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install build dependencies
+# hadolint ignore=DL3008
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
@@ -51,30 +52,34 @@ RUN set -x && \
     curl -fsSL -o prosody.tar.gz "https://prosody.im/downloads/source/prosody-${PROSODY_VERSION}.tar.gz" && \
     mkdir -p prosody && \
     tar -xzf prosody.tar.gz -C prosody --strip-components=1 && \
-    rm prosody.tar.gz && \
-    cd prosody && \
-    ./configure \
+    rm prosody.tar.gz
+
+WORKDIR /usr/src/prosody
+RUN ./configure \
     --prefix=/usr/local \
     --sysconfdir=/etc/prosody \
     --datadir=/var/lib/prosody \
     --with-lua=/usr \
     --runwith=lua5.4 \
     --no-example-certs && \
-    make -j$(nproc) && \
-    make install && \
-    cd .. && \
-    rm -rf prosody*
+    make -j"$(nproc)" && \
+    make install
+
+WORKDIR /usr/src
+RUN rm -rf prosody*
 
 # Build LuaRocks
 WORKDIR /usr/src/luarocks
 RUN curl -fsSL -o luarocks-${LUAROCKS_VERSION}.tar.gz https://luarocks.org/releases/luarocks-${LUAROCKS_VERSION}.tar.gz && \
     tar zxf luarocks-${LUAROCKS_VERSION}.tar.gz && \
-    rm luarocks-${LUAROCKS_VERSION}.tar.gz && \
-    cd luarocks-${LUAROCKS_VERSION} && \
-    ./configure --with-lua=/usr && \
-    make bootstrap && \
-    cd .. && \
-    rm -rf luarocks*
+    rm luarocks-${LUAROCKS_VERSION}.tar.gz
+
+WORKDIR /usr/src/luarocks/luarocks-${LUAROCKS_VERSION}
+RUN ./configure --with-lua=/usr && \
+    make bootstrap
+
+WORKDIR /usr/src/luarocks
+RUN rm -rf luarocks*
 
 # --- 2. Runtime stage: Minimal image ---
 FROM debian:bookworm-slim
@@ -82,7 +87,7 @@ FROM debian:bookworm-slim
 # Set shell options for better error handling
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install runtime dependencies only (no build tools)
+# hadolint ignore=DL3008
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     lua5.4 \
@@ -137,8 +142,7 @@ COPY prosody-modules /usr/local/lib/prosody/prosody-modules
 COPY prosody-modules-enabled /usr/local/lib/prosody/prosody-modules-enabled
 
 # Ensure the directories exist even if cache is not available
-RUN mkdir -p /usr/local/lib/prosody/prosody-modules
-RUN mkdir -p /usr/local/lib/prosody/prosody-modules-enabled
+RUN mkdir -p /usr/local/lib/prosody/prosody-modules /usr/local/lib/prosody/prosody-modules-enabled
 
 # --- Expose all relevant ports ---
 EXPOSE 5222 5223 5269 5270 5280 5281 5347 5000
