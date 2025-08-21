@@ -299,8 +299,12 @@ jobs:
 
           # Test that required packages are installed
           echo "Checking installed packages..."
-          docker run --rm xmpp-atl-chat:test prosody --version
           docker run --rm xmpp-atl-chat:test lua5.4 -v
+          
+          # Test Prosody binary exists (without running it, since config is mounted at runtime)
+          echo "Checking Prosody binary..."
+          docker run --rm xmpp-atl-chat:test which prosody
+          docker run --rm xmpp-atl-chat:test ls -la /usr/local/bin/prosody
 
           # Test that module directories exist
           echo "Checking module directories..."
