@@ -181,7 +181,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0  # Fetch all history for complete commit range
 
       - name: Run GitLeaks secret scanner
         uses: gitleaks/gitleaks-action@v2
