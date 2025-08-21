@@ -135,7 +135,6 @@ COPY --chown=prosody:prosody scripts/maintenance/health-check.sh /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/health-check.sh
 
-# --- Community modules (local-first approach) ---
 # Using local cache approach: modules are cloned locally and enabled via symlinks
 # Copy both the full repository and the enabled modules directory
 COPY prosody-modules /usr/local/lib/prosody/prosody-modules

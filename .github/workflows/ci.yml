@@ -290,11 +290,10 @@ jobs:
         run: |
           echo "🧪 Testing Docker image structure..."
 
-          # Test that expected files exist
+          # Test that expected files exist (only files copied into image)
           echo "Checking for required files..."
-          docker run --rm xmpp-atl-chat:test ls -la /etc/prosody/prosody.cfg.lua
           docker run --rm xmpp-atl-chat:test ls -la /usr/local/bin/entrypoint.sh
-          docker run --rm xmpp-atl-chat:test ls -la /usr/local/bin/prosody-manager
+          docker run --rm xmpp-atl-chat:test ls -la /usr/local/bin/health-check.sh
 
           # Test that prosody user exists
           echo "Checking prosody user..."
@@ -304,6 +303,10 @@ jobs:
           echo "Checking installed packages..."
           docker run --rm xmpp-atl-chat:test prosody --version
           docker run --rm xmpp-atl-chat:test lua5.4 -v
+
+          # Test that module directories exist
+          echo "Checking module directories..."
+          docker run --rm xmpp-atl-chat:test ls -la /usr/local/lib/prosody/prosody-modules-enabled/
 
           echo "✅ Docker image structure tests passed"
 
