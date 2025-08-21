@@ -132,10 +132,12 @@ RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/health-check.sh
 
 # --- Community modules (local-first approach) ---
 # Using local cache approach: modules are cloned locally and enabled via symlinks
-# Only the enabled modules directory is copied (not the full repository)
+# Copy both the full repository and the enabled modules directory
+COPY prosody-modules /usr/local/lib/prosody/prosody-modules
 COPY prosody-modules-enabled /usr/local/lib/prosody/prosody-modules-enabled
 
-# Ensure the directory exists even if cache is not available
+# Ensure the directories exist even if cache is not available
+RUN mkdir -p /usr/local/lib/prosody/prosody-modules
 RUN mkdir -p /usr/local/lib/prosody/prosody-modules-enabled
 
 # --- Expose all relevant ports ---

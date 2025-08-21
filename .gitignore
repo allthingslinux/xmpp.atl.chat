@@ -13,6 +13,7 @@ certs/
 .env
 .env.test
 .env.local
+.env.production.local
 cloudflare-credentials.ini
 
 .kiro/

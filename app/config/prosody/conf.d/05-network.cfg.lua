@@ -17,11 +17,9 @@
 -- - Services can be individually overridden via <service>_ports and
 --   <service>_interfaces (e.g., c2s_ports, s2s_interfaces, etc.).
 -- - Private services (e.g., components, console) default to loopback.
-
 -- ===============================================
 -- Default service ports (override as needed)
 -- ===============================================
-
 -- Client-to-server (XMPP over TCP, STARTTLS-capable)
 c2s_ports = { 5222 }
 
@@ -78,10 +76,10 @@ network_backend = "event"
 -- Common advanced network settings. See docs for full list.
 -- https://prosody.im/doc/ports#advanced
 network_settings = {
-	read_timeout = 840, -- seconds; align with reverse proxy timeouts (~900s)
-	-- send_timeout = 300,
-	-- max_send_buffer_size = 1048576,
-	-- tcp_backlog = 32,
+    read_timeout = 840 -- seconds; align with reverse proxy timeouts (~900s)
+    -- send_timeout = 300,
+    -- max_send_buffer_size = 1048576,
+    -- tcp_backlog = 32,
 }
 
 -- ===============================================
@@ -99,7 +97,8 @@ proxy65_interfaces = { "*" }
 -- Docs: https://prosody.im/doc/http
 
 -- External URL advertised to clients and components
-local __http_host = Lua.os.getenv("PROSODY_HTTP_HOST") or Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
+local __http_host = Lua.os.getenv("PROSODY_HTTP_HOST") or
+    Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
 local __http_scheme = Lua.os.getenv("PROSODY_HTTP_SCHEME") or "http"
 http_default_host = __http_host
 http_external_url = __http_scheme .. "://" .. __http_host .. "/"
@@ -115,34 +114,31 @@ https_interfaces = { "*" }
 http_files_dir = "/usr/share/prosody/www"
 
 -- Trusted reverse proxies for X-Forwarded-* handling
-trusted_proxies = {
-	"127.0.0.1",
-	"172.18.0.0/16",
-	"10.0.0.0/8",
-}
+trusted_proxies = { "127.0.0.1", "172.18.0.0/16", "10.0.0.0/8" }
 
 -- Enable CORS for BOSH and WebSocket endpoints
 http_cors_override = {
-	bosh = { enabled = true },
-	websocket = { enabled = true },
-	file_share = { enabled = true },
+    bosh = { enabled = true },
+    websocket = { enabled = true },
+    file_share = { enabled = true }
 }
 
 -- Additional security headers for HTTP responses
 http_headers = {
-	["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload",
-	["X-Frame-Options"] = "DENY",
-	["X-Content-Type-Options"] = "nosniff",
-	["X-XSS-Protection"] = "1; mode=block",
-	["Referrer-Policy"] = "strict-origin-when-cross-origin",
-	-- Allow Converse.js CDN and XMPP endpoints for mod_conversejs
-	["Content-Security-Policy"] = "default-src 'self'; script-src 'self' https://cdn.conversejs.org 'unsafe-inline'; style-src 'self' https://cdn.conversejs.org 'unsafe-inline'; img-src 'self' data: https://cdn.conversejs.org; connect-src 'self' https: wss:; frame-ancestors 'none'",
+    ["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload",
+    ["X-Frame-Options"] = "DENY",
+    ["X-Content-Type-Options"] = "nosniff",
+    ["X-XSS-Protection"] = "1; mode=block",
+    ["Referrer-Policy"] = "strict-origin-when-cross-origin",
+    -- Allow Converse.js CDN and XMPP endpoints for mod_conversejs
+    ["Content-Security-Policy"] =
+    "default-src 'self'; script-src 'self' https://cdn.conversejs.org 'unsafe-inline'; style-src 'self' https://cdn.conversejs.org 'unsafe-inline'; img-src 'self' data: https://cdn.conversejs.org; connect-src 'self' https: wss:; frame-ancestors 'none'"
 }
 
 -- HTTP File Upload (XEP-0363)
-http_file_share_size_limit = 100 * 1024 * 1024 -- 100MB per file
-http_file_share_daily_quota = 1024 * 1024 * 1024 -- 1GB daily quota per user
-http_file_share_expire_after = 30 * 24 * 3600 -- 30 days expiration
+http_file_share_size_limit = 100 * 1024 * 1024         -- 100MB per file
+http_file_share_daily_quota = 1024 * 1024 * 1024       -- 1GB daily quota per user
+http_file_share_expire_after = 30 * 24 * 3600          -- 30 days expiration
 http_file_share_path = "/var/lib/prosody/http_file_share"
 http_file_share_global_quota = 10 * 1024 * 1024 * 1024 -- 10GB global quota
 
@@ -160,13 +156,13 @@ websocket_max_frame_size = 1024 * 1024
 
 -- Path mappings served by mod_http
 http_paths = {
-	file_share = "/upload",
-	files = "/",
-	pastebin = "/paste",
-	bosh = "/http-bind",
-	websocket = "/xmpp-websocket",
-	conversejs = "/conversejs",
-    status = "/status",
+    file_share = "/upload",
+    files = "/",
+    pastebin = "/paste",
+    bosh = "/http-bind",
+    websocket = "/xmpp-websocket",
+    conversejs = "/conversejs",
+    status = "/status"
 }
 
 -- HTTP Status API (mod_http_status) for monitoring
@@ -191,7 +187,8 @@ turn_external_secret = Lua.os.getenv("TURN_SECRET") or "devsecret"
 
 -- DNS hostname of the TURN (and STUN) server
 -- Use dedicated TURN subdomain for clean separation
-turn_external_host = Lua.os.getenv("TURN_DOMAIN") or Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
+turn_external_host = Lua.os.getenv("TURN_DOMAIN") or
+    Lua.os.getenv("PROSODY_DOMAIN") or "localhost"
 
 -- Port number used by TURN (and STUN) server
 turn_external_port = Lua.tonumber(Lua.os.getenv("TURN_PORT")) or 3478

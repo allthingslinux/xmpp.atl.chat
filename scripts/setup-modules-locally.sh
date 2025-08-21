@@ -9,6 +9,8 @@ set -e
 PROSODY_MODULES_DIR="prosody-modules"
 ENABLED_DIR="prosody-modules-enabled"
 
+# Admin web dependencies removed - no longer needed
+
 echo "📦 Setting up Prosody community modules (official approach)..."
 
 # Clone the repository (do this once)
@@ -44,7 +46,6 @@ DEFAULT_MODULES=(
     "mod_muc_notifications"
     "mod_muc_offline_delivery"
     "mod_http_status"
-    "mod_admin_web"
     "mod_compliance_latest"
     "mod_anti_spam"
     "mod_admin_blocklist"
@@ -66,6 +67,18 @@ for module in "${DEFAULT_MODULES[@]}"; do
         echo "✅ $module -> enabled"
     else
         echo "❌ $module not found in repository"
+    fi
+done
+
+# Fix module structure for community modules that have subdirectories
+echo "🔧 Fixing module structure for community modules..."
+for module_dir in "$ENABLED_DIR"/*; do
+    if [[ -d "$module_dir" && "$module_dir" == *mod_* ]]; then
+        module_name="${module_dir##*mod_}"
+        if [[ -d "$module_dir/$module_name" && -f "$module_dir/$module_name/mod_$module_name.lua" ]]; then
+            ln -sf "$module_dir/$module_name/mod_$module_name.lua" "$module_dir.lua"
+            echo "✅ Fixed structure for $module_name"
+        fi
     fi
 done
 

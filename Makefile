@@ -1,4 +1,4 @@
-.PHONY: help dev dev-up dev-down dev-logs dev-build dev-clean prod prod-up prod-down prod-logs prod-build prod-clean build clean logs status setup-modules update-modules list-modules enable-module test db-backup db-restore
+.PHONY: help dev dev-up dev-down dev-logs dev-build dev-clean prod prod-up prod-down prod-logs prod-build prod-clean build clean logs status setup-modules update-modules list-modules list-local-modules enable-module test db-backup db-restore
 
 # Default target
 help: ## Show this help message
@@ -12,7 +12,6 @@ dev: dev-up ## Start development environment
 dev-up: ## Start development environment
 	docker compose -f docker-compose.dev.yml up -d
 	@echo "Development environment started!"
-	@echo "Prosody: http://localhost:5280/admin (if enabled)"
 	@echo "Adminer: http://localhost:8081"
 	@echo "Logs:   http://localhost:8082"
 
@@ -153,9 +152,7 @@ test: ## Run basic connectivity tests
 		echo "Development environment not running"; \
 	fi
 
-test-admin: ## Run comprehensive admin interface tests
-	@echo "Running admin interface test suite..."
-	@./tests/test-admin-interface.sh
+
 
 # Utility Commands
 shell: ## Open shell in running Prosody container
@@ -251,7 +248,7 @@ list-modules: ## List installed Prosody modules
 		echo "Development environment not running"; \
 	fi
 
-list-modules: ## List available local modules
+list-local-modules: ## List available local modules
 	@echo "Available modules in prosody-modules repository:"
 	@if [[ -d "prosody-modules" ]]; then \
 		ls prosody-modules/ | grep "^mod_" | sort; \

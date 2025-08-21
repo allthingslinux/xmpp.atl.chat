@@ -69,13 +69,15 @@ storage = {
 
 -- Archive retention and policy
 archive_expires_after = Lua.os.getenv("PROSODY_ARCHIVE_EXPIRES_AFTER") or "1y" -- Keep messages for 1 year
-default_archive_policy = Lua.os.getenv("PROSODY_ARCHIVE_POLICY") ~= "false" -- Archive all conversations by default
-archive_compression = Lua.os.getenv("PROSODY_ARCHIVE_COMPRESSION") ~= "false" -- Compress archived messages
-archive_store = Lua.os.getenv("PROSODY_ARCHIVE_STORE") or "archive" -- Storage backend for archives
+default_archive_policy = Lua.os.getenv("PROSODY_ARCHIVE_POLICY") ~= "false"    -- Archive all conversations by default
+archive_compression = Lua.os.getenv("PROSODY_ARCHIVE_COMPRESSION") ~= "false"  -- Compress archived messages
+archive_store = Lua.os.getenv("PROSODY_ARCHIVE_STORE") or "archive"            -- Storage backend for archives
 
 -- Query limits
-max_archive_query_results = Lua.tonumber(Lua.os.getenv("PROSODY_ARCHIVE_MAX_QUERY_RESULTS")) or 250 -- Limit results per query
-mam_smart_enable = Lua.os.getenv("PROSODY_MAM_SMART_ENABLE") == "true" -- Disable smart archiving
+max_archive_query_results = Lua.tonumber(Lua.os.getenv("PROSODY_ARCHIVE_MAX_QUERY_RESULTS")) or
+	250 -- Limit results per query
+mam_smart_enable = Lua.os.getenv("PROSODY_MAM_SMART_ENABLE") ==
+	"true" -- Disable smart archiving
 
 -- Namespaces to exclude from archiving
 -- dont_archive_namespaces = {
@@ -135,10 +137,10 @@ mam_smart_enable = Lua.os.getenv("PROSODY_MAM_SMART_ENABLE") == "true" -- Disabl
 
 -- Lua garbage collection
 lua_gc_step_size = Lua.tonumber(Lua.os.getenv("LUA_GC_STEP_SIZE")) or 13 -- GC step size
-lua_gc_pause = Lua.tonumber(Lua.os.getenv("LUA_GC_PAUSE")) or 110 -- GC pause percentage
+lua_gc_pause = Lua.tonumber(Lua.os.getenv("LUA_GC_PAUSE")) or 110        -- GC pause percentage
 
 -- Enhanced garbage collection
 gc = {
-	speed = Lua.tonumber(Lua.os.getenv("LUA_GC_SPEED")) or 200, -- Collection speed
+	speed = Lua.tonumber(Lua.os.getenv("LUA_GC_SPEED")) or 200,      -- Collection speed
 	threshold = Lua.tonumber(Lua.os.getenv("LUA_GC_THRESHOLD")) or 120, -- Memory threshold percentage
 }

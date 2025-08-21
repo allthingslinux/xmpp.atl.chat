@@ -26,6 +26,8 @@ services:
     env_file:
       - path: .env.production
         required: true
+      - path: .env.production.local
+        required: true
 
     # Security configuration
     security_opt:
@@ -200,7 +202,9 @@ services:
     # Environment configuration
     env_file:
       - path: .env.production
-        required: false
+        required: true
+      - path: .env.production.local
+        required: true
 
     # Security configuration
     security_opt:
@@ -278,7 +282,9 @@ services:
     # Environment configuration
     env_file:
       - path: .env.production
-        required: false
+        required: true
+      - path: .env.production.local
+        required: true
 
     # TURN server configuration
     environment:
@@ -343,6 +349,8 @@ services:
     env_file:
       - path: .env.production
         required: true
+      - path: .env.production.local
+        required: true
 
     # Volume mounts
     volumes:
@@ -378,7 +386,9 @@ services:
     # Environment configuration
     env_file:
       - path: .env.production
-        required: false
+        required: true
+      - path: .env.production.local
+        required: true
 
     # Volume mounts
     volumes:
@@ -403,7 +413,9 @@ services:
     # Environment configuration
     env_file:
       - path: .env.production
-        required: false
+        required: true
+      - path: .env.production.local
+        required: true
 
     # Volume mounts
     volumes:
