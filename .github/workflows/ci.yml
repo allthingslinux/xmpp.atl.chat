@@ -178,7 +178,7 @@ jobs:
 
           # Run Trivy scan (critical only)
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-            -v $PWD:/tmp/work \
+            -v "$PWD:/tmp/work" \
             aquasecurity/trivy:latest image \
             --format json \
             --severity CRITICAL \
@@ -509,7 +509,7 @@ jobs:
 
           # Run Trivy scan (critical only)
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-            -v $PWD:/tmp/work \
+            -v "$PWD:/tmp/work" \
             aquasecurity/trivy:latest image \
             --format json \
             --severity CRITICAL \
