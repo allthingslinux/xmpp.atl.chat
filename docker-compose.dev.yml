@@ -88,7 +88,7 @@ services:
   # POSTGRESQL DATABASE (Development)
   # ============================================================================
   xmpp-postgres-dev:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     container_name: xmpp-postgres-dev
     hostname: xmpp-postgres-dev
     restart: unless-stopped
