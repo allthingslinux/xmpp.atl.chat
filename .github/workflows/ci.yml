@@ -161,7 +161,7 @@ jobs:
 
       - name: Run markdownlint
         if: matrix.language == 'markdown' && steps.find-files.outputs.skip == 'false'
-        uses: DavidAnson/markdownlint-cli2-action@v20
+        uses: DavidAnson/markdownlint-cli2-action@v21
         with:
           config: .markdownlint.yml
           globs: |
