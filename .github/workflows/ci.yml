@@ -26,7 +26,7 @@ jobs:
       
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Validate workflow syntax
         uses: raven-actions/actionlint@v2
@@ -85,7 +85,7 @@ jobs:
             files: "*.md"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Find files
         id: find-files
@@ -177,7 +177,7 @@ jobs:
     if: needs.changes.outputs.docker == 'true' || needs.changes.outputs.config == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Fetch all history for complete commit range
 
@@ -225,7 +225,7 @@ jobs:
       image-size: ${{ steps.size.outputs.size }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -513,7 +513,7 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Run GitLeaks secret scanner
         uses: gitleaks/gitleaks-action@v2
